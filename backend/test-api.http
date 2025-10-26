@@ -1,0 +1,107 @@
+### Test API Endpoints
+### Base URL
+@baseUrl = http://localhost:3001
+@superadminToken = 
+@adminToken = 
+
+### 1. Login as Superadmin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "superadmin@losia.com",
+  "password": "superadmin123"
+}
+
+### 2. Get current user info (Superadmin)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{superadminToken}}
+
+### 3. Create Admin user (Only Superadmin can do this - SUPERADMIN level 100 > ADMIN level 50)
+POST {{baseUrl}}/users
+Content-Type: application/json
+Authorization: Bearer {{superadminToken}}
+
+{
+  "email": "admin@losia.com",
+  "password": "admin123",
+  "firstName": "Admin",
+  "lastName": "User",
+  "role": "ADMIN",
+  "level": 50
+}
+
+###
+# Level Constants Reference:
+# SUPERADMIN: 100
+# ADMIN: 50
+# MANAGER: 30
+# STAFF: 10
+# USER: 0
+
+### 4. Login as Admin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@losia.com",
+  "password": "admin123"
+}
+
+### 5. Try to create another Admin (Should FAIL - ADMIN level 50 cannot create level 50)
+POST {{baseUrl}}/users
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "email": "admin2@losia.com",
+  "password": "admin123",
+  "firstName": "Admin",
+  "lastName": "Two",
+  "role": "ADMIN",
+  "level": 50
+}
+
+### 6. Admin creates Manager (Should SUCCESS - ADMIN level 50 > MANAGER level 30)
+POST {{baseUrl}}/users
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "email": "manager@losia.com",
+  "password": "manager123",
+  "firstName": "Manager",
+  "lastName": "User",
+  "role": "MANAGER",
+  "level": 30
+}
+
+### 7. Admin creates Staff (Should SUCCESS - ADMIN level 50 > STAFF level 10)
+POST {{baseUrl}}/users
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "email": "staff@losia.com",
+  "password": "staff123",
+  "firstName": "Staff",
+  "lastName": "User",
+  "role": "STAFF",
+  "level": 10
+}
+
+### 8. Get all users
+GET {{baseUrl}}/users
+Authorization: Bearer {{superadminToken}}
+
+### 9. Register normal user (level 0 by default)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "user@losia.com",
+  "password": "user123",
+  "firstName": "Normal",
+  "lastName": "User"
+}
+

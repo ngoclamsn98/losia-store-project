@@ -1,0 +1,32 @@
+{
+  "email": "ngoclam.sn98@gmail.com",
+  "fullName": "Ngọc Lẫm",
+  "phone": "0982144693",
+  "shippingAddress": {
+    "firstName": "Ngọc",
+    "lastName": "Lẫm",
+    "address1": "Diễn châu",
+    "address2": "",
+    "city": "Vinh",
+    "state": "",
+    "postalCode": "",
+    "phone": "0982144693"
+  },
+  "items": [
+    {
+      "productId": "767dc872-a17c-45f7-bf74-281f326ec4de",
+      "quantity": 2,
+      "price": "1000.00",
+      "title": "Thrift Dress"
+    }
+  ],
+  "subtotal": 2000,
+  "shippingCost": 30000,
+  "tax": 200,
+  "total": 32200,
+  "shippingMethod": "bundle",
+  "paymentMethod": "cod",
+  "cartId": null,
+  "anonId": "anon_382df5e0-e514-4ce3-bf2d-f4a347d46167"
+}
+

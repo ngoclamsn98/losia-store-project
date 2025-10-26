@@ -1,0 +1,15 @@
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { InventoryController } from './inventory.controller';
+import { InventoryService } from './inventory.service';
+import { ProductVariant } from '../products/entities/product-variant.entity';
+import { Product } from '../products/entities/product.entity';
+
+@Module({
+  imports: [TypeOrmModule.forFeature([ProductVariant, Product])],
+  controllers: [InventoryController],
+  providers: [InventoryService],
+  exports: [InventoryService],
+})
+export class InventoryModule {}
+

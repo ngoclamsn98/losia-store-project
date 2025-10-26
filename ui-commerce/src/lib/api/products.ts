@@ -1,0 +1,104 @@
+// Product API service for connecting to NestJS backend
+
+import { get, post, patch, del } from './client';
+import type {
+  Product,
+  ProductsResponse,
+  ProductFilters,
+  CreateProductDto,
+  UpdateProductDto,
+  UpdateProductVariantDto,
+} from '@/types/product';
+
+/**
+ * Get all products with optional filters and pagination
+ */
+export async function getProducts(filters?: ProductFilters): Promise<ProductsResponse> {
+  return get<ProductsResponse>('/products', filters);
+}
+
+/**
+ * Get product by ID
+ */
+export async function getProductById(id: string): Promise<Product> {
+  return get<Product>(`/products/${id}`);
+}
+
+/**
+ * Get product by slug (increments view count)
+ */
+export async function getProductBySlug(slug: string): Promise<Product> {
+  return get<Product>(`/products/slug/${slug}`);
+}
+
+/**
+ * Create a new product (Admin only - requires authentication)
+ */
+export async function createProduct(data: CreateProductDto): Promise<Product> {
+  return post<Product>('/products', data);
+}
+
+/**
+ * Update a product (Admin only - requires authentication)
+ */
+export async function updateProduct(id: string, data: UpdateProductDto): Promise<Product> {
+  return patch<Product>(`/products/${id}`, data);
+}
+
+/**
+ * Delete a product (Admin only - requires authentication)
+ */
+export async function deleteProduct(id: string): Promise<void> {
+  return del<void>(`/products/${id}`);
+}
+
+/**
+ * Update product variant (Admin only - requires authentication)
+ */
+export async function updateProductVariant(
+  productId: string,
+  variantId: string,
+  data: UpdateProductVariantDto
+): Promise<Product> {
+  return patch<Product>(`/products/${productId}/variants/${variantId}`, data);
+}
+
+/**
+ * Delete product variant (Admin only - requires authentication)
+ */
+export async function deleteProductVariant(
+  productId: string,
+  variantId: string
+): Promise<void> {
+  return del<void>(`/products/${productId}/variants/${variantId}`);
+}
+
+/**
+ * Get featured products
+ */
+export async function getFeaturedProducts(limit: number = 10): Promise<ProductsResponse> {
+  return getProducts({ isFeatured: true, limit });
+}
+
+/**
+ * Get products by category
+ */
+export async function getProductsByCategory(
+  categoryId: string,
+  page: number = 1,
+  limit: number = 20
+): Promise<ProductsResponse> {
+  return getProducts({ categoryId, page, limit });
+}
+
+/**
+ * Search products
+ */
+export async function searchProducts(
+  query: string,
+  page: number = 1,
+  limit: number = 20
+): Promise<ProductsResponse> {
+  return getProducts({ search: query, page, limit });
+}
+
