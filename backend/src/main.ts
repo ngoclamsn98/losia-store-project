@@ -20,7 +20,11 @@ async function bootstrap() {
 
   // Enable CORS for frontend
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'],
+    origin: [
+      'http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002',
+      'https://frontend-tau-three-41.vercel.app',
+      'https://project-losia-backend-production.up.railway.app',
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],

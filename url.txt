@@ -1,0 +1,3 @@
+frontend=https://frontend-tau-three-41.vercel.app
+backend=https://project-losia-backend-production.up.railway.app
+ui-commerce=https://gallant-illumination-production.up.railway.app
