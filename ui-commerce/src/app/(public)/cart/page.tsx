@@ -47,7 +47,7 @@ export default function CartPage() {
         oldPrice: null, // localStorage không lưu oldPrice
         brand: undefined,
         category: undefined,
-        cover: item.imageUrl,
+        cover: item.imageUrl || null,
         inStock: true,
         variantName: item.variantName,
       },
