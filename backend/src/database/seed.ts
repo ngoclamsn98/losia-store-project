@@ -20,8 +20,6 @@ const AppDataSource = new DataSource({
 async function seed() {
   try {
     await AppDataSource.initialize();
-    console.log('Data Source has been initialized!');
-
     const userRepository = AppDataSource.getRepository(User);
 
     // Check if superadmin already exists
@@ -30,7 +28,6 @@ async function seed() {
     });
 
     if (existingSuperAdmin) {
-      console.log('Superadmin already exists!');
       await AppDataSource.destroy();
       return;
     }
@@ -49,10 +46,6 @@ async function seed() {
     });
 
     await userRepository.save(superAdmin);
-
-    console.log('✅ Superadmin created successfully!');
-    console.log('Email: superadmin@losia.com');
-    console.log('Password: G7v!xP9#qR2u$Lm8@tZ1wK4&');
 
     await AppDataSource.destroy();
   } catch (error) {

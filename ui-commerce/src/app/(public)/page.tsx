@@ -9,7 +9,7 @@ import HighLightBanner from "@/components/home/HighLightBanner";
 import HeroCarousel from "@/components/home/HeroCarousel";
 import HeaderCarousel from "@/components/home/HeaderCarousel";
 import CleanOutSection from "@/components/home/CleanOutSection";
-import SeasonOutfitSection from "@/components/home/SeasonOutfitSection";
+import SeasonOutfitSectionWrapper from "@/components/home/SeasonOutfitSectionWrapper";
 import TrendingFinishingTouchesSection from "@/components/home/TrendingFinishingTouchesSection";
 import EarthMonthBillboard from "@/components/home/EarthMonthBillboard";
 import NaturalMaterialsSection from "@/components/home/NaturalMaterialsSection";
@@ -96,8 +96,8 @@ export default async function HomePage() {
       {/* Billboard Clean Out (full-bleed mặc định) */}
       <CleanOutSection />
 
-      {/* Seasonal Outfits nhận data từ server */}
-      <SeasonOutfitSection/>
+      {/* Seasonal Outfits nhận data từ server với SSR */}
+      <SeasonOutfitSectionWrapper />
 
       <TrendingFinishingTouchesSection />
 

@@ -105,5 +105,22 @@ export class CreateProductDto {
   @IsString({ each: true })
   @IsOptional()
   seoKeywords?: string[];
+
+  @ApiPropertyOptional({ example: 'Váy (Dress)', description: 'Eco impact product group' })
+  @IsString()
+  @IsOptional()
+  ecoImpactGroup?: string;
+
+  @ApiPropertyOptional({ example: 2083.33, description: 'Glasses of water saved (eco impact)' })
+  @IsOptional()
+  ecoGlassesOfWater?: number;
+
+  @ApiPropertyOptional({ example: 100.0, description: 'Hours of lighting saved (eco impact)' })
+  @IsOptional()
+  ecoHoursOfLighting?: number;
+
+  @ApiPropertyOptional({ example: 8.39, description: 'Kilometers of driving emissions saved (eco impact)' })
+  @IsOptional()
+  ecoKmsOfDriving?: number;
 }
 

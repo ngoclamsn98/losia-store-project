@@ -45,6 +45,10 @@ type ProductFromAPI = {
   seoTitle?: string | null;
   seoDescription?: string | null;
   seoKeywords?: string[] | null;
+  ecoImpactGroup?: string | null;
+  ecoGlassesOfWater?: number | null;
+  ecoHoursOfLighting?: number | null;
+  ecoKmsOfDriving?: number | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -173,12 +177,12 @@ function mapProductToDetail(p: ProductFromAPI): ProductDetail {
       name: category?.name,
       parent: undefined,
     },
-    ecoImpactGroup: category?.name || null,
-    productKindForEco: category?.name || null,
+    ecoImpactGroup: p.ecoImpactGroup || category?.name || null,
+    productKindForEco: p.ecoImpactGroup || category?.name || null,
     measuredLength: null,
-    glassesOfWater: null,
-    hoursOfLighting: null,
-    kmsOfDriving: null,
+    glassesOfWater: p.ecoGlassesOfWater || null,
+    hoursOfLighting: p.ecoHoursOfLighting || null,
+    kmsOfDriving: p.ecoKmsOfDriving || null,
   };
 }
 

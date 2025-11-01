@@ -10,11 +10,13 @@ const fmtVND = (n?: number) => typeof n === "number" ? new Intl.NumberFormat("vi
 
 export default function PriceBox({ retailPrice, oldPrice, newPrice, discountPercent, discountCode, onAdd, inCart, }: { retailPrice?: number; oldPrice?: number; newPrice?: number; discountPercent?: number; discountCode?: string; onAdd: () => void; inCart: boolean; }) {
 const router = useRouter();
-const { isFirstPurchase, appliedDiscount } = useCart();
+// TODO: Implement isFirstPurchase and appliedDiscount
+const isFirstPurchase = false;
+const appliedDiscount = null;
 
 
-const code = (appliedDiscount?.code || discountCode || (isFirstPurchase ? "FIRST50" : "")).toUpperCase();
-const pct = appliedDiscount?.discountPercent ?? (typeof discountPercent === "number" ? discountPercent : code === "FIRST50" ? 50 : 0);
+const code = (discountCode || (isFirstPurchase ? "FIRST50" : "")).toUpperCase();
+const pct = (typeof discountPercent === "number" ? discountPercent : code === "FIRST50" ? 50 : 0);
 
 
 const main = typeof newPrice === "number" ? newPrice : typeof oldPrice === "number" ? Math.round(oldPrice * 0.5) : retailPrice || 0;

@@ -3,14 +3,13 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "dev": "next dev",
-    "build": "prisma generate && next build",
+    "dev": "PORT=3002 && next dev",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
-    "postinstall": "prisma generate",
     "db:reset": "tsx prisma/reset.ts",
     "seed": "tsx prisma/seed.ts",
     "test:api": "node scripts/test-api-connection.js"

@@ -10,7 +10,6 @@ export default function PromoCodeForm() {
         const data = new FormData(e.currentTarget);
         const code = String(data.get('promo') || '').trim();
         if (code) {
-          console.log('Apply promo (stub):', code);
           // TODO: dispatch vào CartProvider/OrderSummary hoặc gọi /api/promo
           alert(`Đã nhận mã: ${code} (demo)`);
         }

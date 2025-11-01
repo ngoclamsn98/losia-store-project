@@ -21,19 +21,10 @@ export class FilesService {
       throw new BadRequestException('No file provided');
     }
 
-    // Validate file type
-    const allowedMimeTypes = [
-      'image/jpeg',
-      'image/jpg',
-      'image/png',
-      'image/gif',
-      'image/webp',
-      'image/svg+xml',
-    ];
-
-    if (!allowedMimeTypes.includes(file.mimetype)) {
+    // Validate file type - accept all image types
+    if (!file.mimetype.startsWith('image/')) {
       throw new BadRequestException(
-        'Invalid file type. Only images are allowed (JPEG, PNG, GIF, WebP, SVG)',
+        'Invalid file type. Only images are allowed',
       );
     }
 

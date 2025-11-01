@@ -22,6 +22,7 @@ type ProductCard = {
   images?: Array<string | { url?: string | null; main?: string | null; thumb?: string | null; order?: number | null }>;
   cover?: string | null;
   conditionValue?: string | null;
+  slug?: string;
 };
 
 const fmtVND = (n?: number | null) =>
@@ -85,8 +86,8 @@ function normalize(input: any, index?: number): ProductCard {
   return {
     id: String(input?.id ?? input?.slug ?? crypto.randomUUID()),
     title: String(input?.title ?? ""),
-    price,
-    oldPrice,
+    price: Number(price),
+    oldPrice: Number(oldPrice),
     retailPrice: typeof input?.retailPrice === "number" ? input.retailPrice : typeof oldPrice === "number" ? oldPrice : null,
 
     // LẤY THẲNG từ API (đã có sẵn)
@@ -100,6 +101,7 @@ function normalize(input: any, index?: number): ProductCard {
 
     favoriteCount: input?.favoriteCount ?? input?._count?.favorites ?? 0,
     conditionValue: input?.conditionValue ?? input?.condition ?? null,
+    slug: input?.slug ?? null,
   };
 }
 
@@ -119,7 +121,7 @@ function Arrow({ className = "" }: { className?: string }) {
 function CardLikeProducts({ p, index }: { p: ProductCard; index: number }) {
   const imgUrl = firstImageSrc(p, index);
   const nwt = isNewWithTags(p.conditionValue);
-  const discount = percentOff(p.price, p.oldPrice);
+  const discount = percentOff(Number(p.price), Number(p.oldPrice));
 
   const [isFavorite, setIsFavorite] = useState(false);
   const toggleFavorite = (e: React.MouseEvent) => {
@@ -131,7 +133,7 @@ function CardLikeProducts({ p, index }: { p: ProductCard; index: number }) {
     <div className="group snap-start shrink-0 w-[180px]">
       <div className="relative rounded-2xl border hover:shadow-sm transition overflow-hidden">
         {/* ẢNH */}
-        <Link href={`/product/${p.id}`} className="block relative z-0">
+        <Link href={`/product/${p.slug}`} className="block relative z-0">
           <SmartImage
             kind="product"
             alt={p.title || "product image"}
@@ -186,7 +188,7 @@ function CardLikeProducts({ p, index }: { p: ProductCard; index: number }) {
 
           <div className="mt-1.5 flex items-baseline gap-2">
             <span className="text-[15px] font-bold">{fmtVND(p.price)}</span>
-            {p.oldPrice && (p.price ?? 0) < p.oldPrice && (
+            {Number(p.oldPrice) && (Number(p.price) ?? 0) < Number(p.oldPrice) && (
               <span className="text-xs text-gray-500 line-through">{fmtVND(p.oldPrice)}</span>
             )}
           </div>

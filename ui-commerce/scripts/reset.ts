@@ -5,7 +5,6 @@ import prisma from "@/lib/prisma";  // ✅ default import
 async function main() {
   await prisma.product.updateMany({ data: { status: "ACTIVE" } });
   await prisma.inventory.updateMany({ data: { quantity: 1 } });
-  console.log("✅ Reset xong: Products ACTIVE + Inventory = 1");
 }
 
 main()

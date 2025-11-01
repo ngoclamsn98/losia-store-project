@@ -1,5 +1,9 @@
 import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
+
+// Extend dayjs with relativeTime plugin
+dayjs.extend(relativeTime);
 
 // Set Vietnamese locale
 dayjs.locale('vi');

@@ -85,6 +85,19 @@ export class Product {
   @Column({ name: 'seo_keywords', type: 'simple-array', nullable: true })
   seoKeywords: string[];
 
+  // Eco Impact fields
+  @Column({ name: 'eco_impact_group', nullable: true })
+  ecoImpactGroup: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, name: 'eco_glasses_of_water', nullable: true })
+  ecoGlassesOfWater: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, name: 'eco_hours_of_lighting', nullable: true })
+  ecoHoursOfLighting: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, name: 'eco_kms_of_driving', nullable: true })
+  ecoKmsOfDriving: number;
+
   @Column({ name: 'created_by_id', type: 'uuid', nullable: true })
   createdById: string;
 

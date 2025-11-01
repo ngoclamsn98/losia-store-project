@@ -4,32 +4,38 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import type { ProductCard } from "./page";
+import type { ProductCard, VariantFilters, CategoryFilter } from "./page";
+import { ColumnsIcon, EyeIcon, Grid2X2, LayoutGrid, Rows2Icon, ShoppingCartIcon, Square, X } from "lucide-react";
+import { addToLocalCart } from '@/lib/cart/localStorage';
+import { internalPost } from '@/lib/api/internal';
 
 const ITEMS_PER_LOAD = 24;
 const DEFAULT_SORT = "newest";
 
-const ALL_CONDITIONS = [
-  { key: "new_with_tags", label: "Mới (còn tag)" },
-  { key: "excellent", label: "Như mới" },
-  { key: "good", label: "Tốt" },
-];
+const fmtVND = (n?: string | number | null) => {
+  if (!n) return '0VNĐ';
 
-const fmtVND = (n: number) =>
-  n.toLocaleString("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 });
+  const num =  typeof(n) === "string" ? Number(n) : n;
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 'VNĐ';
+}
 
 function getDiscountPercent(p: ProductCard) {
-  if (!p.oldPrice || p.oldPrice <= p.price) return null;
-  const pct = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
+  const oldPricd = Number(p.oldPrice);
+  const price = Number(p.price);
+  if (isNaN(oldPricd) || isNaN(price) || oldPricd <= price) return null;
+  if (!oldPricd || oldPricd <= price) return null;
+  const pct = Math.round(((oldPricd - price) / oldPricd) * 100);
   return pct > 0 ? pct : null;
 }
 
 interface ProductsClientProps {
   initialProducts: ProductCard[];
+  variantFilters: VariantFilters;
+  categories: CategoryFilter[];
   searchParams: { [key: string]: string | string[] | undefined };
 }
 
-export default function ProductsClient({ initialProducts, searchParams }: ProductsClientProps) {
+export default function ProductsClient({ initialProducts, variantFilters, categories, searchParams }: ProductsClientProps) {
   const router = useRouter();
 
   // Parse search params
@@ -57,9 +63,87 @@ export default function ProductsClient({ initialProducts, searchParams }: Produc
   const [priceMin, setPriceMin] = useState<number>(minPrice);
   const [priceMax, setPriceMax] = useState<number>(maxPrice);
 
+  // Variant filters state
+  // Format: { "color": ["Red", "Blue"], "size": ["M"] }
+  const [selectedVariants, setSelectedVariants] = useState<Record<string, string[]>>({});
+
+  // Category filters state
+  // Format: ["category-id-1", "category-id-2"]
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
+  // Toggle variant filter
+  const toggleVariantFilter = (attributeName: string, value: string) => {
+    setSelectedVariants(prev => {
+      const current = prev[attributeName] || [];
+      const newValues = current.includes(value)
+        ? current.filter(v => v !== value)
+        : [...current, value];
+
+      if (newValues.length === 0) {
+        const { [attributeName]: _, ...rest } = prev;
+        return rest;
+      }
+
+      return { ...prev, [attributeName]: newValues };
+    });
+  };
+
+  // Clear all variant filters
+  const clearVariantFilters = () => {
+    setSelectedVariants({});
+  };
+
+  // Toggle category filter
+  const toggleCategoryFilter = (categoryId: string) => {
+    setSelectedCategories(prev => {
+      if (prev.includes(categoryId)) {
+        return prev.filter(id => id !== categoryId);
+      }
+      return [...prev, categoryId];
+    });
+  };
+
+  // Clear all category filters
+  const clearCategoryFilters = () => {
+    setSelectedCategories([]);
+  };
+
   // Filter & Sort
   const filteredSorted = useMemo(() => {
     let arr = [...initialProducts];
+
+    // Category filter
+    // Product must belong to at least one of the selected categories
+    if (selectedCategories.length > 0) {
+      arr = arr.filter((product) => {
+        if (!product.categories || product.categories.length === 0) return false;
+
+        // Check if product has at least one category matching selected categories
+        return product.categories.some((category) =>
+          selectedCategories.includes(category.id)
+        );
+      });
+    }
+
+    // Variant attributes filter
+    // Product must have at least one variant matching ALL selected attribute filters
+    if (Object.keys(selectedVariants).length > 0) {
+      arr = arr.filter((product) => {
+        if (!product.variants || product.variants.length === 0) return false;
+
+        // Check if product has at least one variant matching all selected attributes
+        return product.variants.some((variant) => {
+          if (!variant.attributes || !variant.isActive) return false;
+
+          // For each selected attribute (e.g., color, size)
+          // Check if variant has one of the selected values
+          return Object.entries(selectedVariants).every(([attrKey, selectedValues]) => {
+            const variantValue = variant.attributes?.[attrKey];
+            return variantValue && selectedValues.includes(variantValue);
+          });
+        });
+      });
+    }
 
     // Price filter
     arr = arr.filter((p) => p.price >= (priceMin || 0) && p.price <= (priceMax || Infinity));
@@ -85,7 +169,7 @@ export default function ProductsClient({ initialProducts, searchParams }: Produc
     });
 
     return arr;
-  }, [initialProducts, priceMin, priceMax, sortBy]);
+  }, [initialProducts, selectedCategories, selectedVariants, priceMin, priceMax, sortBy]);
 
   const visible = filteredSorted.slice(0, visibleCount);
 
@@ -121,7 +205,14 @@ export default function ProductsClient({ initialProducts, searchParams }: Produc
   const resetFilters = () => {
     setPriceMin(minPrice || 0);
     setPriceMax(maxPrice || 0);
+    clearVariantFilters();
+    clearCategoryFilters();
   };
+
+  // Count active filters
+  const activeFiltersCount =
+    Object.values(selectedVariants).reduce((sum, arr) => sum + arr.length, 0) +
+    selectedCategories.length;
 
   return (
     <div className="mx-auto max-w-[1600px] px-4 lg:px-6 py-6 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
@@ -133,7 +224,7 @@ export default function ProductsClient({ initialProducts, searchParams }: Produc
             onClick={resetFilters}
             className="text-sm underline text-gray-600 hover:text-gray-900"
           >
-            Xoá tất cả
+            Xoá tất cả {activeFiltersCount > 0 && `(${activeFiltersCount})`}
           </button>
         </div>
 
@@ -163,6 +254,60 @@ export default function ProductsClient({ initialProducts, searchParams }: Produc
             </div>
           </div>
         </div>
+
+        {/* Category Filters */}
+        {categories.length > 0 && (
+          <div className="mb-6">
+            <h3 className="font-medium mb-3">Danh mục</h3>
+            <div className="space-y-2">
+              {categories.map((category) => {
+                const isSelected = selectedCategories.includes(category.id);
+                return (
+                  <label
+                    key={category.id}
+                    className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleCategoryFilter(category.id)}
+                      className="w-4 h-4 rounded border-gray-300"
+                    />
+                    <span className="text-sm">{category.name}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Variant Filters */}
+        {Object.entries(variantFilters.attributes).map(([attrKey, attrData]) => (
+          <div key={attrKey} className="mb-6">
+            <h3 className="font-medium mb-3 capitalize">{attrData.name}</h3>
+            <div className="space-y-2">
+              {attrData.values.map((value) => {
+                const isSelected = selectedVariants[attrKey]?.includes(value) || false;
+                return (
+                  <label
+                    key={value}
+                    className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleVariantFilter(attrKey, value)}
+                      className="w-4 h-4 rounded border-gray-300"
+                    />
+                    <span className="text-sm">{value}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+
+        
       </aside>
 
       {/* Main */}
@@ -194,14 +339,14 @@ export default function ProductsClient({ initialProducts, searchParams }: Produc
                 onClick={() => setViewMode("grid")}
                 className={`px-3 py-2 text-sm ${viewMode === "grid" ? "bg-gray-100" : ""}`}
               >
-                ⬛⬛
+                <LayoutGrid />
               </button>
               <button
                 aria-label="Dạng danh sách"
                 onClick={() => setViewMode("list")}
                 className={`px-3 py-2 text-sm border-l ${viewMode === "list" ? "bg-gray-100" : ""}`}
               >
-                ▤
+                <Square />
               </button>
             </div>
           </div>
@@ -261,7 +406,77 @@ function ProductCardItem({
   onQuickView: () => void;
 }) {
   const discount = getDiscountPercent(p);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isAddingToCart || p.stock <= 0) return;
+
+    setIsAddingToCart(true);
+
+    try {
+      // 1. Lưu vào localStorage (luôn luôn - không cần đăng nhập)
+      const cartItem = {
+        variantId: p.id, // Sử dụng product ID làm variant ID nếu không có variant
+        productId: p.id,
+        productName: p.title,
+        variantName: null,
+        price: p.price,
+        quantity: 1,
+        imageUrl: p.thumbnailUrl,
+      };
+
+      addToLocalCart(cartItem);
+
+      // 2. Call API /api/cart (giữ nguyên logic cũ)
+      let apiSuccess = false;
+      try {
+        // Ưu tiên /api/cart/items
+        await internalPost('/api/cart/items', { productId: p.id, qty: 1 });
+        apiSuccess = true;
+      } catch {
+        // Fallback: /api/cart
+        try {
+          await internalPost('/api/cart', { productId: p.id, qty: 1 });
+          apiSuccess = true;
+        } catch {
+          apiSuccess = false;
+        }
+      }
+
+      if (!apiSuccess) {
+        console.warn('API cart failed, but localStorage saved');
+      }
+
+      // 3. Dispatch events (giữ nguyên logic cũ để mở MiniCartDrawer)
+      try {
+        localStorage.setItem('losia:open-minicart', '1');
+        window.dispatchEvent(new CustomEvent('losia:cart-changed'));
+        window.dispatchEvent(new CustomEvent('losia:minicart:open'));
+      } catch {}
+
+      // 4. Track analytics (giữ nguyên)
+      if (typeof window !== 'undefined') {
+        (window as any).dataLayer?.push({
+          event: 'add_to_cart',
+          ecommerce: {
+            items: [{
+              item_id: p.id,
+              item_name: p.title,
+              price: p.price,
+              quantity: 1,
+            }],
+          },
+        });
+      }
+    } catch (error: any) {
+      console.error('Add to cart error:', error);
+    } finally {
+      setIsAddingToCart(false);
+    }
+  };
 
   return (
     <div className="group relative rounded-2xl border hover:shadow-sm transition overflow-hidden">
@@ -283,11 +498,6 @@ function ProductCardItem({
         </div>
 
         {/* Badges */}
-        {p.isFeatured && (
-          <span className="absolute left-2 top-2 rounded-md bg-yellow-500 text-white text-xs font-semibold px-2 py-1">
-            Featured
-          </span>
-        )}
         {discount && (
           <span className="absolute right-2 top-2 text-xs px-2 py-1 rounded-full bg-rose-600 text-white">
             -{discount}%
@@ -298,18 +508,42 @@ function ProductCardItem({
       <div className="p-3">
         <Link href={`/product/${p.slug}`} className="block text-sm" title={p.title}>
           <span className="font-semibold line-clamp-2">{p.title}</span>
-          {p.categoryName && <span className="text-gray-600"> • {p.categoryName}</span>}
         </Link>
 
         <div className="mt-1.5 flex items-baseline gap-2">
           <span className="text-[15px] font-bold">{fmtVND(p.price)}</span>
-          {p.oldPrice && p.oldPrice > p.price && (
+          {Number(p.oldPrice) && Number(p.oldPrice) > Number(p.price) && (
             <span className="text-xs text-gray-500 line-through">{fmtVND(p.oldPrice)}</span>
           )}
         </div>
 
         <div className="mt-1 text-xs text-gray-500">
           Còn {p.stock} • {p.views} lượt xem
+        </div>
+
+        {/* Nút hành động */}
+        <div className="mt-3 flex items-center gap-2">
+          <button
+            aria-label="Xem nhanh"
+            onClick={onQuickView}
+            className="px-2 py-1.5 rounded-lg border hover:bg-gray-50"
+            title="Xem nhanh"
+          >
+          <EyeIcon />
+          </button>
+          <button
+            aria-label="Thêm vào giỏ"
+            onClick={handleAddToCart}
+            disabled={isAddingToCart || p.stock <= 0}
+            className="ml-auto px-3 py-1.5 rounded-lg border hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            title={p.stock <= 0 ? "Hết hàng" : "Thêm vào giỏ"}
+          >
+            {isAddingToCart ? (
+              <span className="inline-block animate-spin">⏳</span>
+            ) : (
+              <ShoppingCartIcon />
+            )}
+          </button>
         </div>
       </div>
     </div>
@@ -327,10 +561,79 @@ function ProductListItem({
   onQuickView: () => void;
 }) {
   const discount = getDiscountPercent(p);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isAddingToCart || p.stock <= 0) return;
+
+    setIsAddingToCart(true);
+
+    try {
+      // 1. Lưu vào localStorage (luôn luôn - không cần đăng nhập)
+      const cartItem = {
+        variantId: p.id,
+        productId: p.id,
+        productName: p.title,
+        variantName: null,
+        price: p.price,
+        quantity: 1,
+        imageUrl: p.thumbnailUrl,
+      };
+
+      addToLocalCart(cartItem);
+
+      // 2. Call API /api/cart
+      let apiSuccess = false;
+      try {
+        await internalPost('/api/cart/items', { productId: p.id, qty: 1 });
+        apiSuccess = true;
+      } catch {
+        try {
+          await internalPost('/api/cart', { productId: p.id, qty: 1 });
+          apiSuccess = true;
+        } catch {
+          apiSuccess = false;
+        }
+      }
+
+      if (!apiSuccess) {
+        console.warn('API cart failed, but localStorage saved');
+      }
+
+      // 3. Dispatch events
+      try {
+        localStorage.setItem('losia:open-minicart', '1');
+        window.dispatchEvent(new CustomEvent('losia:cart-changed'));
+        window.dispatchEvent(new CustomEvent('losia:minicart:open'));
+      } catch {}
+
+      // 4. Track analytics
+      if (typeof window !== 'undefined') {
+        (window as any).dataLayer?.push({
+          event: 'add_to_cart',
+          ecommerce: {
+            items: [{
+              item_id: p.id,
+              item_name: p.title,
+              price: p.price,
+              quantity: 1,
+            }],
+          },
+        });
+      }
+    } catch (error: any) {
+      console.error('Add to cart error:', error);
+    } finally {
+      setIsAddingToCart(false);
+    }
+  };
 
   return (
     <div className="rounded-2xl border p-3 hover:shadow-sm transition">
-      <div className="grid grid-cols-[120px_1fr] md:grid-cols-[180px_1fr] gap-3 md:gap-6 items-center">
+      <div className="grid grid-cols-[120px_1fr] md:grid-cols-[180px_1fr_auto] gap-3 md:gap-6 items-center">
         <Link href={`/product/${p.slug}`} className="relative w-full aspect-[4/5] rounded-lg overflow-hidden bg-gray-100 block">
           {p.thumbnailUrl && (
             <Image src={p.thumbnailUrl} alt={p.title} fill className="object-cover" />
@@ -348,6 +651,34 @@ function ProductListItem({
               <span className="text-sm text-gray-500 line-through">{fmtVND(p.oldPrice)}</span>
             )}
           </div>
+          <div className="mt-1 text-xs text-gray-500">
+            Còn {p.stock} • {p.views} lượt xem
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex flex-col gap-2">
+          <button
+            aria-label="Xem nhanh"
+            onClick={onQuickView}
+            className="px-3 py-2 rounded-lg border hover:bg-gray-50 text-sm"
+            title="Xem nhanh"
+          >
+            <EyeIcon className="w-4 h-4 mx-auto" />
+          </button>
+          <button
+            aria-label="Thêm vào giỏ"
+            onClick={handleAddToCart}
+            disabled={isAddingToCart || p.stock <= 0}
+            className="px-3 py-2 rounded-lg border hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            title={p.stock <= 0 ? "Hết hàng" : "Thêm vào giỏ"}
+          >
+            {isAddingToCart ? (
+              <span className="inline-block animate-spin">⏳</span>
+            ) : (
+              <ShoppingCartIcon className="w-4 h-4 mx-auto" />
+            )}
+          </button>
         </div>
       </div>
     </div>
@@ -357,7 +688,9 @@ function ProductListItem({
 // Quick View Modal
 function QuickViewModal({ product, onClose }: { product: ProductCard; onClose: () => void }) {
   const discount = getDiscountPercent(product);
-
+  const price = Number(product.price);  
+  const oldPrice = Number(product.oldPrice);
+  
   return (
     <div
       role="dialog"
@@ -383,7 +716,7 @@ function QuickViewModal({ product, onClose }: { product: ProductCard; onClose: (
           <div>
             <div className="flex items-center gap-3">
               <span className="text-xl font-bold">{fmtVND(product.price)}</span>
-              {product.oldPrice && product.oldPrice > product.price && (
+              {oldPrice > price && (
                 <>
                   <span className="text-gray-500 line-through">{fmtVND(product.oldPrice)}</span>
                   <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
@@ -392,8 +725,8 @@ function QuickViewModal({ product, onClose }: { product: ProductCard; onClose: (
                 </>
               )}
             </div>
-            <p className="mt-4 text-gray-700 text-sm leading-6">{product.description || "—"}</p>
-
+            <p className="mt-4 text-gray-700 text-sm leading-6">{product.description}</p>
+            { product?.content &&  <p dangerouslySetInnerHTML={{ __html: product.content }}/>}
             <div className="mt-6 flex items-center gap-3">
               <Link href={`/product/${product.slug}`} className="px-4 py-2.5 rounded-xl bg-black text-white hover:opacity-90">
                 Xem chi tiết

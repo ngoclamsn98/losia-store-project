@@ -3,10 +3,11 @@ import { Metadata } from "next";
 import ProductsClient from "./ProductsClient";
 
 // ===== Types từ Backend API =====
-type ProductVariant = {
+export type ProductVariant = {
   id: string;
   name?: string | null;
   sku?: string | null;
+  attributes?: Record<string, string> | null;
   price: number;
   compareAtPrice?: number | null;
   stock: number;
@@ -34,6 +35,7 @@ type ProductFromAPI = {
   categories?: Category[];
   createdAt: string;
   updatedAt: string;
+  content?: string | null;
 };
 
 // Type cho UI component
@@ -52,6 +54,9 @@ export type ProductCard = {
   categoryName?: string | null;
   isFeatured?: boolean;
   views?: number;
+  content?: string | null;
+  variants?: ProductVariant[]; // Add variants for filtering
+  categories?: Category[]; // Add categories for filtering
 };
 
 // SEO Metadata
@@ -64,6 +69,25 @@ export const metadata: Metadata = {
   },
 };
 
+// Type for variant filters
+export type VariantFilter = {
+  name: string;
+  values: string[];
+  count: number;
+};
+
+export type VariantFilters = {
+  attributes: Record<string, VariantFilter>;
+};
+
+// Type for category filters
+export type CategoryFilter = {
+  id: string;
+  name: string;
+  slug: string;
+  productCount?: number;
+};
+
 /**
  * Fetch products từ Backend API
  * Server-side function cho SEO
@@ -73,10 +97,10 @@ async function fetchProducts(): Promise<ProductCard[]> {
     // Sử dụng Backend API URL
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
     const url = `${apiUrl}/products?limit=200&status=ACTIVE`;
-    
+
     const res = await fetch(url, {
       // Revalidate mỗi 60 giây trong production
-      next: { 
+      next: {
         revalidate: process.env.NODE_ENV === 'production' ? 60 : 0,
         tags: ['products']
       },
@@ -88,7 +112,7 @@ async function fetchProducts(): Promise<ProductCard[]> {
     }
 
     const data = await res.json();
-    
+
     // Backend trả về { data: [], meta: {} }
     const products: ProductFromAPI[] = data.data || [];
 
@@ -101,12 +125,78 @@ async function fetchProducts(): Promise<ProductCard[]> {
 }
 
 /**
+ * Fetch variant filters từ Backend API
+ */
+async function fetchVariantFilters(): Promise<VariantFilters> {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const url = `${apiUrl}/products/filters/variants?status=ACTIVE`;
+
+    const res = await fetch(url, {
+      next: {
+        revalidate: process.env.NODE_ENV === 'production' ? 60 : 0,
+        tags: ['products']
+      },
+    });
+
+    if (!res.ok) {
+      console.error(`Failed to fetch variant filters: ${res.status}`);
+      return { attributes: {} };
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching variant filters:', error);
+    return { attributes: {} };
+  }
+}
+
+/**
+ * Fetch categories từ Backend API
+ * Server-side function
+ */
+async function fetchCategories(): Promise<CategoryFilter[]> {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const url = `${apiUrl}/categories?isActive=true&limit=100`;
+
+    const res = await fetch(url, {
+      next: {
+        revalidate: process.env.NODE_ENV === 'production' ? 60 : 0,
+        tags: ['categories']
+      },
+    });
+
+    if (!res.ok) {
+      console.error(`Failed to fetch categories: ${res.status}`);
+      return [];
+    }
+
+    const data = await res.json();
+
+    // Map categories to CategoryFilter format
+    const categories: CategoryFilter[] = (data.data || []).map((cat: any) => ({
+      id: cat.id,
+      name: cat.name,
+      slug: cat.slug,
+      productCount: 0, // Will be calculated on client side
+    }));
+
+    return categories;
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    return [];
+  }
+}
+
+/**
  * Map product từ Backend API format sang UI format
  */
 function mapProductToCard(p: ProductFromAPI): ProductCard {
   // Lấy variant mặc định hoặc variant đầu tiên
   const defaultVariant = p.variants?.find(v => v.isDefault) || p.variants?.[0];
-  
+
   return {
     id: p.id,
     slug: p.slug,
@@ -122,6 +212,9 @@ function mapProductToCard(p: ProductFromAPI): ProductCard {
     categoryName: p.categories?.[0]?.name || null,
     isFeatured: p.isFeatured,
     views: p.views,
+    content: p.content,
+    variants: p.variants || [], // Include all variants for filtering
+    categories: p.categories || [], // Include all categories for filtering
   };
 }
 
@@ -134,8 +227,12 @@ export default async function ProductsPage({
 }: {
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
-  // Fetch products on server
-  const products = await fetchProducts();
+  // Fetch products, variant filters, and categories on server
+  const [products, variantFilters, categories] = await Promise.all([
+    fetchProducts(),
+    fetchVariantFilters(),
+    fetchCategories(),
+  ]);
 
   return (
     <div className="bg-white min-h-screen">
@@ -153,7 +250,12 @@ export default async function ProductsPage({
 
       {/* Client Component để handle filters, sorting, etc */}
       <Suspense fallback={<ProductsLoadingSkeleton />}>
-        <ProductsClient initialProducts={products} searchParams={searchParams} />
+        <ProductsClient
+          initialProducts={products}
+          variantFilters={variantFilters}
+          categories={categories}
+          searchParams={searchParams}
+        />
       </Suspense>
     </div>
   );

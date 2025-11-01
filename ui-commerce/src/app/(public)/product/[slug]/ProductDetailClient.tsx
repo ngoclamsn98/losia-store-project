@@ -258,6 +258,7 @@ export default function ProductDetailClient({ product: initialProduct, variants 
       {/* Tác động môi trường */}
       <EcoImpactSection
         productType={
+          product.ecoImpactGroup ||
           product.productType?.parent?.name ||
           product.productType?.name ||
           product.productKindForEco ||

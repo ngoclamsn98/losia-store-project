@@ -242,8 +242,6 @@ export async function POST(req: NextRequest) {
     const payment = parsed.paymentMethod || parsed.payment || 'cod';
     const methodLabel = payment.toUpperCase() as 'COD' | 'QR';
 
-    console.log('[orders] incoming:', { cartId, anonId, email, shipping: shippingKey, payment, hasItems: !!parsed.items });
-
     // 3) Xác định user
     const userId = email
       ? await getOrCreateUserIdByEmail(email, fullName, phone)
@@ -256,7 +254,6 @@ export async function POST(req: NextRequest) {
 
     if (parsed.items && parsed.items.length > 0) {
       // Use items from localStorage (request body)
-      console.log('[orders] using items from request body:', parsed.items.length);
 
       orderLines = parsed.items.map(item => ({
         productId: item.productId,
@@ -271,7 +268,6 @@ export async function POST(req: NextRequest) {
         cartId: cartId ?? null,
         anonIdFromForm: anonId ?? null,
       });
-      console.log('[orders] resolved cart:', { found: !!dbCart, id: dbCart?.id, items: dbCart?.items.length });
 
       if (!dbCart || dbCart.items.length === 0) {
         return NextResponse.json({ error: 'Giỏ hàng trống' }, { status: 400 });

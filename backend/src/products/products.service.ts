@@ -84,6 +84,7 @@ export class ProductsService {
     status?: ProductStatus;
     isFeatured?: boolean;
     search?: string;
+    variantAttributes?: Record<string, string[]>; // e.g., { "color": ["Red", "Blue"], "size": ["M"] }
     page?: number;
     limit?: number;
     userId?: string; // Filter by creator
@@ -127,6 +128,41 @@ export class ProductsService {
       );
     }
 
+    // Filter by variant attributes
+    // Product must have at least one variant matching ALL selected attribute filters
+    if (filters?.variantAttributes && Object.keys(filters.variantAttributes).length > 0) {
+      // For each attribute key (e.g., "color", "size"), check if variant has any of the selected values
+      const attributeConditions: string[] = [];
+      const attributeParams: Record<string, any> = {};
+
+      let paramIndex = 0;
+      for (const [attrKey, attrValues] of Object.entries(filters.variantAttributes)) {
+        if (attrValues && attrValues.length > 0) {
+          const paramKey = `attrKey${paramIndex}`;
+          const paramValues = `attrValues${paramIndex}`;
+
+          // Check if variant.attributes->>attrKey is in attrValues
+          attributeConditions.push(
+            `EXISTS (
+              SELECT 1 FROM product_variants pv
+              WHERE pv.product_id = product.id
+              AND pv.attributes->>:${paramKey} IN (:...${paramValues})
+              AND pv.is_active = true
+            )`
+          );
+
+          attributeParams[paramKey] = attrKey;
+          attributeParams[paramValues] = attrValues;
+          paramIndex++;
+        }
+      }
+
+      if (attributeConditions.length > 0) {
+        // Product must match ALL attribute filters (AND logic)
+        query.andWhere(`(${attributeConditions.join(' AND ')})`, attributeParams);
+      }
+    }
+
     query.orderBy('product.createdAt', 'DESC');
 
     // Get total count
@@ -152,6 +188,69 @@ export class ProductsService {
         hasPreviousPage: page > 1,
       },
     };
+  }
+
+  /**
+   * Get available variant filters grouped by attribute name
+   * Returns all unique attribute keys and their possible values
+   */
+  async getVariantFilters(filters?: {
+    categoryIds?: string[];
+    status?: ProductStatus;
+  }): Promise<{
+    attributes: Record<string, { name: string; values: string[]; count: number }>;
+  }> {
+    const query = this.variantRepository
+      .createQueryBuilder('variant')
+      .innerJoin('variant.product', 'product')
+      .where('variant.isActive = :isActive', { isActive: true })
+      .andWhere('variant.attributes IS NOT NULL');
+
+    // Apply same filters as product list
+    if (filters?.categoryIds?.length) {
+      query
+        .innerJoin('product.categories', 'category')
+        .andWhere('category.id IN (:...categoryIds)', {
+          categoryIds: filters.categoryIds,
+        });
+    }
+
+    if (filters?.status) {
+      query.andWhere('product.status = :status', { status: filters.status });
+    }
+
+    // Get all variants with their attributes
+    const variants = await query.select(['variant.attributes']).getMany();
+
+    // Group attributes by key and collect unique values
+    const attributesMap = new Map<string, Set<string>>();
+
+    for (const variant of variants) {
+      if (variant.attributes && typeof variant.attributes === 'object') {
+        for (const [key, value] of Object.entries(variant.attributes)) {
+          if (value && typeof value === 'string') {
+            if (!attributesMap.has(key)) {
+              attributesMap.set(key, new Set());
+            }
+            attributesMap.get(key)!.add(value);
+          }
+        }
+      }
+    }
+
+    // Convert to response format
+    const attributes: Record<string, { name: string; values: string[]; count: number }> = {};
+
+    for (const [key, valuesSet] of attributesMap.entries()) {
+      const values = Array.from(valuesSet).sort();
+      attributes[key] = {
+        name: key,
+        values,
+        count: values.length,
+      };
+    }
+
+    return { attributes };
   }
 
   async findOne(id: string): Promise<Product> {
@@ -215,33 +314,81 @@ export class ProductsService {
       }
     }
 
+    // Update product first (without variants)
+    const { variants, categoryIds, ...productData } = updateProductDto;
+    Object.assign(product, productData);
+    await this.productRepository.save(product);
+
     // Handle variants update
     if (updateProductDto.variants) {
-      // Remove old variants
-      await this.variantRepository.delete({ productId: id });
-
       // Ensure at least one variant is marked as default
       const hasDefault = updateProductDto.variants.some((v) => v.isDefault);
       if (!hasDefault && updateProductDto.variants.length > 0) {
         updateProductDto.variants[0].isDefault = true;
       }
 
-      // Create new variants
-      const variantEntities = updateProductDto.variants.map((variantDto) => {
-        const variant = this.variantRepository.create({
-          ...variantDto,
-          productId: id,
-        });
-        return variant;
+      // Get existing variants
+      const existingVariants = await this.variantRepository.find({
+        where: { productId: id },
       });
 
-      await this.variantRepository.save(variantEntities);
-    }
+      // Collect IDs from request
+      const requestVariantIds = updateProductDto.variants
+        .filter((v) => v.id)
+        .map((v) => v.id);
 
-    // Update product
-    const { variants, categoryIds, ...productData } = updateProductDto;
-    Object.assign(product, productData);
-    await this.productRepository.save(product);
+      // Delete variants that are not in the request
+      const variantsToDelete = existingVariants.filter(
+        (v) => !requestVariantIds.includes(v.id),
+      );
+      if (variantsToDelete.length > 0) {
+        await this.variantRepository.remove(variantsToDelete);
+      }
+
+      // Update or create variants
+      for (const variantDto of updateProductDto.variants) {
+        if (variantDto.id) {
+          // Update existing variant
+          const existingVariant = existingVariants.find(
+            (v) => v.id === variantDto.id,
+          );
+          if (existingVariant) {
+            // Update existing variant
+            Object.assign(existingVariant, {
+              sku: variantDto.sku,
+              name: variantDto.name,
+              attributes: variantDto.attributes,
+              price: variantDto.price,
+              compareAtPrice: variantDto.compareAtPrice,
+              costPrice: variantDto.costPrice,
+              stock: variantDto.stock,
+              lowStockThreshold: variantDto.lowStockThreshold,
+              imageUrl: variantDto.imageUrl,
+              weight: variantDto.weight,
+              isDefault: variantDto.isDefault,
+              isActive: variantDto.isActive,
+            });
+            await this.variantRepository.save(existingVariant);
+          } else {
+            // ID provided but doesn't exist - create new with new ID
+            const { id: _id, ...variantData } = variantDto;
+            const newVariant = this.variantRepository.create({
+              ...variantData,
+              productId: id,
+            });
+            await this.variantRepository.save(newVariant);
+          }
+        } else {
+          // No ID - create new variant
+          const { id: _id, ...variantData } = variantDto;
+          const newVariant = this.variantRepository.create({
+            ...variantData,
+            productId: id,
+          });
+          await this.variantRepository.save(newVariant);
+        }
+      }
+    }
 
     return await this.findOne(id);
   }

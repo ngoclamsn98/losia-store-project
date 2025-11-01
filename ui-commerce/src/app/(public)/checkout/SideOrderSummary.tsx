@@ -21,7 +21,10 @@ function formatVND(n: number) {
 
 export default function SideOrderSummary({ onPlaceOrder }: SideOrderSummaryProps) {
   const router = useRouter();
-  const { cartItems, isFirstPurchase, isRemoving } = useCart();
+  const { items: cartItems } = useCart();
+  // TODO: Implement isFirstPurchase and isRemoving
+  const isFirstPurchase = false;
+  const isRemoving = false;
 
   // Promo code
   const initialCode = isFirstPurchase ? 'FIRST50' : '';
@@ -32,15 +35,11 @@ export default function SideOrderSummary({ onPlaceOrder }: SideOrderSummaryProps
   // Gift card toggle
   const [showGiftCard, setShowGiftCard] = useState<boolean>(false);
 
-  // Subtotal = sum((oldPrice ?? newPrice ?? retailPrice) × quantity)
+  // Subtotal = sum((oldPrice ?? price) × quantity)
 const subtotal = useMemo(() => {
   return cartItems.reduce((sum, item) => {
-    const unitPrice =
-      (item.product.oldPrice ?? undefined) ??
-      item.product.newPrice ??
-      item.product.retailPrice ??
-      0;
-    const qty = item.quantity > 0 ? item.quantity : 1;
+    const unitPrice = item.product.oldPrice ?? item.product.price ?? 0;
+    const qty = item.qty > 0 ? item.qty : 1;
     return sum + unitPrice * qty;
   }, 0);
 }, [cartItems]);

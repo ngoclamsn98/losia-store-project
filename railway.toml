@@ -1,0 +1,57 @@
+# Railway Monorepo Configuration
+# Deploy 3 services from same repo
+
+[build]
+builder = "NIXPACKS"
+
+# Backend Service
+[[services]]
+name = "backend"
+source = "backend"
+
+[services.build]
+buildCommand = "cd backend && npm install && npm run build"
+
+[services.deploy]
+startCommand = "cd backend && npm run start:prod"
+healthcheckPath = "/health"
+healthcheckTimeout = 100
+
+[services.env]
+NODE_ENV = "production"
+PORT = "3001"
+
+# Frontend Admin Service
+[[services]]
+name = "frontend"
+source = "frontend"
+
+[services.build]
+buildCommand = "cd frontend && npm install && npm run build"
+
+[services.deploy]
+startCommand = "cd frontend && npm run start"
+healthcheckPath = "/"
+healthcheckTimeout = 100
+
+[services.env]
+NODE_ENV = "production"
+PORT = "3000"
+
+# UI Commerce Service
+[[services]]
+name = "ui-commerce"
+source = "ui-commerce"
+
+[services.build]
+buildCommand = "cd ui-commerce && npm install && npm run build"
+
+[services.deploy]
+startCommand = "cd ui-commerce && npm run start"
+healthcheckPath = "/"
+healthcheckTimeout = 100
+
+[services.env]
+NODE_ENV = "production"
+PORT = "3002"
+

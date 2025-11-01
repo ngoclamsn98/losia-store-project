@@ -23,8 +23,6 @@ const GROUP_MAP: Record<string, string> = {
 };
 
 async function seedProductTypes() {
-  console.log("→ Seeding ProductType ...");
-
   // 1) Upsert parent types trước (parent === null)
   const parentTypes = productTypes.filter((t) => t.parent === null);
   const parentIdByName = new Map<string, string>();
@@ -73,12 +71,9 @@ async function seedProductTypes() {
   }
 
   const total = await prisma.productType.count();
-  console.log(`✓ ProductType done. Count = ${total}`);
 }
 
 async function seedSizeOptions() {
-  console.log("→ Seeding SizeOption ...");
-
   // @@unique([sizeLabel, sortOrder], name: "sizeLabel_sortOrder")
   for (const s of sizeOptions) {
     await prisma.sizeOption.upsert({
@@ -108,12 +103,9 @@ async function seedSizeOptions() {
   }
 
   const total = await prisma.sizeOption.count();
-  console.log(`✓ SizeOption done. Count = ${total}`);
 }
 
 async function seedEcoImpact() {
-  console.log("→ Seeding EcoImpact ...");
-
   for (const row of ecoImpactData) {
     const groupEn = GROUP_MAP[row.productGroup] ?? row.productGroup;
 
@@ -142,7 +134,6 @@ async function seedEcoImpact() {
   }
 
   const total = await prisma.ecoImpact.count();
-  console.log(`✓ EcoImpact done. Count = ${total}`);
 }
 
 async function main() {
@@ -153,7 +144,6 @@ async function main() {
 
 main()
   .then(async () => {
-    console.log("🎉 Seed completed.");
     await prisma.$disconnect();
   })
   .catch(async (e) => {

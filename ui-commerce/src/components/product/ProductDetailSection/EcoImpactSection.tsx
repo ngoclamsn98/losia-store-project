@@ -26,12 +26,33 @@ export default function EcoImpactSection({
   hoursOfLighting,
   kmsOfDriving,
 }: Props) {
+  // Debug log
+  console.log("EcoImpactSection props:", {
+    productType,
+    glassesOfWater,
+    hoursOfLighting,
+    kmsOfDriving,
+  });
+
   // state hiển thị (đã hợp nhất props + default)
   const [defaults, setDefaults] = useState<EcoImpactDefault | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // lấy default từ API (nhẹ, không chặn UI)
+  // Check if we have all custom values
+  const hasAllCustomValues =
+    glassesOfWater != null &&
+    hoursOfLighting != null &&
+    kmsOfDriving != null;
+
+  // lấy default từ API chỉ khi không có đủ custom values
   useEffect(() => {
+    // Nếu đã có đủ custom values, không cần fetch defaults
+    if (hasAllCustomValues) {
+      setDefaults(null);
+      setLoading(false);
+      return;
+    }
+
     let alive = true;
     (async () => {
       try {
@@ -44,8 +65,10 @@ export default function EcoImpactSection({
           list.find(
             (i) => i.productGroup?.toLowerCase() === String(productType).toLowerCase()
           ) || null;
+        console.log("Fetched defaults:", { productType, match, list });
         if (alive) setDefaults(match);
-      } catch {
+      } catch (err) {
+        console.error("Failed to fetch eco impacts:", err);
         // silent fallback
       } finally {
         if (alive) setLoading(false);
@@ -54,22 +77,14 @@ export default function EcoImpactSection({
     return () => {
       alive = false;
     };
-  }, [productType]);
+  }, [productType, hasAllCustomValues]);
 
   // hợp nhất số liệu: ưu tiên props > defaults > 0
   const numbers = useMemo(() => {
-    const g =
-      typeof glassesOfWater === "number"
-        ? glassesOfWater
-        : (defaults?.glassesOfWater ?? 0);
-    const h =
-      typeof hoursOfLighting === "number"
-        ? hoursOfLighting
-        : (defaults?.hoursOfLighting ?? 0);
-    const km =
-      typeof kmsOfDriving === "number"
-        ? kmsOfDriving
-        : (defaults?.kmsOfDriving ?? 0);
+    const g = glassesOfWater ?? defaults?.glassesOfWater ?? 0;
+    const h = hoursOfLighting ?? defaults?.hoursOfLighting ?? 0;
+    const km = kmsOfDriving ?? defaults?.kmsOfDriving ?? 0;
+    console.log("Final numbers:", { glasses: g, hours: h, kms: km, defaults });
     return { glasses: g, hours: h, kms: km };
   }, [glassesOfWater, hoursOfLighting, kmsOfDriving, defaults]);
 

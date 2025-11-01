@@ -3,8 +3,6 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🧹 Resetting database…');
-
   // Xóa theo thứ tự tránh lỗi ràng buộc khóa ngoại
   await prisma.cartItem.deleteMany();
   await prisma.cart.deleteMany();
@@ -18,7 +16,6 @@ async function main() {
   await prisma.productType.deleteMany();
   await prisma.sizeOption.deleteMany();
 
-  console.log('✅ Database reset hoàn tất.');
 }
 
 main()

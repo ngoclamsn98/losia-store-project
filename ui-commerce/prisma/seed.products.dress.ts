@@ -191,8 +191,6 @@ async function main() {
       );
     });
   }
-
-  console.log(`\n🎉 Done. Upserted ${upserted}/${dressProducts.length} Dress products.\n`);
 }
 
 main()

@@ -103,12 +103,32 @@ export class ProductsController {
     });
   }
 
+  @Get('filters/variants')
+  @ApiOperation({ summary: 'Get available variant filters (public)' })
+  @ApiQuery({ name: 'categoryIds', required: false, isArray: true, type: String, description: 'Filter by category IDs' })
+  @ApiQuery({ name: 'status', required: false, enum: ProductStatus, description: 'Filter by product status' })
+  @ApiResponse({ status: 200, description: 'Returns grouped variant attributes for filtering' })
+  getVariantFilters(
+    @Query('categoryIds') categoryIds?: string | string[],
+    @Query('status') status?: ProductStatus,
+  ) {
+    const categoryIdsArray = categoryIds
+      ? (Array.isArray(categoryIds) ? categoryIds : [categoryIds])
+      : undefined;
+
+    return this.productsService.getVariantFilters({
+      categoryIds: categoryIdsArray,
+      status,
+    });
+  }
+
   @Get()
   @ApiOperation({ summary: 'Get all products (public - no auth required)' })
   @ApiQuery({ name: 'categoryIds', required: false, isArray: true, type: String, description: 'Filter by category IDs (can pass multiple)' })
   @ApiQuery({ name: 'status', required: false, enum: ProductStatus, description: 'Filter by product status' })
   @ApiQuery({ name: 'isFeatured', required: false, type: Boolean, description: 'Filter featured products' })
   @ApiQuery({ name: 'search', required: false, description: 'Search in product name and description' })
+  @ApiQuery({ name: 'variantAttributes', required: false, description: 'Filter by variant attributes (format: color:Red,size:M)' })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 10, max: 100)' })
   @ApiResponse({ status: 200, description: 'Returns paginated list of products' })
@@ -117,6 +137,7 @@ export class ProductsController {
     @Query('status') status?: ProductStatus,
     @Query('isFeatured') isFeatured?: string,
     @Query('search') search?: string,
+    @Query('variantAttributes') variantAttributes?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
@@ -125,13 +146,40 @@ export class ProductsController {
       ? (Array.isArray(categoryIds) ? categoryIds : [categoryIds])
       : undefined;
 
+    // Parse variant attributes filter
+    // Format: "color:Red,size:M" or "color:Red|Blue,size:M"
+    let parsedVariantAttributes: Record<string, string[]> | undefined;
+    if (variantAttributes) {
+      parsedVariantAttributes = {};
+      const pairs = variantAttributes.split(',');
+      for (const pair of pairs) {
+        const [key, values] = pair.split(':');
+        if (key && values) {
+          parsedVariantAttributes[key.trim()] = values.split('|').map(v => v.trim());
+        }
+      }
+    }
+
     return this.productsService.findAll({
       categoryIds: categoryIdsArray,
       status,
       isFeatured: isFeatured === 'true',
       search,
+      variantAttributes: parsedVariantAttributes,
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
+    });
+  }
+
+  @Get('season-outfits')
+  @ApiOperation({ summary: 'Get season outfit products (featured products for homepage)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of products to return (default: 16)' })
+  @ApiResponse({ status: 200, description: 'Returns list of featured products for season outfits' })
+  getSeasonOutfits(@Query('limit') limit?: string) {
+    return this.productsService.findAll({
+      status: ProductStatus.ACTIVE,
+      limit: limit ? parseInt(limit, 10) : 16,
+      page: 1,
     });
   }
 

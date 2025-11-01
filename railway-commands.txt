@@ -1,0 +1,148 @@
+# Railway CLI Commands - Copy & Paste
+
+# ============================================
+# STEP 1: Install Railway CLI
+# ============================================
+sudo npm i -g @railway/cli
+
+
+# ============================================
+# STEP 2: Login
+# ============================================
+railway login
+
+
+# ============================================
+# STEP 3: Initialize Project
+# ============================================
+cd /Users/hoangduykhanh/Desktop/losia-store-project
+railway init
+
+
+# ============================================
+# STEP 4: Add PostgreSQL (via Dashboard)
+# ============================================
+railway open
+# Then: Click "New" → "Database" → "PostgreSQL"
+# Copy DATABASE_URL from Variables tab
+
+
+# ============================================
+# STEP 5: Deploy Backend
+# ============================================
+cd backend
+railway link
+railway service create backend
+
+# Set variables
+railway variables set NODE_ENV=production
+railway variables set PORT=3001
+railway variables set JWT_EXPIRES_IN=7d
+railway variables set JWT_SECRET=$(openssl rand -base64 32)
+
+# Paste your DATABASE_URL here:
+railway variables set DATABASE_URL="YOUR_DATABASE_URL_HERE"
+
+# Deploy
+railway up
+
+# Get URL
+railway domain
+
+# Save the backend URL, you'll need it!
+
+
+# ============================================
+# STEP 6: Deploy Frontend Admin
+# ============================================
+cd ../frontend
+railway link
+railway service add frontend
+
+# Set variables
+railway variables set NODE_ENV=production
+railway variables set PORT=3000
+
+# Replace with your backend URL:
+railway variables set NUXT_PUBLIC_API_URL="https://your-backend-url.railway.app"
+
+# Deploy
+railway up
+
+# Get URL
+railway domain
+
+
+# ============================================
+# STEP 7: Deploy UI Commerce
+# ============================================
+cd ../ui-commerce
+railway link
+railway service create ui-commerce
+
+# Set variables
+railway variables set NODE_ENV=production
+railway variables set PORT=3002
+
+# Replace with your backend URL:
+railway variables set NEXT_PUBLIC_API_URL="https://your-backend-url.railway.app"
+
+# Deploy
+railway up
+
+# Get URL
+railway domain
+
+# Set site URL (replace with actual URL):
+railway variables set NEXT_PUBLIC_SITE_URL="https://your-ui-commerce-url.railway.app"
+
+
+# ============================================
+# STEP 8: Update Backend CORS
+# ============================================
+cd ../backend
+
+# Replace with your actual frontend URLs:
+railway variables set CORS_ORIGIN="https://your-frontend-url.railway.app,https://your-ui-commerce-url.railway.app"
+
+# Redeploy
+railway up
+
+
+# ============================================
+# STEP 9: Run Migrations
+# ============================================
+cd backend
+railway run npm run migration:run
+
+# Or seed data:
+railway run npm run seed
+
+
+# ============================================
+# USEFUL COMMANDS
+# ============================================
+
+# View logs
+railway logs --service backend
+railway logs --service frontend
+railway logs --service ui-commerce
+
+# View all services
+railway service list
+
+# View variables
+railway variables
+
+# Open dashboard
+railway open
+
+# Connect to database
+railway connect postgres
+
+# Redeploy
+railway up
+
+# Switch service
+railway service
+

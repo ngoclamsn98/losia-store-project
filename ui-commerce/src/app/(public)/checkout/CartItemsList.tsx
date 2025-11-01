@@ -40,7 +40,7 @@ function getUnitPrice(p: Product) {
 }
 
 export default function CartItemsList() {
-  const { cartItems, removeItem } = useCart();
+  const { items: cartItems } = useCart();
 
   if (!cartItems?.length) {
     return (
@@ -101,12 +101,13 @@ export default function CartItemsList() {
                   <div className="text-xs text-gray-600">Tạm tính: {formatVND(subtotal)}</div>
                 </div>
 
-                <button
+                {/* TODO: Implement removeItem function */}
+                {/* <button
                   className="text-sm font-medium text-rose-600 hover:text-rose-700"
                   onClick={() => removeItem?.(it.id)}
                 >
                   Xoá
-                </button>
+                </button> */}
               </div>
             </li>
           );

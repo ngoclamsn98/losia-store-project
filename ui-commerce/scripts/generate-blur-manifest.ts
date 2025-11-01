@@ -16,5 +16,4 @@ const OUT = path.resolve(process.cwd(), 'blur-manifest.json');
     manifest[`/assets/images/main/${file}`] = b64; // key = đường dẫn public
   }
   fs.writeFileSync(OUT, JSON.stringify(manifest, null, 2));
-  console.log('Wrote', OUT);
 })();

@@ -139,13 +139,6 @@ function ProductCard({ product, index }: { product: RelatedProduct; index: numbe
 
         {/* Info */}
         <div className="p-3 space-y-1">
-          {/* Seller Name */}
-          {seller?.firstName && (
-            <p className="text-xs text-gray-500 truncate">
-              {seller.firstName}
-            </p>
-          )}
-
           {/* Product Name */}
           <Link href={`/product/${product.slug}`} className="block">
             <h3 className="text-sm font-medium text-gray-900 line-clamp-2 group-hover:text-emerald-600 transition">
@@ -192,7 +185,6 @@ export default async function RelatedProducts({
   limit?: number;
 }) {
   const products = await fetchRelatedProducts(productId, limit);
-console.log(products,'products');
 
   if (products.length === 0) {
     return null;
