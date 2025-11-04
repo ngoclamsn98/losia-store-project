@@ -197,51 +197,6 @@ function TopBar() {
           <span className="text-gray-400">...</span>
         ) : session?.user ? (
           <div className="relative" ref={menuRef}>
-            <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-1 hover:text-gray-900"
-            >
-              <User className="h-4 w-4" />
-              <span>{session.user.name || session.user.email}</span>
-              <ChevronDown className="h-3 w-3" />
-            </button>
-
-            {/* Dropdown menu */}
-            <AnimatePresence>
-              {showUserMenu && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute right-0 top-full mt-2 w-48 rounded-lg border bg-white shadow-lg z-50"
-                >
-                  <div className="p-2">
-                    <Link
-                      href="/account"
-                      className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
-                      onClick={() => setShowUserMenu(false)}
-                    >
-                      Tài khoản của tôi
-                    </Link>
-                    <Link
-                      href="/orders"
-                      className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
-                      onClick={() => setShowUserMenu(false)}
-                    >
-                      Đơn hàng
-                    </Link>
-                    <hr className="my-2" />
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded flex items-center gap-2"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Đăng xuất
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
         ) : (
           <Link href="/login" className="hover:text-gray-900">Đăng nhập</Link>
@@ -454,6 +409,7 @@ function UserButton() {
         <span className="text-sm font-medium max-w-[100px] truncate">
           {session.user.name || session.user.email}
         </span>
+        <ChevronDown />
       </button>
 
       <AnimatePresence>
