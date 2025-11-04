@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Search, ShoppingCart, User, Menu, X, ChevronDown } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, X, ChevronDown, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
 import { useCart } from "@/app/providers/CartProvider";
 import Image from "next/image";
+import { useSession, signOut } from "next-auth/react";
 
 /**
  * LOSIA — Global Header (UI/UX)
@@ -165,12 +166,86 @@ function PromoBar() {
 // -----------------------------
 
 function TopBar() {
+  const { data: session, status } = useSession();
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: "/" });
+  };
+
   return (
     <div className="hidden md:block border-b bg-white/70 backdrop-blur">
       <div className={clsx(containerClass, "flex items-center justify-end gap-6 py-2 text-sm text-gray-600")}>
         <Link href="/about" className="hover:text-gray-900">Về Losia</Link>
         <Link href="/sell" className="hover:text-gray-900">Bán cùng Losia</Link>
         <Link href="/help" className="hover:text-gray-900">Hỗ trợ</Link>
+
+        {/* User menu */}
+        {status === "loading" ? (
+          <span className="text-gray-400">...</span>
+        ) : session?.user ? (
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="flex items-center gap-1 hover:text-gray-900"
+            >
+              <User className="h-4 w-4" />
+              <span>{session.user.name || session.user.email}</span>
+              <ChevronDown className="h-3 w-3" />
+            </button>
+
+            {/* Dropdown menu */}
+            <AnimatePresence>
+              {showUserMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute right-0 top-full mt-2 w-48 rounded-lg border bg-white shadow-lg z-50"
+                >
+                  <div className="p-2">
+                    <Link
+                      href="/account"
+                      className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      Tài khoản của tôi
+                    </Link>
+                    <Link
+                      href="/orders"
+                      className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      Đơn hàng
+                    </Link>
+                    <hr className="my-2" />
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded flex items-center gap-2"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Đăng xuất
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        ) : (
+          <Link href="/login" className="hover:text-gray-900">Đăng nhập</Link>
+        )}
       </div>
     </div>
   );
@@ -266,6 +341,163 @@ function MobileSearchOverlay({ open, onClose }: { open: boolean; onClose: () => 
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+// -----------------------------
+// Mobile User Section
+// -----------------------------
+
+function MobileUserSection() {
+  const { data: session } = useSession();
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: "/" });
+  };
+
+  if (!session?.user) {
+    return (
+      <div className="mt-4 pt-4 border-t">
+        <Link
+          href="/login"
+          className="block w-full text-center bg-neutral-900 text-white py-2.5 rounded-lg font-semibold hover:bg-neutral-800"
+        >
+          Đăng nhập
+        </Link>
+        <Link
+          href="/register"
+          className="block w-full text-center border border-neutral-900 text-neutral-900 py-2.5 rounded-lg font-semibold hover:bg-neutral-50 mt-2"
+        >
+          Đăng ký
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4 pt-4 border-t">
+      <div className="flex items-center gap-3 mb-3 p-3 bg-gray-50 rounded-lg">
+        <div className="w-10 h-10 rounded-full bg-neutral-900 text-white flex items-center justify-center font-semibold">
+          {session.user.name?.[0]?.toUpperCase() || session.user.email?.[0]?.toUpperCase() || "U"}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-gray-900 truncate">
+            {session.user.name || "User"}
+          </p>
+          <p className="text-xs text-gray-500 truncate">{session.user.email}</p>
+        </div>
+      </div>
+      <div className="space-y-1">
+        <Link
+          href="/account"
+          className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
+        >
+          Tài khoản của tôi
+        </Link>
+        <Link
+          href="/orders"
+          className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
+        >
+          Đơn hàng
+        </Link>
+        <button
+          onClick={handleLogout}
+          className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded flex items-center gap-2"
+        >
+          <LogOut className="h-4 w-4" />
+          Đăng xuất
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// -----------------------------
+// User button (account menu)
+// -----------------------------
+
+function UserButton() {
+  const { data: session } = useSession();
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: "/" });
+  };
+
+  if (!session?.user) {
+    return (
+      <Link href="/login" aria-label="Tài khoản" className="hidden sm:inline-flex">
+        <User className="h-6 w-6" />
+      </Link>
+    );
+  }
+
+  return (
+    <div className="relative hidden sm:block" ref={menuRef}>
+      <button
+        onClick={() => setShowMenu(!showMenu)}
+        className="flex items-center gap-2 rounded-full border px-3 py-1.5 hover:bg-gray-50"
+        aria-label="Menu tài khoản"
+      >
+        <User className="h-5 w-5" />
+        <span className="text-sm font-medium max-w-[100px] truncate">
+          {session.user.name || session.user.email}
+        </span>
+      </button>
+
+      <AnimatePresence>
+        {showMenu && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute right-0 top-full mt-2 w-56 rounded-lg border bg-white shadow-lg z-50"
+          >
+            <div className="p-2">
+              <div className="px-3 py-2 border-b">
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                  {session.user.name || "User"}
+                </p>
+                <p className="text-xs text-gray-500 truncate">{session.user.email}</p>
+              </div>
+              <Link
+                href="/account"
+                className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded mt-2"
+                onClick={() => setShowMenu(false)}
+              >
+                Tài khoản của tôi
+              </Link>
+              <Link
+                href="/orders"
+                className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
+                onClick={() => setShowMenu(false)}
+              >
+                Đơn hàng
+              </Link>
+              <hr className="my-2" />
+              <button
+                onClick={handleLogout}
+                className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Đăng xuất
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -478,9 +710,7 @@ export default function Header() {
               <Search className="h-6 w-6" />
             </button>
             {/* Account */}
-            <Link href="/login" aria-label="Tài khoản" className="hidden sm:inline-flex">
-              <User className="h-6 w-6" />
-            </Link>
+            <UserButton />
             {/* Cart */}
             <CartButton />
           </div>
@@ -542,6 +772,9 @@ export default function Header() {
                   <Link href="/sell" className="text-gray-700">Bán cùng Losia</Link>
                   <Link href="/help" className="text-gray-700">Hỗ trợ</Link>
                 </div>
+
+                {/* Mobile User Section */}
+                <MobileUserSection />
               </div>
             </motion.div>
           )}

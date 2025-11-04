@@ -20,6 +20,8 @@ import { Order } from './orders/entities/order.entity';
 import { InventoryModule } from './inventory/inventory.module';
 import { ProductImpactsModule } from './product-impacts/product-impacts.module';
 import { ProductImpact } from './product-impacts/entities/product-impact.entity';
+import { ClientUsersModule } from './client-users/client-users.module';
+import { ClientUser } from './client-users/entities/client-user.entity';
 
 @Module({
   imports: [
@@ -35,7 +37,7 @@ import { ProductImpact } from './product-impacts/entities/product-impact.entity'
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
-        entities: [User, Category, Product, ProductVariant, File, Cart, Order, ProductImpact],
+        entities: [User, Category, Product, ProductVariant, File, Cart, Order, ProductImpact, ClientUser],
         synchronize: true,
         logging: true,
         uuidExtension: 'pgcrypto', // Sử dụng gen_random_uuid() thay vì uuid_generate_v4()
@@ -51,6 +53,7 @@ import { ProductImpact } from './product-impacts/entities/product-impact.entity'
     OrdersModule,
     InventoryModule,
     ProductImpactsModule,
+    ClientUsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

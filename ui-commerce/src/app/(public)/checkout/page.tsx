@@ -7,6 +7,7 @@ import { CreditCard, PackageCheck, Truck, ShieldCheck, QrCode, WalletMinimal } f
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart"; // Use localStorage cart
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 /**
  * LOSIA — Checkout (QR & COD)
  * - Miễn phí ship 30.000₫ khi đạt 500.000₫
@@ -153,6 +154,7 @@ export default function CheckoutPage() {
 // -----------------------------
 
 function CheckoutClient({ cart, clearCart }: { cart: CartResponse; clearCart: () => void }) {
+  const { data: session } = useSession();
   const items = (cart.detailed || []) as DetailedItem[];
   const subtotal = Number(cart.subtotal || 0);
 
@@ -236,20 +238,29 @@ function CheckoutClient({ cart, clearCart }: { cart: CartResponse; clearCart: ()
         anonId: cart.anonId ?? (document.cookie.match(/(?:^|; )anonId=([^;]+)/)?.[1] || null),
       };
 
-      // Call Backend API directly (guest checkout)
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${apiUrl}/orders/checkout`, {
+      // Call Next.js API proxy to avoid CORS issues
+      // Use different endpoint based on authentication status
+      const checkoutEndpoint = session?.user ? '/api/checkout-auth' : '/api/checkout';
+      console.log('🛒 Sending checkout request to:', checkoutEndpoint);
+      console.log('🛒 Order data:', orderData);
+      console.log('👤 User session:', session?.user ? 'Authenticated' : 'Guest');
+
+      const response = await fetch(checkoutEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData),
       });
 
+      console.log('📡 Checkout response status:', response.status);
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Đặt hàng thất bại');
+        const error = await response.json().catch(() => ({ error: 'Đặt hàng thất bại' }));
+        console.error('❌ Checkout error:', error);
+        throw new Error(error.error || error.message || 'Đặt hàng thất bại');
       }
 
       const data = await response.json() as { orderId?: string; id?: string };
+      console.log('✅ Checkout success:', data);
 
       // Clear localStorage cart
       clearCart();

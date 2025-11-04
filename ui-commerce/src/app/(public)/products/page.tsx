@@ -234,6 +234,9 @@ export default async function ProductsPage({
     fetchCategories(),
   ]);
 
+  console.log(products,'productsproducts');
+  
+
   return (
     <div className="bg-white min-h-screen">
       {/* Hero / Intro */}

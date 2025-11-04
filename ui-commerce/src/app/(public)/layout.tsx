@@ -6,7 +6,7 @@ import PageView from "@/components/analytics/PageView";
 import { Inter } from "next/font/google";
 import type { Metadata } from "next";
 import MiniCartDrawer from "@/components/cart/MiniCartDrawer";
-import CartProvider from "@/app/providers/CartProvider";
+import Providers from "@/app/providers/Providers";
 
 import Header from "@/app/(public)/components/common/Header";
 import Footer from "@/app/(public)/components/common/Footer";
@@ -35,7 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
 
       <body className={inter.className}>
-        <CartProvider>
+        <Providers>
           {/* Header mới */}
           <Header />
 
@@ -93,7 +93,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               }),
             }}
           />
-        </CartProvider>
+        </Providers>
       </body>
     </html>
   );

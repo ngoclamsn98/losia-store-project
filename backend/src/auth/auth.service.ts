@@ -39,8 +39,32 @@ export class AuthService {
     });
 
     const savedUser = await this.userRepository.save(user);
-    const { password, ...result } = savedUser;
-    return result;
+
+    // Generate JWT token for the new user
+    const payload = {
+      sub: savedUser.id,
+      email: savedUser.email,
+      role: savedUser.role,
+      level: savedUser.level,
+    };
+
+    const accessToken = this.jwtService.sign(payload);
+
+    // Return user data and access token (same format as login)
+    return {
+      accessToken,
+      user: {
+        id: savedUser.id,
+        email: savedUser.email,
+        firstName: savedUser.firstName,
+        lastName: savedUser.lastName,
+        phone: savedUser.phone,
+        gender: savedUser.gender,
+        address: savedUser.address,
+        role: savedUser.role,
+        level: savedUser.level,
+      },
+    };
   }
 
   async login(loginDto: LoginDto) {

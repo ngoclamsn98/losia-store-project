@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
+import { User, UserRole } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -76,6 +76,8 @@ export class UsersService {
         { search: `%${filters.search}%` },
       );
     }
+
+    // query.andWhere('user.role != :role', { role: UserRole.SUPERADMIN });
 
     const users = await query.getMany();
     return users;

@@ -9,6 +9,9 @@ export * from './internal';
 // Products
 export * from './products';
 
+// Users
+export * from './users';
+
 // Hooks
 export * from './hooks/useProducts';
 
