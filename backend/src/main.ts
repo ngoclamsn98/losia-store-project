@@ -24,6 +24,7 @@ async function bootstrap() {
       'http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002',
       'https://frontend-tau-three-41.vercel.app',
       'https://project-losia-backend-production.up.railway.app',
+      "https://ui-ecommerce-eight.vercel.app"
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],

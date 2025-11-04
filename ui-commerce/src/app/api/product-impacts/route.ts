@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+export const revalidate = 300; // Revalidate every 5 minutes
+
 /**
  * GET /api/product-impacts
  * Proxy to backend API to get eco impact defaults

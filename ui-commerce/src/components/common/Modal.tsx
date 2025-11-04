@@ -1,8 +1,7 @@
-'use client'; // <--- Quan trọng, để Modal chạy ở client
+'use client';
 
-
-import React from "react";
-import ReactDOM from "react-dom";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface ModalProps {
   isOpen: boolean;
@@ -11,23 +10,32 @@ interface ModalProps {
 }
 
 export default function Modal({ isOpen, onClose, children }: ModalProps) {
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return ReactDOM.createPortal(
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
+
+  // Ensure modal-root exists
+  let modalRoot = document.getElementById("modal-root");
+  if (!modalRoot) {
+    modalRoot = document.createElement("div");
+    modalRoot.id = "modal-root";
+    document.body.appendChild(modalRoot);
+  }
+
+  return createPortal(
     <div
-      className="
-        fixed
-        inset-0
-        z-50
-        flex
-        items-center
-        justify-center
-        bg-black/40
-        bg-opacity-50
-      "
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      onClick={onClose}
     >
-      <div className="relative">{children}</div>
+      <div className="relative" onClick={(e) => e.stopPropagation()}>
+        {children}
+      </div>
     </div>,
-    document.getElementById("modal-root")!
+    modalRoot
   );
 }

@@ -1,8 +1,6 @@
 // app/(public)/order/[id]/page.tsx
 import Link from 'next/link';
 
-export const dynamic = 'force-dynamic';
-
 type OrderItemDTO = {
   id: string;
   quantity: number;

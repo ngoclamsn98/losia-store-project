@@ -15,13 +15,17 @@ async function verifyUser(email: string, password: string) {
 
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    const response = await fetch(`${apiUrl}/client-auth/login`, {
+    console.log('🔐 Attempting login to:', `${apiUrl}/auth/login`);
+
+    const response = await fetch(`${apiUrl}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ email, password }),
     });
+
+    console.log('📡 Login response status:', response.status);
 
     if (!response.ok) {
       return null;
@@ -81,6 +85,12 @@ export const {
       },
     }),
   ],
+
+  // Custom pages
+  pages: {
+    signIn: '/login',
+    error: '/login',
+  },
 
   // Đưa user.id và accessToken vào token & session
   session: { strategy: "jwt" },

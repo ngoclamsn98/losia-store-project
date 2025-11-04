@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const revalidate = 300; // Revalidate every 5 minutes
+
 /**
  * GET /api/season-outfits
  * Proxy to backend API /products/season-outfits
