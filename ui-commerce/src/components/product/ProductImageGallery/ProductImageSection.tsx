@@ -162,6 +162,7 @@ export default function ProductImageSection({
           onNext={canGoNext ? goNext : undefined}
           canGoPrev={canGoPrev}
           canGoNext={canGoNext}
+          productId={productId}
           className="relative overflow-hidden rounded-xl bg-gray-100 aspect-[3/4] w-full max-w-[612px] mx-auto"
         />
 

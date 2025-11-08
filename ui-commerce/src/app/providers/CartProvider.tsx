@@ -9,6 +9,7 @@ import {
   ReactNode,
   useMemo,
 } from "react";
+import { getLocalCart, clearLocalCart } from "@/lib/cart/localStorage";
 
 /** ---------- Types (export để tái dùng) ---------- */
 export type CartItem = {
@@ -68,24 +69,37 @@ export function CartProvider({ children }: { children: ReactNode }) {
   });
 
   const refresh = useCallback(async () => {
-    const res = await fetch("/api/cart", {
-      credentials: "include",
-      cache: "no-store",
-    });
-    if (!res.ok) return;
-    const data = await res.json();
+    // ❌ Disabled API cart - using localStorage only
+    // const res = await fetch("/api/cart", {
+    //   credentials: "include",
+    //   cache: "no-store",
+    // });
+    // if (!res.ok) return;
+    // const data = await res.json();
 
-    const detailed: CartItem[] = Array.isArray(data?.detailed) ? data.detailed : [];
-    const count =
-      typeof data?.count === "number"
-        ? data.count
-        : detailed.reduce((s: number, it: CartItem) => s + (it?.qty || 0), 0);
+    // Use localStorage cart instead
+    const localCart = getLocalCart();
+    const detailed: CartItem[] = localCart.items.map(item => ({
+      productId: item.productId,
+      qty: item.quantity,
+      product: {
+        id: item.productId,
+        title: item.productName || '',
+        price: item.price,
+        oldPrice: null,
+        cover: item.imageUrl || null,
+        inStock: true,
+      },
+    }));
+
+    const count = detailed.reduce((s: number, it: CartItem) => s + (it?.qty || 0), 0);
+    const subtotal = detailed.reduce((s: number, it: CartItem) => s + (it?.product?.price || 0) * (it?.qty || 0), 0);
 
     setCart({
-      id: data?.id ?? null,
-      anonId: data?.anonId ?? null,
+      id: null,
+      anonId: null,
       detailed,
-      subtotal: typeof data?.subtotal === "number" ? data.subtotal : 0,
+      subtotal,
       count,
     });
     dispatchCartChanged();
@@ -111,27 +125,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   /** ✅ Xóa cart cả server lẫn client, dùng khi place order xong */
   const clearCart = useCallback(async () => {
+    // ❌ Disabled API cart - using localStorage only
+    clearLocalCart();
+    setCart({
+      id: null,
+      anonId: null,
+      detailed: [],
+      subtotal: 0,
+      count: 0,
+    });
+    dispatchCartChanged();
     try {
-      await fetch("/api/cart", {
-        method: "DELETE",
-        credentials: "include",
-        cache: "no-store",
-      });
-    } catch {
-      // dù API lỗi vẫn clear local để tránh cảm giác “kẹt”
-    } finally {
-      setCart((prev) => ({
-        id: prev.id,
-        anonId: prev.anonId,
-        detailed: [],
-        subtotal: 0,
-        count: 0,
-      }));
-      dispatchCartChanged();
-      try {
-        sessionStorage.setItem("losia:lastCartCount", "0");
-      } catch {}
-    }
+      sessionStorage.setItem("losia:lastCartCount", "0");
+    } catch {}
   }, []);
 
   useEffect(() => {

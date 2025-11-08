@@ -176,10 +176,50 @@ export class ProductsController {
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of products to return (default: 16)' })
   @ApiResponse({ status: 200, description: 'Returns list of featured products for season outfits' })
   getSeasonOutfits(@Query('limit') limit?: string) {
-    return this.productsService.findAll({
+    return this.productsService.findSeasonOutfits({
       status: ProductStatus.ACTIVE,
       limit: limit ? parseInt(limit, 10) : 16,
       page: 1,
+    });
+  }
+
+  @Get('search')
+  @ApiOperation({ summary: 'Search products by keyword (public)' })
+  @ApiQuery({ name: 'q', required: true, type: String, description: 'Search keyword' })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 24)' })
+  @ApiQuery({ name: 'status', required: false, enum: ProductStatus, description: 'Filter by product status (default: ACTIVE)' })
+  @ApiResponse({ status: 200, description: 'Returns paginated search results' })
+  searchProducts(
+    @Query('q') query: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('status') status?: ProductStatus,
+  ) {
+    return this.productsService.searchProducts(query, {
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      status,
+    });
+  }
+
+  @Get('category/:slug')
+  @ApiOperation({ summary: 'Get products by category slug (public)' })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 12)' })
+  @ApiQuery({ name: 'status', required: false, enum: ProductStatus, description: 'Filter by product status (default: ACTIVE)' })
+  @ApiResponse({ status: 200, description: 'Returns paginated list of products for the category' })
+  @ApiResponse({ status: 404, description: 'Category not found' })
+  findByCategorySlug(
+    @Param('slug') slug: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('status') status?: ProductStatus,
+  ) {
+    return this.productsService.findByCategorySlug(slug, {
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      status,
     });
   }
 

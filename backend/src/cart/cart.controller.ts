@@ -18,11 +18,11 @@ import {
 import { CartService } from './cart.service';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ClientJwtAuthGuard } from '../client-users/guards/client-jwt-auth.guard';
 
 @ApiTags('cart')
 @Controller('cart')
-@UseGuards(JwtAuthGuard)
+@UseGuards(ClientJwtAuthGuard)
 @ApiBearerAuth()
 export class CartController {
   constructor(private readonly cartService: CartService) {}

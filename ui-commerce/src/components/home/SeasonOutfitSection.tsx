@@ -3,10 +3,10 @@
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import clsx from "clsx";
 import SmartImage from "@/components/media/SmartImage";
 import { normalizeImageUrl, pickDemoImageUrl } from "@/lib/images";
+import FavoriteButton from "@/components/product/FavoriteButton";
 
 /** ===== Types khớp với shapeCard ===== */
 type ProductCard = {
@@ -23,6 +23,7 @@ type ProductCard = {
   cover?: string | null;
   conditionValue?: string | null;
   slug?: string;
+  name?: string;
 };
 
 const fmtVND = (n?: number | null) =>
@@ -86,6 +87,7 @@ function normalize(input: any, index?: number): ProductCard {
   return {
     id: String(input?.id ?? input?.slug ?? crypto.randomUUID()),
     title: String(input?.title ?? ""),
+    name: String(input?.name ?? ""),
     price: Number(price),
     oldPrice: Number(oldPrice),
     retailPrice: typeof input?.retailPrice === "number" ? input.retailPrice : typeof oldPrice === "number" ? oldPrice : null,
@@ -123,12 +125,6 @@ function CardLikeProducts({ p, index }: { p: ProductCard; index: number }) {
   const nwt = isNewWithTags(p.conditionValue);
   const discount = percentOff(Number(p.price), Number(p.oldPrice));
 
-  const [isFavorite, setIsFavorite] = useState(false);
-  const toggleFavorite = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsFavorite((v) => !v);
-  };
-
   return (
     <div className="group snap-start shrink-0 w-[180px]">
       <div className="relative rounded-2xl border hover:shadow-sm transition overflow-hidden">
@@ -153,20 +149,9 @@ function CardLikeProducts({ p, index }: { p: ProductCard; index: number }) {
           )}
 
           {/* Favorite */}
-          <button
-            type="button"
-            aria-label={isFavorite ? "Unfavorite" : "Favorite"}
-            onClick={toggleFavorite}
-            className="absolute right-2 top-2 flex items-center justify-center rounded-full bg-white shadow-sm hover:bg-gray-50 h-8 w-8"
-          >
-            <Image
-              src={isFavorite ? "/assets/icons/heart-solid.svg" : "/assets/icons/heart-outline.svg"}
-              alt="Favorite"
-              width={18}
-              height={18}
-              loading="lazy"
-            />
-          </button>
+          <div className="absolute right-2 top-2">
+            <FavoriteButton productId={p.id} className="h-8 w-8" iconSize={18} />
+          </div>
 
           {/* % giảm */}
           {discount && (
@@ -178,9 +163,9 @@ function CardLikeProducts({ p, index }: { p: ProductCard; index: number }) {
 
         {/* THÔNG TIN */}
         <div className="p-3 relative z-10">
-          {p.brandName && (
-            <Link href={`/product/${p.id}`} className="block text-sm text-gray-900" title={p.title || ""}>
-              <span className="font-semibold">{p.brandName}</span>
+          {p.name && (
+            <Link href={`/product/${p.id}`} className="block text-sm text-gray-900" title={p.name || ""}>
+              <span className="font-semibold">{p.name}</span>
             </Link>
           )}
 
@@ -193,7 +178,7 @@ function CardLikeProducts({ p, index }: { p: ProductCard; index: number }) {
             )}
           </div>
 
-          <div className="mt-1 text-[11px] text-rose-700">{PROMO_TEXT}</div>
+          {/* <div className="mt-1 text-[11px] text-rose-700">{PROMO_TEXT}</div> */}
         </div>
       </div>
     </div>

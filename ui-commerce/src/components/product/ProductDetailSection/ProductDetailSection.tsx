@@ -32,25 +32,6 @@ export default function ProductDetailSection({ product }: { product: ProductDeta
     product.productKindForEco ||
     "Others";
 
-  // Chuẩn hoá thuộc tính cho ItemDetailsSection
-  const itemNumber =
-    product.sku ?? product.itemNumber ?? product.code ?? null;
-
-  const material =
-    norm(product.material) ||
-    norm(product.materialDetail) ||
-    norm(product.materials);
-
-  const color =
-    norm(product.color) ||
-    norm(product.colorDetail) ||
-    norm(product.colors);
-
-  const style =
-    norm(product.style) ||
-    norm(product.styleDetail) ||
-    norm(product.styles);
-
   const description = norm(product.description) || ""; // cho phép rỗng
 
   return (
@@ -69,6 +50,8 @@ export default function ProductDetailSection({ product }: { product: ProductDeta
         discountPercent={product.discountPercent ?? undefined}
         discountCode={product.discountCode ?? undefined}
         isPopular={product.isPopular}
+        content={product.content}
+        description={product.description}
         cta={
           <AddToCartTracked
             product={{

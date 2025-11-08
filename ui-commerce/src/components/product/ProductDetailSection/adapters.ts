@@ -102,13 +102,26 @@ const rawSizeLabel =
     conditionDescription,
 
     // Chi tiết
+    description: toStrOrUndef(api?.description),
+    content: toStrOrUndef(api?.content) ?? null,
     details,
     itemNumber,
+    sku: itemNumber,
+    code: toStrOrUndef(api?.code),
     materialDetail: toStrOrUndef(api?.materialDetail) ?? toStrOrUndef(api?.material),
+    material: toStrOrUndef(api?.material),
     styleDetail: toStrOrUndef(api?.styleDetail) ?? toStrOrUndef(api?.style),
+    style: toStrOrUndef(api?.style),
+    color: toStrOrUndef(api?.color),
+    colorDetail: toStrOrUndef(api?.colorDetail) ?? toStrOrUndef(api?.color),
+    materials: Array.isArray(api?.materials) ? api.materials : undefined,
+    colors: Array.isArray(api?.colors) ? api.colors : undefined,
+    styles: Array.isArray(api?.styles) ? api.styles : undefined,
     measuredLength: toNumOrUndef(api?.measuredLength),
 
     // Phân loại/Eco impact
+    category: toStrOrUndef(api?.category),
+    ecoImpactGroup: toStrOrUndef(api?.ecoImpactGroup),
     productType: api?.productType ?? undefined, // nếu type cho phép undefined
     productKindForEco: pickEcoProductGroup(api),
     glassesOfWater: toNumOrUndef(api?.glassesOfWater),

@@ -35,7 +35,7 @@ export default function SellWithUsSection({ brandName }: SellWithUsSectionProps)
       <div className="flex flex-col gap-1">
         <h3 className="text-sm font-bold">{title}</h3>
         <p className="text-sm text-gray-700">
-          Mỗi sản phẩm trên LOSIA đều đến từ một tủ đồ như của bạn.{" "}
+          Mỗi sản phẩm trên LOSIA đều đến từ một tủ đồ như của bạn.
           <a
             href="/cleanout"
             className="font-semibold text-black underline underline-offset-2 hover:opacity-80"

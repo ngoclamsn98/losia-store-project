@@ -36,6 +36,7 @@ export class AuthService {
       gender: registerDto.gender,
       address: registerDto.address,
       level: USER_LEVELS.USER,
+      isActive: true,
     });
 
     const savedUser = await this.userRepository.save(user);
@@ -63,6 +64,7 @@ export class AuthService {
         address: savedUser.address,
         role: savedUser.role,
         level: savedUser.level,
+        isActive: savedUser.isActive,
       },
     };
   }

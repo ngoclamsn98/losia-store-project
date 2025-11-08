@@ -60,12 +60,42 @@ export type ProductCard = {
 };
 
 // SEO Metadata
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://losia.vn").replace(/\/$/, "");
+
 export const metadata: Metadata = {
-  title: "Sản phẩm - LOSIA Store",
-  description: "Khám phá kho đồ secondhand cho bạn & bé. Secondhand First — Like-new, tiết kiệm đến 90% so với giá ước tính retail.",
+  title: "Sản Phẩm Secondhand Chất Lượng Cao",
+  description: "Khám phá hơn 1000+ sản phẩm secondhand like-new cho bạn & bé tại LOSIA. Đồ hiệu cao cấp, giá tốt nhất, giao hàng nhanh toàn quốc. Tiết kiệm đến 90%.",
+  keywords: [
+    "sản phẩm secondhand",
+    "đồ cũ chất lượng",
+    "thời trang secondhand",
+    "đồ like-new",
+    "mua đồ cũ online",
+    "thời trang trẻ em",
+    "đồ hiệu secondhand",
+  ],
+  alternates: {
+    canonical: "/products",
+  },
   openGraph: {
-    title: "Sản phẩm - LOSIA Store",
-    description: "Khám phá kho đồ secondhand cho bạn & bé",
+    title: "Sản Phẩm Secondhand Chất Lượng Cao | LOSIA",
+    description: "Khám phá hơn 1000+ sản phẩm secondhand like-new cho bạn & bé. Tiết kiệm đến 90%.",
+    url: `${SITE_URL}/products`,
+    type: "website",
+    images: [
+      {
+        url: `${SITE_URL}/assets/og-products.jpg`,
+        width: 1200,
+        height: 630,
+        alt: "LOSIA Products",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sản Phẩm Secondhand Chất Lượng Cao | LOSIA",
+    description: "Khám phá hơn 1000+ sản phẩm secondhand like-new. Tiết kiệm đến 90%.",
+    images: [`${SITE_URL}/assets/og-products.jpg`],
   },
 };
 
@@ -233,9 +263,6 @@ export default async function ProductsPage({
     fetchVariantFilters(),
     fetchCategories(),
   ]);
-
-  console.log(products,'productsproducts');
-  
 
   return (
     <div className="bg-white min-h-screen">

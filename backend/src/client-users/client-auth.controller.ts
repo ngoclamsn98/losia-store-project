@@ -2,7 +2,7 @@ import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
 import { ClientUsersService } from './client-users.service';
 import { ClientLoginDto } from './dto/client-login.dto';
 import { ClientRegisterDto } from './dto/client-register.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ClientJwtAuthGuard } from './guards/client-jwt-auth.guard';
 import { CurrentUser, CurrentUserData } from '../auth/decorators/current-user.decorator';
 
 @Controller('client-auth')
@@ -20,7 +20,7 @@ export class ClientAuthController {
   }
 
   @Get('me')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(ClientJwtAuthGuard)
   async getMe(@CurrentUser() user: CurrentUserData) {
     return this.clientUsersService.getMe(user.id);
   }

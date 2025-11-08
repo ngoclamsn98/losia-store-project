@@ -8,7 +8,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
+import { ClientUser } from '../../client-users/entities/client-user.entity';
 
 export enum OrderStatus {
   PENDING = 'PENDING',
@@ -42,12 +42,12 @@ export class Order {
   @Column({ name: 'order_number', unique: true })
   orderNumber: string;
 
-  @Column({ name: 'user_id', type: 'uuid', nullable: true })
-  userId: string | null;
+  @Column({ name: 'client_user_id', type: 'uuid', nullable: true })
+  clientUserId: string | null;
 
-  @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
-  @JoinColumn({ name: 'user_id' })
-  user: User;
+  @ManyToOne(() => ClientUser, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'client_user_id' })
+  clientUser: ClientUser;
 
   @Column({ type: 'jsonb' })
   items: OrderItem[];

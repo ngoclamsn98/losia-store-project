@@ -8,7 +8,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
+import { ClientUser } from '../../client-users/entities/client-user.entity';
 
 @Entity('carts')
 export class Cart {
@@ -16,12 +16,12 @@ export class Cart {
   @Generated('uuid')
   id: string;
 
-  @Column({ name: 'user_id', type: 'uuid' })
-  userId: string;
+  @Column({ name: 'client_user_id', type: 'uuid' })
+  clientUserId: string;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
-  user: User;
+  @ManyToOne(() => ClientUser, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'client_user_id' })
+  clientUser: ClientUser;
 
   @Column({ type: 'jsonb', default: [] })
   items: CartItem[];

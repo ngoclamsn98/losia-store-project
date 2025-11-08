@@ -9,6 +9,9 @@ export * from './internal';
 // Products
 export * from './products';
 
+// Categories
+export * from './categories';
+
 // Users
 export * from './users';
 

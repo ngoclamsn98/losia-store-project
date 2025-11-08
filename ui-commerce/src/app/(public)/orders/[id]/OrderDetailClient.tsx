@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { ArrowLeft, Package, MapPin, CreditCard, Loader2, AlertCircle, Truck, CheckCircle } from 'lucide-react';
@@ -83,16 +83,12 @@ const statusSteps = [
 ];
 
 export default function OrderDetailClient({ orderId }: { orderId: string }) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchOrder();
-  }, [orderId]);
-
-  const fetchOrder = async () => {
+  const fetchOrder = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -119,7 +115,17 @@ export default function OrderDetailClient({ orderId }: { orderId: string }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [session, orderId]);
+
+  useEffect(() => {
+    // Only fetch order when session is loaded and user is authenticated
+    if (status === 'authenticated' && session?.user && orderId) {
+      fetchOrder();
+    } else if (status === 'unauthenticated') {
+      setLoading(false);
+      setError('Vui lòng đăng nhập để xem chi tiết đơn hàng');
+    }
+  }, [status, session, orderId, fetchOrder]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -142,13 +148,15 @@ export default function OrderDetailClient({ orderId }: { orderId: string }) {
     return statusSteps.findIndex(step => step.key === status);
   };
 
-  if (loading) {
+  if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-12">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-            <span className="ml-3 text-gray-600">Đang tải thông tin đơn hàng...</span>
+            <span className="ml-3 text-gray-600">
+              {status === 'loading' ? 'Đang kiểm tra đăng nhập...' : 'Đang tải thông tin đơn hàng...'}
+            </span>
           </div>
         </div>
       </div>

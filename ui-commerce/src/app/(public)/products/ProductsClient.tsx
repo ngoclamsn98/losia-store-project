@@ -8,6 +8,7 @@ import type { ProductCard, VariantFilters, CategoryFilter } from "./page";
 import { ColumnsIcon, EyeIcon, Grid2X2, LayoutGrid, Rows2Icon, ShoppingCartIcon, Square, X } from "lucide-react";
 import { addToLocalCart } from '@/lib/cart/localStorage';
 import { internalPost } from '@/lib/api/internal';
+import FavoriteButton from '@/components/product/FavoriteButton';
 
 const ITEMS_PER_LOAD = 24;
 const DEFAULT_SORT = "newest";
@@ -497,9 +498,14 @@ function ProductCardItem({
           )}
         </div>
 
+        {/* Favorite Button */}
+        <div className="absolute right-2 top-2 z-10">
+          <FavoriteButton productId={p.id} className="h-8 w-8" iconSize={18} />
+        </div>
+
         {/* Badges */}
         {discount && (
-          <span className="absolute right-2 top-2 text-xs px-2 py-1 rounded-full bg-rose-600 text-white">
+          <span className="absolute left-2 top-2 text-xs px-2 py-1 rounded-full bg-rose-600 text-white">
             -{discount}%
           </span>
         )}
@@ -638,6 +644,10 @@ function ProductListItem({
           {p.thumbnailUrl && (
             <Image src={p.thumbnailUrl} alt={p.title} fill className="object-cover" />
           )}
+          {/* Favorite Button */}
+          <div className="absolute right-2 top-2 z-10">
+            <FavoriteButton productId={p.id} className="h-8 w-8" iconSize={18} />
+          </div>
         </Link>
 
         <div className="min-w-0">

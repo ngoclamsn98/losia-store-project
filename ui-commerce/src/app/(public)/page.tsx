@@ -25,8 +25,44 @@ import DiscoverSection from "@/components/home/DiscoverSection";
 import blurManifest from "../../../blur-manifest.json";
 import type { Metadata } from "next";
 
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://losia.vn").replace(/\/$/, "");
+
 export const metadata: Metadata = {
-  alternates: { canonical: "/" },
+  title: "LOSIA - Thời Trang Secondhand Cao Cấp | Tiết Kiệm Đến 90%",
+  description: "Khám phá kho đồ secondhand like-new cho bạn & bé tại LOSIA. Chất lượng cao, giá tốt, giao hàng nhanh toàn quốc. Bền vững - An toàn - Tiết kiệm đến 90%.",
+  keywords: [
+    "thời trang secondhand",
+    "đồ cũ cao cấp",
+    "thời trang bền vững",
+    "đồ like-new",
+    "thời trang trẻ em secondhand",
+    "mua đồ cũ online",
+    "LOSIA",
+    "secondhand Việt Nam",
+  ],
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "LOSIA - Thời Trang Secondhand Cao Cấp",
+    description: "Khám phá kho đồ secondhand like-new cho bạn & bé. Chất lượng cao, giá tốt, tiết kiệm đến 90%.",
+    url: SITE_URL,
+    type: "website",
+    images: [
+      {
+        url: `${SITE_URL}/assets/og-image.jpg`,
+        width: 1200,
+        height: 630,
+        alt: "LOSIA - Wear What Matters",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LOSIA - Thời Trang Secondhand Cao Cấp",
+    description: "Khám phá kho đồ secondhand like-new cho bạn & bé. Tiết kiệm đến 90%.",
+    images: [`${SITE_URL}/assets/og-image.jpg`],
+  },
 };
 
 async function fetchProducts() {

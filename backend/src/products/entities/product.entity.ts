@@ -8,18 +8,29 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
+  OneToOne,
   JoinTable,
   JoinColumn,
 } from 'typeorm';
 import { Category } from '../../categories/entities/category.entity';
 import { ProductVariant } from './product-variant.entity';
 import { User } from '../../users/entities/user.entity';
+import { EcoImpact } from '../../eco-impacts/entities/eco-impact.entity';
+import { ProductCondition } from '../../product-conditions/entities/product-condition.entity';
 
 export enum ProductStatus {
   DRAFT = 'DRAFT',
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
   OUT_OF_STOCK = 'OUT_OF_STOCK',
+}
+
+export enum ProductSeason {
+  SPRING = 'SPRING',
+  SUMMER = 'SUMMER',
+  FALL = 'FALL',
+  WINTER = 'WINTER',
+  ALL_SEASON = 'ALL_SEASON',
 }
 
 @Entity('products')
@@ -85,18 +96,23 @@ export class Product {
   @Column({ name: 'seo_keywords', type: 'simple-array', nullable: true })
   seoKeywords: string[];
 
-  // Eco Impact fields
-  @Column({ name: 'eco_impact_group', nullable: true })
-  ecoImpactGroup: string;
+  // Eco Impact relationship
+  @OneToOne(() => EcoImpact, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'eco_impact_id' })
+  ecoImpact: EcoImpact | null;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, name: 'eco_glasses_of_water', nullable: true })
-  ecoGlassesOfWater: number;
+  // Season field
+  @Column({
+    type: 'enum',
+    enum: ProductSeason,
+    nullable: true,
+  })
+  season: ProductSeason;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, name: 'eco_hours_of_lighting', nullable: true })
-  ecoHoursOfLighting: number;
-
-  @Column({ type: 'decimal', precision: 10, scale: 2, name: 'eco_kms_of_driving', nullable: true })
-  ecoKmsOfDriving: number;
+  // Product Condition relationship
+  @OneToOne(() => ProductCondition, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'product_condition_id' })
+  productCondition: ProductCondition | null;
 
   @Column({ name: 'created_by_id', type: 'uuid', nullable: true })
   createdById: string;

@@ -12,7 +12,11 @@
     "prisma:migrate": "prisma migrate dev --name init",
     "db:reset": "tsx prisma/reset.ts",
     "seed": "tsx prisma/seed.ts",
-    "test:api": "node scripts/test-api-connection.js"
+    "test:api": "node scripts/test-api-connection.js",
+    "seo:audit": "node scripts/seo-audit.js",
+    "seo:test": "node scripts/test-seo.js",
+    "seo:validate": "node scripts/validate-structured-data.js",
+    "seo:generate-icons": "node scripts/generate-icons.js"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

@@ -1,13 +1,16 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
-import { Product, ProductStatus } from './entities/product.entity';
+import { Product, ProductStatus, ProductSeason } from './entities/product.entity';
 import { ProductVariant } from './entities/product-variant.entity';
 import { Category } from '../categories/entities/category.entity';
+import { EcoImpact } from '../eco-impacts/entities/eco-impact.entity';
+import { ProductCondition } from '../product-conditions/entities/product-condition.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateProductVariantDto } from './dto/update-product-variant.dto';
 import { PaginatedResult } from '../common/dto/pagination.dto';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class ProductsService {
@@ -18,6 +21,10 @@ export class ProductsService {
     private variantRepository: Repository<ProductVariant>,
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
+    @InjectRepository(EcoImpact)
+    private ecoImpactRepository: Repository<EcoImpact>,
+    @InjectRepository(ProductCondition)
+    private productConditionRepository: Repository<ProductCondition>,
   ) {}
 
   async create(createProductDto: CreateProductDto, userId?: string): Promise<Product> {
@@ -42,7 +49,7 @@ export class ProductsService {
     }
 
     // Create product with variants
-    const { variants, categoryIds, ...productData } = createProductDto;
+    const { variants, categoryIds, ecoImpactId, productConditionId, ...productData } = createProductDto;
     const product = this.productRepository.create({
       ...productData,
       createdById: userId, // Set creator
@@ -59,6 +66,32 @@ export class ProductsService {
       }
 
       product.categories = categories;
+    }
+
+    // Handle eco impact if provided
+    if (ecoImpactId) {
+      const ecoImpact = await this.ecoImpactRepository.findOne({
+        where: { id: ecoImpactId },
+      });
+
+      if (!ecoImpact) {
+        throw new BadRequestException('Eco impact not found');
+      }
+
+      product.ecoImpact = ecoImpact;
+    }
+
+    // Handle product condition if provided
+    if (productConditionId) {
+      const productCondition = await this.productConditionRepository.findOne({
+        where: { id: productConditionId },
+      });
+
+      if (!productCondition) {
+        throw new BadRequestException('Product condition not found');
+      }
+
+      product.productCondition = productCondition;
     }
 
     // Save product first
@@ -98,7 +131,8 @@ export class ProductsService {
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.variants', 'variants')
       .leftJoinAndSelect('product.categories', 'categories')
-      .leftJoinAndSelect('product.createdBy', 'createdBy');
+      .leftJoinAndSelect('product.createdBy', 'createdBy')
+      .leftJoinAndSelect('product.ecoImpact', 'ecoImpact');
 
     // Filter by creator: Only SUPERADMIN can see all products
     if (filters?.userId && filters?.userRole !== 'SUPERADMIN') {
@@ -256,7 +290,7 @@ export class ProductsService {
   async findOne(id: string): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { id },
-      relations: ['variants', 'categories'],
+      relations: ['variants', 'categories', 'ecoImpact', 'productCondition'],
     });
 
     if (!product) {
@@ -269,7 +303,7 @@ export class ProductsService {
   async findBySlug(slug: string): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { slug },
-      relations: ['variants', 'categories'],
+      relations: ['variants', 'categories', 'ecoImpact', 'productCondition'],
     });
 
     if (!product) {
@@ -314,8 +348,42 @@ export class ProductsService {
       }
     }
 
+    // Handle eco impact update
+    if (updateProductDto.ecoImpactId !== undefined) {
+      if (updateProductDto.ecoImpactId) {
+        const ecoImpact = await this.ecoImpactRepository.findOne({
+          where: { id: updateProductDto.ecoImpactId },
+        });
+
+        if (!ecoImpact) {
+          throw new BadRequestException('Eco impact not found');
+        }
+
+        product.ecoImpact = ecoImpact;
+      } else {
+        product.ecoImpact = null;
+      }
+    }
+
+    // Handle product condition update
+    if (updateProductDto.productConditionId !== undefined) {
+      if (updateProductDto.productConditionId) {
+        const productCondition = await this.productConditionRepository.findOne({
+          where: { id: updateProductDto.productConditionId },
+        });
+
+        if (!productCondition) {
+          throw new BadRequestException('Product condition not found');
+        }
+
+        product.productCondition = productCondition;
+      } else {
+        product.productCondition = null;
+      }
+    }
+
     // Update product first (without variants)
-    const { variants, categoryIds, ...productData } = updateProductDto;
+    const { variants, categoryIds, ecoImpactId, productConditionId, ...productData } = updateProductDto;
     Object.assign(product, productData);
     await this.productRepository.save(product);
 
@@ -546,6 +614,256 @@ export class ProductsService {
         categoryIds,
       });
     }
+
+    query.orderBy('product.createdAt', 'DESC');
+
+    // Get total count
+    const total = await query.getCount();
+
+    // Apply pagination
+    query.skip(skip).take(limit);
+
+    // Get data
+    const data = await query.getMany();
+
+    // Calculate pagination meta
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    };
+  }
+
+  /**
+   * Search products by keyword
+   * Searches in product name, description, and tags
+   */
+  async searchProducts(query: string, filters?: {
+    status?: ProductStatus;
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedResult<Product>> {
+    if (!query || query.trim().length === 0) {
+      return {
+        data: [],
+        meta: {
+          total: 0,
+          page: 1,
+          limit: filters?.limit || 24,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        },
+      };
+    }
+
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 24;
+    const skip = (page - 1) * limit;
+
+    const searchTerm = `%${query.trim()}%`;
+
+    const queryBuilder = this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.variants', 'variants')
+      .leftJoinAndSelect('product.categories', 'categories')
+      .leftJoinAndSelect('product.ecoImpact', 'ecoImpact')
+      .leftJoinAndSelect('product.productCondition', 'productCondition')
+      .where(
+        '(product.name ILIKE :search OR product.description ILIKE :search OR product.content ILIKE :search)',
+        { search: searchTerm },
+      );
+
+    // Filter by status (default to ACTIVE for public)
+    const status = filters?.status || ProductStatus.ACTIVE;
+    queryBuilder.andWhere('product.status = :status', { status });
+
+    // Order by newest first
+    queryBuilder.orderBy('product.createdAt', 'DESC');
+
+    // Get total count
+    const total = await queryBuilder.getCount();
+
+    // Apply pagination
+    queryBuilder.skip(skip).take(limit);
+
+    // Get data
+    const data = await queryBuilder.getMany();
+
+    // Calculate pagination meta
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    };
+  }
+
+  /**
+   * Find products by category slug
+   * - If parent category: get all products from all descendant categories
+   * - If child category: get products only from that category
+   */
+  async findByCategorySlug(slug: string, filters?: {
+    status?: ProductStatus;
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedResult<Product>> {
+    // Find category by slug
+    const category = await this.categoryRepository.findOne({
+      where: { slug, isActive: true },
+      relations: ['children'],
+    });
+
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
+    // Collect all category IDs to search
+    const categoryIds: string[] = [category.id];
+
+    // If category has children, recursively get all descendant IDs
+    if (category.children && category.children.length > 0) {
+      const descendantIds = await this.getAllDescendantCategoryIds(category.id);
+      categoryIds.push(...descendantIds);
+    }
+
+    // Build query
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 12;
+    const skip = (page - 1) * limit;
+
+    const query = this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.variants', 'variants')
+      .leftJoinAndSelect('product.categories', 'categories')
+      .leftJoinAndSelect('product.ecoImpact', 'ecoImpact')
+      .leftJoinAndSelect('product.productCondition', 'productCondition')
+      .where('categories.id IN (:...categoryIds)', { categoryIds });
+
+    // Filter by status (default to ACTIVE for public)
+    const status = filters?.status || ProductStatus.ACTIVE;
+    query.andWhere('product.status = :status', { status });
+
+    query.orderBy('product.createdAt', 'DESC');
+
+    // Get total count
+    const total = await query.getCount();
+
+    // Apply pagination
+    query.skip(skip).take(limit);
+
+    // Get data
+    const data = await query.getMany();
+
+    // Calculate pagination meta
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    };
+  }
+
+  /**
+   * Recursively get all descendant category IDs
+   */
+  private async getAllDescendantCategoryIds(categoryId: string): Promise<string[]> {
+    const category = await this.categoryRepository.findOne({
+      where: { id: categoryId, isActive: true },
+      relations: ['children'],
+    });
+
+    if (!category || !category.children || category.children.length === 0) {
+      return [];
+    }
+
+    const descendantIds: string[] = [];
+
+    for (const child of category.children) {
+      if (child.isActive) {
+        descendantIds.push(child.id);
+        // Recursively get children's descendants
+        const childDescendants = await this.getAllDescendantCategoryIds(child.id);
+        descendantIds.push(...childDescendants);
+      }
+    }
+
+    return descendantIds;
+  }
+
+  /**
+   * Determine current season based on month
+   * Spring: March (3), April (4), May (5)
+   * Summer: June (6), July (7), August (8)
+   * Fall: September (9), October (10), November (11)
+   * Winter: December (12), January (1), February (2)
+   */
+  private getCurrentSeason(): ProductSeason {
+    const currentMonth = dayjs().month() + 1; // month() returns 0-11, so add 1 to get 1-12
+
+    if (currentMonth >= 3 && currentMonth <= 5) {
+      return ProductSeason.SPRING;
+    } else if (currentMonth >= 6 && currentMonth <= 8) {
+      return ProductSeason.SUMMER;
+    } else if (currentMonth >= 9 && currentMonth <= 11) {
+      return ProductSeason.FALL;
+    } else {
+      return ProductSeason.WINTER;
+    }
+  }
+
+  async findSeasonOutfits(filters?: {
+    status?: ProductStatus;
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedResult<Product>> {
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 16;
+    const skip = (page - 1) * limit;
+
+    // Determine current season
+    const currentSeason = this.getCurrentSeason();
+
+    const query = this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.variants', 'variants')
+      .leftJoinAndSelect('product.categories', 'categories')
+      .leftJoinAndSelect('product.ecoImpact', 'ecoImpact')
+      .leftJoinAndSelect('product.productCondition', 'productCondition')
+      .where(
+        '(product.season = :currentSeason OR product.season = :allSeason OR product.season IS NULL)',
+        {
+          currentSeason,
+          allSeason: ProductSeason.ALL_SEASON
+        }
+      );
+
+    // Filter by status (default to ACTIVE for public)
+    const status = filters?.status || ProductStatus.ACTIVE;
+    query.andWhere('product.status = :status', { status });
 
     query.orderBy('product.createdAt', 'DESC');
 

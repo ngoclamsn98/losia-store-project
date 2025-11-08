@@ -15,7 +15,9 @@ type Props = {
   discountPercent?: number | null;
   discountCode?: string | null;
   isPopular?: boolean;
-  cta?: React.ReactNode;         // Nút AddToCartTracked truyền từ ngoài
+  cta?: React.ReactNode;  
+  content?: string | undefined | null;
+  description?: string | undefined | null;
 };
 
 export default function QuickInfoSection({
@@ -30,6 +32,8 @@ export default function QuickInfoSection({
   discountCode,
   isPopular,
   cta,
+  content,
+  description
 }: Props) {
   const hasDiscount = (discountPercent ?? 0) > 0;
 
@@ -40,15 +44,13 @@ export default function QuickInfoSection({
   return (
     <section>
       {/* Tiêu đề */}
-      <h1 className="text-xl font-semibold underline">{brandText}</h1>
+      <h1 className="text-xl font-semibold underline">{title}</h1>
 
       {/* Brand • Size */}
       <div className="mt-1 text-m text-gray-600">
         
         {sizeText ? (
           <>
-            {" "}
-            {" "}
             <span
               aria-label="product-size"
               data-testid="product-size"
@@ -59,7 +61,7 @@ export default function QuickInfoSection({
             </span>
           </>
         ) : null}
-        <span> {title}</span>
+        <span> {description}</span>
       </div>
 
       {/* Giá + badge giảm giá/mã giảm */}

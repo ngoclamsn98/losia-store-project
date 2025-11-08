@@ -22,14 +22,14 @@ export class CartService {
     private productRepository: Repository<Product>,
   ) {}
 
-  async getCart(userId: string): Promise<Cart> {
+  async getCart(clientUserId: string): Promise<Cart> {
     let cart = await this.cartRepository.findOne({
-      where: { userId },
+      where: { clientUserId },
     });
 
     if (!cart) {
       cart = this.cartRepository.create({
-        userId,
+        clientUserId,
         items: [],
       });
       await this.cartRepository.save(cart);
@@ -38,7 +38,7 @@ export class CartService {
     return cart;
   }
 
-  async addToCart(userId: string, dto: AddToCartDto): Promise<Cart> {
+  async addToCart(clientUserId: string, dto: AddToCartDto): Promise<Cart> {
     const variant = await this.variantRepository.findOne({
       where: { id: dto.variantId },
       relations: ['product'],
@@ -56,7 +56,7 @@ export class CartService {
       throw new BadRequestException('Insufficient stock');
     }
 
-    const cart = await this.getCart(userId);
+    const cart = await this.getCart(clientUserId);
     const existingItemIndex = cart.items.findIndex(
       (item) => item.variantId === dto.variantId,
     );
@@ -86,11 +86,11 @@ export class CartService {
   }
 
   async updateCartItem(
-    userId: string,
+    clientUserId: string,
     variantId: string,
     dto: UpdateCartItemDto,
   ): Promise<Cart> {
-    const cart = await this.getCart(userId);
+    const cart = await this.getCart(clientUserId);
     const itemIndex = cart.items.findIndex(
       (item) => item.variantId === variantId,
     );
@@ -117,14 +117,14 @@ export class CartService {
     return this.cartRepository.save(cart);
   }
 
-  async removeFromCart(userId: string, variantId: string): Promise<Cart> {
-    const cart = await this.getCart(userId);
+  async removeFromCart(clientUserId: string, variantId: string): Promise<Cart> {
+    const cart = await this.getCart(clientUserId);
     cart.items = cart.items.filter((item) => item.variantId !== variantId);
     return this.cartRepository.save(cart);
   }
 
-  async clearCart(userId: string): Promise<Cart> {
-    const cart = await this.getCart(userId);
+  async clearCart(clientUserId: string): Promise<Cart> {
+    const cart = await this.getCart(clientUserId);
     cart.items = [];
     return this.cartRepository.save(cart);
   }

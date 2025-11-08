@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Package, Eye, Loader2, AlertCircle } from 'lucide-react';
@@ -75,16 +75,12 @@ const paymentMethodLabels = {
 };
 
 export default function OrdersClient() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -92,12 +88,26 @@ export default function OrdersClient() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       const accessToken = (session?.user as any)?.accessToken;
 
+      console.log('🔍 Fetching orders with session:', {
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        hasAccessToken: !!accessToken,
+        userEmail: session?.user?.email,
+        accessToken: accessToken
+      });
+
       const response = await fetch(`${apiUrl}/orders/my-orders`, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
       });
+
+      console.log('📦 Orders response:', {
+        status: response.status,
+        ok: response.ok,
+      });
+      
 
       if (!response.ok) {
         throw new Error('Failed to fetch orders');
@@ -111,7 +121,17 @@ export default function OrdersClient() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [session]);
+
+  useEffect(() => {
+    // Only fetch orders when session is loaded and user is authenticated
+    if (status === 'authenticated' && session?.user) {
+      fetchOrders();
+    } else if (status === 'unauthenticated') {
+      setLoading(false);
+      setError('Vui lòng đăng nhập để xem đơn hàng');
+    }
+  }, [status, session, fetchOrders]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -130,13 +150,15 @@ export default function OrdersClient() {
     });
   };
 
-  if (loading) {
+  if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-12">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-            <span className="ml-3 text-gray-600">Đang tải đơn hàng...</span>
+            <span className="ml-3 text-gray-600">
+              {status === 'loading' ? 'Đang kiểm tra đăng nhập...' : 'Đang tải đơn hàng...'}
+            </span>
           </div>
         </div>
       </div>

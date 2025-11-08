@@ -64,6 +64,8 @@ export interface ProductDetail {
   glassesOfWater?: number | null;
   hoursOfLighting?: number | null;
   kmsOfDriving?: number | null;
+
+  content: string | null;
 }
 
 // Auth-related

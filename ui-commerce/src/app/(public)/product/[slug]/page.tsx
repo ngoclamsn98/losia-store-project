@@ -28,6 +28,21 @@ type Category = {
   slug: string;
 };
 
+type EcoImpact = {
+  id: string;
+  productGroup: string;
+  glassesOfWater: number;
+  hoursOfLighting: number;
+  kmsOfDriving: number;
+};
+
+type ProductCondition = {
+  id: string;
+  label: string;
+  value: string;
+  description: string;
+};
+
 type ProductFromAPI = {
   id: string;
   name: string;
@@ -45,10 +60,9 @@ type ProductFromAPI = {
   seoTitle?: string | null;
   seoDescription?: string | null;
   seoKeywords?: string[] | null;
-  ecoImpactGroup?: string | null;
-  ecoGlassesOfWater?: number | null;
-  ecoHoursOfLighting?: number | null;
-  ecoKmsOfDriving?: number | null;
+  ecoImpact?: EcoImpact | null;
+  season?: string | null;
+  productCondition?: ProductCondition | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -59,6 +73,7 @@ type ProductDetail = {
   title: string;
   slug: string;
   description?: string | null;
+  content?: string | null | undefined;
   price: number;
   oldPrice?: number | null;
   retailPrice?: number | null;
@@ -147,20 +162,21 @@ function mapProductToDetail(p: ProductFromAPI): ProductDetail {
   }
 
   // Parse HTML description sang text
-  const description = htmlToText(p.description || p.content);
-
+  const content = htmlToText(p.content);
+  const description = htmlToText(p.description);
   return {
     id: p.id,
     title: p.name,
     slug: p.slug,
     description,
+    content,
     price: defaultVariant?.price || 0,
     oldPrice: defaultVariant?.compareAtPrice || null,
     retailPrice: defaultVariant?.compareAtPrice || null,
     discountPercent,
     inventory: defaultVariant?.stock || 0,
-    condition: null, // Backend chưa có field này
-    conditionDescription: null,
+    condition: p.productCondition?.value || null,
+    conditionDescription: p.productCondition?.description || null,
     brand: category?.name || null, // Tạm dùng category làm brand
     category: category?.name || null,
     size: null,
@@ -177,12 +193,13 @@ function mapProductToDetail(p: ProductFromAPI): ProductDetail {
       name: category?.name,
       parent: undefined,
     },
-    ecoImpactGroup: p.ecoImpactGroup || category?.name || null,
-    productKindForEco: p.ecoImpactGroup || category?.name || null,
+    // Map eco impact từ ecoImpact object
+    ecoImpactGroup: p.ecoImpact?.productGroup || category?.name || null,
+    productKindForEco: p.ecoImpact?.productGroup || category?.name || null,
     measuredLength: null,
-    glassesOfWater: p.ecoGlassesOfWater || null,
-    hoursOfLighting: p.ecoHoursOfLighting || null,
-    kmsOfDriving: p.ecoKmsOfDriving || null,
+    glassesOfWater: p.ecoImpact?.glassesOfWater || null,
+    hoursOfLighting: p.ecoImpact?.hoursOfLighting || null,
+    kmsOfDriving: p.ecoImpact?.kmsOfDriving || null,
   };
 }
 

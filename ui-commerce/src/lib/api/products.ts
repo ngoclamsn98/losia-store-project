@@ -92,13 +92,46 @@ export async function getProductsByCategory(
 }
 
 /**
- * Search products
+ * Get products by category slug
+ * - Parent category: returns all products from descendant categories
+ * - Child category: returns products only from that category
+ */
+export async function getProductsByCategorySlug(
+  slug: string,
+  filters?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+  }
+): Promise<ProductsResponse> {
+  const params: Record<string, string> = {};
+
+  if (filters?.page) params.page = String(filters.page);
+  if (filters?.limit) params.limit = String(filters.limit);
+  if (filters?.status) params.status = filters.status;
+
+  return get<ProductsResponse>(`/products/category/${slug}`, params);
+}
+
+/**
+ * Search products by keyword
  */
 export async function searchProducts(
   query: string,
-  page: number = 1,
-  limit: number = 20
+  filters?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+  }
 ): Promise<ProductsResponse> {
-  return getProducts({ search: query, page, limit });
+  const params: Record<string, string> = {
+    q: query,
+  };
+
+  if (filters?.page) params.page = String(filters.page);
+  if (filters?.limit) params.limit = String(filters.limit);
+  if (filters?.status) params.status = filters.status;
+
+  return get<ProductsResponse>('/products/search', params);
 }
 

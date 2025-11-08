@@ -9,8 +9,7 @@ import ShippingReturnsSection from '@/components/product/ProductDetailSection/Sh
 import EcoImpactSection from '@/components/product/ProductDetailSection/EcoImpactSection';
 import SellWithUsSection from '@/components/product/ProductDetailSection/SellWithUsSection';
 import VariantSelector, { ProductVariant } from '@/components/product/ProductDetailSection/VariantSelector';
-import { formatVND } from '@/lib/format';
-import { addToLocalCart, getLocalCartCount } from '@/lib/cart/localStorage';
+import { addToLocalCart } from '@/lib/cart/localStorage';
 import { internalPost } from '@/lib/api/internal';
 
 type ProductDetail = {
@@ -18,6 +17,7 @@ type ProductDetail = {
   title: string;
   slug: string;
   description?: string | null;
+  content?: string | null;
   price: number;
   oldPrice?: number | null;
   retailPrice?: number | null;
@@ -118,7 +118,6 @@ export default function ProductDetailClient({ product: initialProduct, variants 
       };
 
       addToLocalCart(cartItem);
-      const cartCount = getLocalCartCount();
 
       // 2. Call API /api/cart (giữ nguyên logic cũ)
       let apiSuccess = false;
@@ -194,6 +193,8 @@ export default function ProductDetailClient({ product: initialProduct, variants 
         discountPercent={product.discountPercent ?? undefined}
         discountCode={undefined}
         isPopular={product.isPopular}
+        content={product.content}
+        description={product.description}
         cta={
           <div className="space-y-3">
             <button
@@ -241,7 +242,7 @@ export default function ProductDetailClient({ product: initialProduct, variants 
       )}
 
       {/* Thông tin sản phẩm */}
-      <ItemDetailsSection description={product.description || ''} />
+      <ItemDetailsSection description={product.content || ''} />
 
       {/* Kích cỡ & phom dáng */}
       <SizeFitSection
@@ -250,7 +251,7 @@ export default function ProductDetailClient({ product: initialProduct, variants 
       />
 
       {/* Bán cùng LOSIA */}
-      <SellWithUsSection brandName={brand} />
+      <SellWithUsSection brandName={product.title} />
 
       {/* Vận chuyển & đổi trả */}
       <ShippingReturnsSection />

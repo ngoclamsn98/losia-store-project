@@ -3,6 +3,7 @@ import React from 'react';
 import Link from 'next/link';
 import SmartImage from '@/components/media/SmartImage';
 import { normalizeImageUrl, pickDemoImageUrl } from '@/lib/images';
+import FavoriteButton from '@/components/product/FavoriteButton';
 
 // ===== Types =====
 type ProductVariant = {
@@ -105,11 +106,11 @@ function ProductCard({ product, index }: { product: RelatedProduct; index: numbe
   const imgUrl = firstImageSrc(product, index);
   const category = product.categories?.[0];
   const seller = product.createdBy;
+  const sizeLabel = product.variants?.[0]?.name || null;
 
   return (
     <div className="group snap-start shrink-0 w-full">
       <div className="relative rounded-2xl border hover:shadow-md transition overflow-hidden">
-        {/* Image */}
         <Link href={`/product/${product.slug}`} className="block relative z-0">
           <SmartImage
             kind="product"
@@ -122,16 +123,20 @@ function ProductCard({ product, index }: { product: RelatedProduct; index: numbe
             blurDataURL={BLUR_DATA_URL}
           />
 
-          {/* Discount Badge */}
+          {/* Favorite Button */}
+          <div className="absolute right-2 top-2 z-10">
+            <FavoriteButton productId={product.id} className="h-8 w-8" iconSize={18} />
+          </div>
+
           {discount && (
             <span className="absolute left-2 top-2 rounded-md bg-red-600 text-white text-xs font-semibold px-2 py-1 leading-none shadow-sm">
               -{discount}%
             </span>
           )}
 
-          {/* Featured Badge */}
-          {product.isFeatured && (
-            <span className="absolute right-2 top-2 rounded-md bg-emerald-600 text-white text-xs font-semibold px-2 py-1 leading-none shadow-sm">
+          {/* Featured Badge - moved to left if discount exists */}
+          {product.isFeatured && !discount && (
+            <span className="absolute left-2 top-2 rounded-md bg-emerald-600 text-white text-xs font-semibold px-2 py-1 leading-none shadow-sm">
               HOT
             </span>
           )}
@@ -147,11 +152,15 @@ function ProductCard({ product, index }: { product: RelatedProduct; index: numbe
           </Link>
 
           {/* Category */}
-          {category && (
+          {/* {category && (
             <p className="text-xs text-gray-500">
               {category.name}
             </p>
-          )}
+          )} */}
+
+           <p className="text-xs text-gray-500">
+              Size {sizeLabel}
+            </p>
 
           {/* Price */}
           <div className="flex items-baseline gap-2">

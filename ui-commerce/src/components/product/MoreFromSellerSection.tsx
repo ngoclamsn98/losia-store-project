@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import SmartImage from "@/components/media/SmartImage";
 import { normalizeImageUrl, pickDemoImageUrl } from "@/lib/images";
+import FavoriteButton from "@/components/product/FavoriteButton";
 
 /** ====== Types (gọn cho card) ====== */
 type ProductCard = {
@@ -194,12 +195,6 @@ function CardLikeProducts({ p, index }: { p: ProductCard; index: number }) {
   const nwt = isNewWithTags(p as any);
   const discount = percentOff(p.price, p.oldPrice);
 
-  const [isFavorite, setIsFavorite] = useState(false);
-  const toggleFavorite = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsFavorite((v) => !v);
-  };
-
   return (
     <div className="group snap-start shrink-0 w-[170px] md:w-auto">
       <div className="relative rounded-2xl border hover:shadow-sm transition overflow-hidden">
@@ -223,20 +218,9 @@ function CardLikeProducts({ p, index }: { p: ProductCard; index: number }) {
           )}
 
           {/* Tim (phải trên) */}
-          <button
-            type="button"
-            aria-label={isFavorite ? "Unfavorite" : "Favorite"}
-            onClick={toggleFavorite}
-            className="absolute right-2 top-2 flex items-center justify-center rounded-full bg-white shadow-sm hover:bg-gray-50 h-8 w-8"
-          >
-            <Image
-              src={isFavorite ? "/assets/icons/heart-solid.svg" : "/assets/icons/heart-outline.svg"}
-              alt="Favorite"
-              width={18}
-              height={18}
-              loading="lazy"
-            />
-          </button>
+          <div className="absolute right-2 top-2">
+            <FavoriteButton productId={p.id} className="h-8 w-8" iconSize={18} />
+          </div>
 
           {/* % giảm (trái trên) */}
           {discount && (

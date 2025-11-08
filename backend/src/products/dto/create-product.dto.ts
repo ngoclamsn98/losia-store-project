@@ -10,7 +10,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ProductStatus } from '../entities/product.entity';
+import { ProductStatus, ProductSeason } from '../entities/product.entity';
 import { CreateProductVariantDto } from './create-product-variant.dto';
 
 export class CreateProductDto {
@@ -106,21 +106,29 @@ export class CreateProductDto {
   @IsOptional()
   seoKeywords?: string[];
 
-  @ApiPropertyOptional({ example: 'Váy (Dress)', description: 'Eco impact product group' })
-  @IsString()
+  @ApiPropertyOptional({
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    description: 'Eco Impact ID (UUID) - references eco_impacts table'
+  })
+  @IsUUID('4')
   @IsOptional()
-  ecoImpactGroup?: string;
+  ecoImpactId?: string;
 
-  @ApiPropertyOptional({ example: 2083.33, description: 'Glasses of water saved (eco impact)' })
+  @ApiPropertyOptional({
+    enum: ProductSeason,
+    example: ProductSeason.SUMMER,
+    description: 'Product season'
+  })
+  @IsEnum(ProductSeason)
   @IsOptional()
-  ecoGlassesOfWater?: number;
+  season?: ProductSeason;
 
-  @ApiPropertyOptional({ example: 100.0, description: 'Hours of lighting saved (eco impact)' })
+  @ApiPropertyOptional({
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    description: 'Product Condition ID (UUID) - references product_conditions table'
+  })
+  @IsUUID('4')
   @IsOptional()
-  ecoHoursOfLighting?: number;
-
-  @ApiPropertyOptional({ example: 8.39, description: 'Kilometers of driving emissions saved (eco impact)' })
-  @IsOptional()
-  ecoKmsOfDriving?: number;
+  productConditionId?: string;
 }
 

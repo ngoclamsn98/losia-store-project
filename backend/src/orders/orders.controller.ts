@@ -21,6 +21,7 @@ import { OrdersService } from './orders.service';
 import { CreateOrderDto, GuestCheckoutDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ClientJwtAuthGuard } from '../client-users/guards/client-jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
@@ -40,9 +41,9 @@ export class OrdersController {
   }
 
   @Post('checkout-auth')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(ClientJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create order from cart (authenticated user)' })
+  @ApiOperation({ summary: 'Create order from cart (authenticated client user)' })
   @ApiResponse({ status: 201, description: 'Order created successfully' })
   @ApiResponse({ status: 400, description: 'Cart is empty or insufficient stock' })
   checkoutAuth(@Request() req, @Body() dto: CreateOrderDto) {
@@ -80,9 +81,9 @@ export class OrdersController {
   }
 
   @Get('my-orders')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(ClientJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get current user orders' })
+  @ApiOperation({ summary: 'Get current client user orders' })
   @ApiResponse({ status: 200, description: 'User orders retrieved successfully' })
   getMyOrders(@Request() req) {
     return this.ordersService.findByUser(req.user.id);

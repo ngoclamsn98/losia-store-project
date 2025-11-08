@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Brackets } from 'typeorm';
 import { Order, OrderStatus, PaymentStatus, OrderItem } from './entities/order.entity';
 import { CreateOrderDto, GuestCheckoutDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -30,64 +30,133 @@ export class OrdersService {
     return `ORD${timestamp}${random}`;
   }
 
-  async create(userId: string, dto: CreateOrderDto): Promise<Order> {
-    const cart = await this.cartService.getCart(userId);
+  async create(clientUserId: string, dto: CreateOrderDto): Promise<Order> {
+    let orderItems: OrderItem[] = [];
+    let subtotal: number;
+    let shipping: number;
+    let tax: number;
+    let total: number;
 
-    if (!cart.items || cart.items.length === 0) {
-      throw new BadRequestException('Cart is empty');
+    // Check if items are provided in the request (like guest checkout)
+    if (dto.items && dto.items.length > 0) {
+      // Use items from request body
+      for (const item of dto.items) {
+        const variant = await this.variantRepository.findOne({
+          where: { productId: item.productId },
+          relations: ['product'],
+        });
+
+        if (!variant) {
+          throw new NotFoundException(`Product ${item.productId} not found`);
+        }
+
+        if (!variant.isActive) {
+          throw new BadRequestException(
+            `Product ${item.title || variant.product?.name || 'Unknown'} is not available`,
+          );
+        }
+
+        if (variant.stock < item.quantity) {
+          throw new BadRequestException(
+            `Insufficient stock for ${item.title || variant.product?.name || 'Unknown'}`,
+          );
+        }
+
+        orderItems.push({
+          variantId: variant.id,
+          productId: item.productId,
+          productName: item.title || variant.product?.name || 'Unknown',
+          variantName: variant.name,
+          price: variant.price,
+          quantity: item.quantity,
+          imageUrl: variant.product?.thumbnailUrl,
+        });
+      }
+
+      // Use provided totals or calculate
+      subtotal = dto.subtotal || orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      shipping = dto.shippingCost || 0;
+      tax = dto.tax || 0;
+      total = dto.total || subtotal + shipping + tax;
+    } else {
+      // Use items from cart
+      const cart = await this.cartService.getCart(clientUserId);
+
+      if (!cart.items || cart.items.length === 0) {
+        throw new BadRequestException('Cart is empty');
+      }
+
+      // Verify stock and get latest prices
+      for (const item of cart.items) {
+        const variant = await this.variantRepository.findOne({
+          where: { id: item.variantId },
+        });
+
+        if (!variant) {
+          throw new NotFoundException(
+            `Product variant ${item.variantId} not found`,
+          );
+        }
+
+        if (!variant.isActive) {
+          throw new BadRequestException(
+            `Product ${item.productName} is not available`,
+          );
+        }
+
+        if (variant.stock < item.quantity) {
+          throw new BadRequestException(
+            `Insufficient stock for ${item.productName}`,
+          );
+        }
+
+        // Update price to latest
+        item.price = variant.price;
+      }
+
+      orderItems = cart.items;
+      subtotal = cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      shipping = 0;
+      tax = 0;
+      total = subtotal + shipping + tax;
     }
 
-    // Verify stock and get latest prices
-    for (const item of cart.items) {
-      const variant = await this.variantRepository.findOne({
-        where: { id: item.variantId },
-      });
+    // Map payment method to enum
+    const paymentMethodMap: Record<string, any> = {
+      'cod': 'COD',
+      'COD': 'COD',
+      'bank_transfer': 'BANK_TRANSFER',
+      'BANK_TRANSFER': 'BANK_TRANSFER',
+      'credit_card': 'CREDIT_CARD',
+      'CREDIT_CARD': 'CREDIT_CARD',
+      'e_wallet': 'E_WALLET',
+      'E_WALLET': 'E_WALLET',
+      'qr': 'BANK_TRANSFER',
+    };
 
-      if (!variant) {
-        throw new NotFoundException(
-          `Product variant ${item.variantId} not found`,
-        );
-      }
-
-      if (!variant.isActive) {
-        throw new BadRequestException(
-          `Product ${item.productName} is not available`,
-        );
-      }
-
-      if (variant.stock < item.quantity) {
-        throw new BadRequestException(
-          `Insufficient stock for ${item.productName}`,
-        );
-      }
-
-      // Update price to latest
-      item.price = variant.price;
-    }
-
-    // Calculate totals
-    const subtotal = cart.items.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0,
-    );
-    const shipping = 0; // Can be calculated based on address
-    const tax = 0; // Can be calculated based on subtotal
-    const discount = 0; // Can be applied from coupons
-    const total = subtotal + shipping + tax - discount;
+    const paymentMethod = paymentMethodMap[dto.paymentMethod] || 'COD';
 
     // Create order
     const order = this.orderRepository.create({
       orderNumber: this.generateOrderNumber(),
-      userId,
-      items: cart.items,
+      clientUserId,
+      items: orderItems,
       subtotal,
       shipping,
       tax,
-      discount,
+      discount: 0,
       total,
-      paymentMethod: dto.paymentMethod,
-      shippingAddress: dto.shippingAddress,
-      notes: dto.notes,
+      paymentMethod: paymentMethod,
+      shippingAddress: {
+        fullName: `${dto.shippingAddress.firstName} ${dto.shippingAddress.lastName}`,
+        phone: dto.shippingAddress.phone,
+        address: `${dto.shippingAddress.address1}${dto.shippingAddress.address2 ? ', ' + dto.shippingAddress.address2 : ''}`,
+        city: dto.shippingAddress.city,
+        district: dto.shippingAddress.state || '',
+        ward: '',
+        postalCode: dto.shippingAddress.postalCode || '',
+      },
+      notes: dto.notes || (dto.email ? `Email: ${dto.email}, Phone: ${dto.phone}` : ''),
       status: OrderStatus.PENDING,
       paymentStatus: PaymentStatus.PENDING,
       isRead: false,
@@ -96,7 +165,7 @@ export class OrdersService {
     const savedOrder = await this.orderRepository.save(order);
 
     // Update stock
-    for (const item of cart.items) {
+    for (const item of orderItems) {
       await this.variantRepository.decrement(
         { id: item.variantId },
         'stock',
@@ -104,8 +173,10 @@ export class OrdersService {
       );
     }
 
-    // Clear cart
-    await this.cartService.clearCart(userId);
+    // Clear cart only if items were from cart
+    if (!dto.items || dto.items.length === 0) {
+      await this.cartService.clearCart(clientUserId);
+    }
 
     return savedOrder;
   }
@@ -173,7 +244,7 @@ export class OrdersService {
     // Create order with guest user info
     const order = this.orderRepository.create({
       orderNumber: this.generateOrderNumber(),
-      userId: null, // Guest order - no user ID
+      clientUserId: null, // Guest order - no client user ID
       items: orderItems,
       subtotal: dto.subtotal,
       shipping: dto.shippingCost,
@@ -224,7 +295,7 @@ export class OrdersService {
 
     const query = this.orderRepository
       .createQueryBuilder('order')
-      .leftJoinAndSelect('order.user', 'user')
+      .leftJoinAndSelect('order.clientUser', 'clientUser')
       .orderBy('order.createdAt', 'DESC');
 
     if (filters?.status) {
@@ -243,8 +314,12 @@ export class OrdersService {
 
     if (filters?.search) {
       query.andWhere(
-        '(order.orderNumber ILIKE :search OR user.email ILIKE :search OR user.firstName ILIKE :search OR user.lastName ILIKE :search)',
-        { search: `%${filters.search}%` },
+        new Brackets((qb) => {
+          qb.where('order.orderNumber ILIKE :search', { search: `%${filters.search}%` })
+            .orWhere('clientUser.email ILIKE :search', { search: `%${filters.search}%` })
+            .orWhere('clientUser.name ILIKE :search', { search: `%${filters.search}%` })
+            .orWhere('order.notes ILIKE :search', { search: `%${filters.search}%` });
+        }),
       );
     }
 
@@ -270,7 +345,7 @@ export class OrdersService {
   async findOne(id: string): Promise<Order> {
     const order = await this.orderRepository.findOne({
       where: { id },
-      relations: ['user'],
+      relations: ['clientUser'],
     });
 
     if (!order) {
@@ -280,9 +355,9 @@ export class OrdersService {
     return order;
   }
 
-  async findByUser(userId: string): Promise<Order[]> {
+  async findByUser(clientUserId: string): Promise<Order[]> {
     return this.orderRepository.find({
-      where: { userId },
+      where: { clientUserId },
       order: { createdAt: 'DESC' },
     });
   }

@@ -4,6 +4,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import SmartImage from '@/components/media/SmartImage';
+import FavoriteButton from '@/components/product/FavoriteButton';
 
 type MainImageProps = {
   photoId?: string;
@@ -20,8 +21,7 @@ type MainImageProps = {
   canGoNext?: boolean;
   has360?: boolean;
   similarHref?: string;
-  isFavorite?: boolean;
-  onToggleFavorite?: () => void;
+  productId?: string; // For favorite button
 };
 
 export default function MainImage({
@@ -39,8 +39,7 @@ export default function MainImage({
   canGoNext = true,
   has360 = false,
   similarHref,
-  isFavorite = false,
-  onToggleFavorite,
+  productId,
 }: MainImageProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const rAFRef = useRef<number | null>(null);
@@ -182,20 +181,9 @@ export default function MainImage({
             <span className="hidden md:inline text-sm font-medium whitespace-nowrap">Shop similar</span>
           </a>
         )}
-        <button
-          type="button"
-          aria-label={isFavorite ? 'Unfavorite' : 'Favorite'}
-          onClick={onToggleFavorite}
-          className={btnFabWhite + ' h-10 w-10'}
-        >
-          <Image
-            src={isFavorite ? '/assets/icons/heart-solid.svg' : '/assets/icons/heart-outline.svg'}
-            alt="Favorite"
-            width={20}
-            height={20}
-            loading="lazy"
-          />
-        </button>
+        {productId && (
+          <FavoriteButton productId={productId} className="h-10 w-10" iconSize={20} />
+        )}
       </div>
 
       {/* Arrow Prev/Next (nút trái mờ khi ở ảnh đầu) */}

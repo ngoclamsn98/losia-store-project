@@ -37,6 +37,22 @@ export interface Category {
   updatedAt: string;
 }
 
+export interface EcoImpact {
+  id: string;
+  productGroup: string;
+  glassesOfWater: number;
+  hoursOfLighting: number;
+  kmsOfDriving: number;
+}
+
+export enum ProductSeason {
+  SPRING = 'SPRING',
+  SUMMER = 'SUMMER',
+  FALL = 'FALL',
+  WINTER = 'WINTER',
+  ALL_SEASON = 'ALL_SEASON',
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -54,6 +70,8 @@ export interface Product {
   seoTitle?: string;
   seoDescription?: string;
   seoKeywords?: string[];
+  ecoImpact?: EcoImpact | null;
+  season?: ProductSeason | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -70,7 +88,9 @@ export interface ProductListItem {
   variants: {
     id: string;
     price: number;
+    compareAtPrice?: number;
     stock: number;
+    imageUrl?: string;
     isDefault: boolean;
   }[];
   categories?: {
@@ -97,6 +117,8 @@ export interface ProductsResponse {
     page: number;
     limit: number;
     totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
   };
 }
 
@@ -130,6 +152,8 @@ export interface CreateProductDto {
   seoTitle?: string;
   seoDescription?: string;
   seoKeywords?: string[];
+  ecoImpactId?: string;
+  season?: ProductSeason;
 }
 
 export interface UpdateProductDto {
@@ -146,6 +170,8 @@ export interface UpdateProductDto {
   seoTitle?: string;
   seoDescription?: string;
   seoKeywords?: string[];
+  ecoImpactId?: string;
+  season?: ProductSeason;
 }
 
 export interface UpdateProductVariantDto {
