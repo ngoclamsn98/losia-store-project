@@ -11,6 +11,7 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { CartService } from '../cart/cart.service';
 import { ProductVariant } from '../products/entities/product-variant.entity';
 import { PaginatedResult } from '../common/dto/pagination.dto';
+import { VouchersService } from '../vouchers/vouchers.service';
 
 @Injectable()
 export class OrdersService {
@@ -20,6 +21,7 @@ export class OrdersService {
     @InjectRepository(ProductVariant)
     private variantRepository: Repository<ProductVariant>,
     private cartService: CartService,
+    private vouchersService: VouchersService,
   ) {}
 
   private generateOrderNumber(): string {
@@ -136,6 +138,29 @@ export class OrdersService {
 
     const paymentMethod = paymentMethodMap[dto.paymentMethod] || 'COD';
 
+    // Handle voucher if provided
+    let discount = dto.discount || 0;
+    let voucherCode = dto.voucherCode || null;
+    let voucherId: string | null = null;
+
+    if (voucherCode) {
+      const voucherValidation = await this.vouchersService.validateVoucher({
+        code: voucherCode,
+        orderValue: subtotal,
+        clientUserId,
+      });
+
+      if (voucherValidation.valid) {
+        discount = voucherValidation.discountAmount;
+        voucherId = voucherValidation.voucher?.id || null;
+      } else {
+        throw new BadRequestException(voucherValidation.message || 'Invalid voucher');
+      }
+    }
+
+    // Recalculate total with discount
+    total = subtotal + shipping + tax - discount;
+
     // Create order
     const order = this.orderRepository.create({
       orderNumber: this.generateOrderNumber(),
@@ -144,7 +169,9 @@ export class OrdersService {
       subtotal,
       shipping,
       tax,
-      discount: 0,
+      discount,
+      voucherCode,
+      voucherId,
       total,
       paymentMethod: paymentMethod,
       shippingAddress: {
@@ -163,6 +190,11 @@ export class OrdersService {
     });
 
     const savedOrder = await this.orderRepository.save(order);
+
+    // Record voucher usage if voucher was applied
+    if (voucherId && discount > 0) {
+      await this.vouchersService.recordUsage(voucherId, clientUserId, savedOrder.id, discount);
+    }
 
     // Update stock
     for (const item of orderItems) {
@@ -241,6 +273,29 @@ export class OrdersService {
 
     const paymentMethod = paymentMethodMap[dto.paymentMethod] || 'COD';
 
+    // Handle voucher if provided
+    let discount = dto.discount || 0;
+    let voucherCode = dto.voucherCode || null;
+    let voucherId: string | null = null;
+    let total = dto.total;
+
+    if (voucherCode) {
+      const voucherValidation = await this.vouchersService.validateVoucher({
+        code: voucherCode,
+        orderValue: dto.subtotal,
+        clientUserId: undefined, // Guest user
+      });
+
+      if (voucherValidation.valid) {
+        discount = voucherValidation.discountAmount;
+        voucherId = voucherValidation.voucher?.id || null;
+        // Recalculate total with discount
+        total = dto.subtotal + dto.shippingCost + dto.tax - discount;
+      } else {
+        throw new BadRequestException(voucherValidation.message || 'Invalid voucher');
+      }
+    }
+
     // Create order with guest user info
     const order = this.orderRepository.create({
       orderNumber: this.generateOrderNumber(),
@@ -249,8 +304,10 @@ export class OrdersService {
       subtotal: dto.subtotal,
       shipping: dto.shippingCost,
       tax: dto.tax,
-      discount: 0,
-      total: dto.total,
+      discount,
+      voucherCode,
+      voucherId,
+      total,
       paymentMethod: paymentMethod,
       shippingAddress: {
         fullName: `${dto.shippingAddress.firstName} ${dto.shippingAddress.lastName}`,
@@ -268,6 +325,11 @@ export class OrdersService {
     });
 
     const savedOrder = await this.orderRepository.save(order);
+
+    // Record voucher usage if voucher was applied
+    if (voucherId && discount > 0) {
+      await this.vouchersService.recordUsage(voucherId, null, savedOrder.id, discount);
+    }
 
     // Update stock
     for (const item of orderItems) {

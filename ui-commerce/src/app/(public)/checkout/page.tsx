@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { CreditCard, PackageCheck, Truck, ShieldCheck, QrCode, WalletMinimal } from "lucide-react";
@@ -173,6 +173,25 @@ function CheckoutClient({ cart, clearCart }: { cart: CartResponse; clearCart: ()
   const [payment, setPayment] = useState<PaymentMethod>("qr");
   const [promo, setPromo] = useState("");
   const [placing, setPlacing] = useState(false);
+  const [voucherCode, setVoucherCode] = useState("");
+  const [discount, setDiscount] = useState(0);
+
+  // Load applied voucher from localStorage (from cart page)
+  useEffect(() => {
+    try {
+      const savedVoucher = localStorage.getItem('appliedVoucher');
+      if (savedVoucher) {
+        const { code, discount: savedDiscount } = JSON.parse(savedVoucher);
+        if (code && savedDiscount > 0) {
+          setPromo(code);
+          setVoucherCode(code);
+          setDiscount(savedDiscount);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading voucher from localStorage:', error);
+    }
+  }, []);
 
   const qualifiesFreeShip = subtotal >= FREE_SHIP_THRESHOLD;
 
@@ -185,7 +204,7 @@ function CheckoutClient({ cart, clearCart }: { cart: CartResponse; clearCart: ()
   }, [shipping, qualifiesFreeShip, items.length]);
 
   const tax = useMemo(() => Math.round(subtotal * 0.1), [subtotal]);
-  const total = subtotal + tax + shippingCost;
+  const total = subtotal + tax + shippingCost - discount;
 
   const addressValid = Boolean(address.firstName && address.lastName && address.address1 && address.city && address.phone && address.email);
 
@@ -229,6 +248,10 @@ function CheckoutClient({ cart, clearCart }: { cart: CartResponse; clearCart: ()
         tax,
         total,
 
+        // Voucher info
+        voucherCode: voucherCode || undefined,
+        discount: discount || 0,
+
         // Shipping & payment method
         shippingMethod: shipping,
         paymentMethod: payment,
@@ -260,10 +283,11 @@ function CheckoutClient({ cart, clearCart }: { cart: CartResponse; clearCart: ()
       }
 
       const data = await response.json() as { orderId?: string; id?: string };
-      console.log('✅ Checkout success:', data);
-
       // Clear localStorage cart
       clearCart();
+
+      // Clear applied voucher from localStorage
+      localStorage.removeItem('appliedVoucher');
 
       // Redirect to thank you page
       const url = `/thank-you?method=${payment}&order=${encodeURIComponent(data?.orderId || data?.id || "")}`;
@@ -328,6 +352,11 @@ function CheckoutClient({ cart, clearCart }: { cart: CartResponse; clearCart: ()
             onChangePromo={setPromo}
             onPlaceOrder={placeOrder}
             placing={placing}
+            discount={discount}
+            onVoucherChange={(code, amount) => {
+              setVoucherCode(code);
+              setDiscount(amount);
+            }}
           />
         </div>
       </div>
@@ -525,6 +554,8 @@ function OrderSummary({
   onChangePromo,
   onPlaceOrder,
   placing,
+  discount,
+  onVoucherChange,
 }: {
   items: DetailedItem[];
   subtotal: number;
@@ -535,7 +566,78 @@ function OrderSummary({
   onChangePromo: (v: string) => void;
   onPlaceOrder: () => void;
   placing: boolean;
+  discount?: number;
+  onVoucherChange?: (voucherCode: string, discountAmount: number) => void;
 }) {
+  const { data: session } = useSession();
+  const [appliedCode, setAppliedCode] = useState('');
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationError, setValidationError] = useState('');
+  const [validationSuccess, setValidationSuccess] = useState('');
+
+  // Sync appliedCode with promo when component mounts (from localStorage)
+  useEffect(() => {
+    if (promo && discount && discount > 0) {
+      setAppliedCode(promo);
+      setValidationSuccess('Mã giảm giá đã được áp dụng');
+    }
+  }, []);
+
+  const handleApplyVoucher = async () => {
+    if (!promo.trim()) return;
+
+    setIsValidating(true);
+    setValidationError('');
+    setValidationSuccess('');
+
+    try {
+      const response = await fetch('/api/vouchers/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: promo.trim(),
+          orderValue: subtotal,
+          clientUserId: session?.user?.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.valid) {
+        setValidationError(data.message || 'Mã voucher không hợp lệ');
+        setAppliedCode('');
+        onVoucherChange?.('', 0);
+        return;
+      }
+
+      setAppliedCode(promo.trim());
+      setValidationSuccess(data.message || 'Áp dụng mã thành công!');
+      onVoucherChange?.(promo.trim(), data.discountAmount);
+
+      // Save to localStorage
+      localStorage.setItem('appliedVoucher', JSON.stringify({
+        code: promo.trim(),
+        discount: data.discountAmount
+      }));
+    } catch (err: any) {
+      setValidationError(err.message || 'Có lỗi xảy ra');
+      setAppliedCode('');
+      onVoucherChange?.('', 0);
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  const handleRemoveVoucher = () => {
+    setAppliedCode('');
+    onChangePromo('');
+    setValidationError('');
+    setValidationSuccess('');
+    onVoucherChange?.('', 0);
+
+    // Remove from localStorage
+    localStorage.removeItem('appliedVoucher');
+  };
   return (
     <aside className="lg:sticky lg:top-20">
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl shadow-sm border p-4 lg:p-6">
@@ -561,20 +663,42 @@ function OrderSummary({
         </div>
 
         {/* Promo */}
-        <div className="mb-4 flex gap-2">
-          <input
-            value={promo}
-            onChange={(e) => onChangePromo(e.target.value)}
-            placeholder="Mã khuyến mãi"
-            className="flex-1 rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10"
-          />
-          <button
-  type="submit"
-  disabled
-  className="rounded-lg border px-3 py-2 text-sm font-medium opacity-50 cursor-not-allowed"
->
-  Áp dụng
-</button>
+        <div className="mb-4">
+          <div className="flex gap-2">
+            <input
+              value={promo}
+              onChange={(e) => onChangePromo(e.target.value)}
+              placeholder="Mã khuyến mãi"
+              disabled={!!appliedCode || isValidating}
+              className="flex-1 rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            />
+            {appliedCode ? (
+              <button
+                type="button"
+                onClick={handleRemoveVoucher}
+                className="rounded-lg border bg-red-50 border-red-300 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
+              >
+                Xóa
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleApplyVoucher}
+                disabled={!promo.trim() || isValidating}
+                className="rounded-lg border bg-black text-white px-3 py-2 text-sm font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isValidating ? 'Đang kiểm tra...' : 'Áp dụng'}
+              </button>
+            )}
+          </div>
+
+          {validationError && (
+            <p className="mt-1 text-xs text-red-600">❌ {validationError}</p>
+          )}
+
+          {validationSuccess && !validationError && (
+            <p className="mt-1 text-xs text-green-600">✅ {validationSuccess}</p>
+          )}
         </div>
 
         {/* Totals */}
@@ -582,6 +706,12 @@ function OrderSummary({
           <Row label="Tạm tính" value={formatVND(subtotal)} />
           <Row label="Vận chuyển" value={shipping === 0 ? "Miễn phí" : formatVND(shipping)} />
           <Row label="Thuế (ước tính)" value={formatVND(tax)} />
+          {discount && discount > 0 && (
+            <Row
+              label={<span className="text-green-600 font-medium">Giảm giá ({appliedCode})</span>}
+              value={<span className="text-green-600">-{formatVND(discount)}</span>}
+            />
+          )}
           <div className="h-px bg-neutral-200 my-2" />
           <Row label={<span className="font-semibold text-base">Tổng cộng</span>} value={<span className="font-bold text-base">{formatVND(total)}</span>} />
         </div>

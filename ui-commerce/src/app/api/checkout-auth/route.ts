@@ -72,7 +72,6 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await res.json();
-    console.log('✅ Authenticated checkout success:', data);
     return NextResponse.json(data);
   } catch (error) {
     console.error('💥 Checkout-auth API error:', error);

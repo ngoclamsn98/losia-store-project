@@ -64,6 +64,12 @@ export class Order {
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   discount: number;
 
+  @Column({ name: 'voucher_code', type: 'varchar', nullable: true })
+  voucherCode: string | null;
+
+  @Column({ name: 'voucher_id', type: 'uuid', nullable: true })
+  voucherId: string | null;
+
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   total: number;
 

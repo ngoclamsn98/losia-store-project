@@ -45,6 +45,7 @@ async function bootstrap() {
     .addTag('categories', 'Category management endpoints')
     .addTag('products', 'Product management endpoints')
     .addTag('files', 'File upload and management endpoints')
+    .addTag('dashboard', 'Dashboard statistics and analytics endpoints')
     .addBearerAuth(
       {
         type: 'http',

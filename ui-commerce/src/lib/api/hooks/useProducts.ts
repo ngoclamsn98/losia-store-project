@@ -276,7 +276,7 @@ export function useSearchProducts(
     setLoading(true);
     setError(null);
     try {
-      const response = await searchProducts(query, page, limit);
+      const response = await searchProducts(query, { page, limit });
       setProducts(response.data);
       setTotal(response.meta.total);
       setCurrentPage(response.meta.page);

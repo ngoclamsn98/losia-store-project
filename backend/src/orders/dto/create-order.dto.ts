@@ -153,6 +153,17 @@ export class CreateOrderDto {
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @ApiProperty({ example: 'FIRST50', required: false })
+  @IsString()
+  @IsOptional()
+  voucherCode?: string;
+
+  @ApiProperty({ example: 0, required: false })
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  discount?: number;
 }
 
 // Guest checkout DTO (with items from localStorage)
@@ -221,5 +232,16 @@ export class GuestCheckoutDto {
   @IsString()
   @IsOptional()
   anonId?: string | null;
+
+  @ApiProperty({ example: 'FIRST50', required: false })
+  @IsString()
+  @IsOptional()
+  voucherCode?: string;
+
+  @ApiProperty({ example: 0, required: false })
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  discount?: number;
 }
 

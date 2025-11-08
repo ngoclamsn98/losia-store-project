@@ -33,6 +33,8 @@ export default function CartPage() {
   const { items: localItems, total, count } = useCart();
   const [items, setItems] = useState<DetailedItem[]>([]);
   const [subtotal, setSubtotal] = useState(0);
+  const [voucherCode, setVoucherCode] = useState('');
+  const [discount, setDiscount] = useState(0);
 
   // Convert localStorage items to DetailedItem format
   useEffect(() => {
@@ -65,6 +67,20 @@ export default function CartPage() {
   const totalSavings = items.reduce((acc, it) => acc + savingPerItem(it), 0);
   const freeShipProgress = Math.min(subtotal / FREE_SHIPPING_THRESHOLD, 1);
   const freeShipRemain = Math.max(FREE_SHIPPING_THRESHOLD - subtotal, 0);
+
+  const handleVoucherApplied = (code: string, discountAmount: number) => {
+    setVoucherCode(code);
+    setDiscount(discountAmount);
+
+    // Save to localStorage so checkout page can use it
+    if (code && discountAmount > 0) {
+      localStorage.setItem('appliedVoucher', JSON.stringify({ code, discount: discountAmount }));
+    } else {
+      localStorage.removeItem('appliedVoucher');
+    }
+  };
+
+  const finalTotal = subtotal - discount;
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -135,12 +151,21 @@ export default function CartPage() {
             <Line label="Thuế" value="Tính ở bước sau" />
           </div>
 
+          <PromoCodeForm onVoucherApplied={handleVoucherApplied} />
+
+          {discount > 0 && (
+            <div className="mt-3 pt-3 border-t">
+              <Line
+                label={<span className="text-green-600 font-medium">Giảm giá ({voucherCode})</span>}
+                value={<span className="text-green-600">-{formatVND(discount)}</span>}
+              />
+            </div>
+          )}
+
           <div className="mt-3 border-t pt-3 flex items-center justify-between text-base font-semibold">
             <span>Tổng cộng</span>
-            <span className="tabular-nums">{formatVND(subtotal)}</span>
+            <span className="tabular-nums">{formatVND(finalTotal)}</span>
           </div>
-
-          <PromoCodeForm />
 
           <Link
             href={items.length ? '/checkout' : '#'}

@@ -28,6 +28,10 @@ import { ProductCondition } from './product-conditions/entities/product-conditio
 import { CommonModule } from './common/common.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { FavoriteProduct } from './favorites/entities/favorite.entity';
+import { VouchersModule } from './vouchers/vouchers.module';
+import { Voucher } from './vouchers/entities/voucher.entity';
+import { VoucherUsage } from './vouchers/entities/voucher-usage.entity';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { winstonConfig } from './config/logger.config';
 
 @Module({
@@ -46,7 +50,7 @@ import { winstonConfig } from './config/logger.config';
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
-        entities: [User, Category, Product, ProductVariant, File, Cart, Order, ProductImpact, ClientUser, EcoImpact, ProductCondition, FavoriteProduct],
+        entities: [User, Category, Product, ProductVariant, File, Cart, Order, ProductImpact, ClientUser, EcoImpact, ProductCondition, FavoriteProduct, Voucher, VoucherUsage],
         synchronize: true,
         logging: false,
         uuidExtension: 'pgcrypto', // Sử dụng gen_random_uuid() thay vì uuid_generate_v4()
@@ -65,6 +69,8 @@ import { winstonConfig } from './config/logger.config';
     ClientUsersModule,
     CommonModule,
     FavoritesModule,
+    VouchersModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

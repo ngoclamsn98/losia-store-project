@@ -46,7 +46,6 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await res.json();
-    console.log('✅ Checkout success:', data);
     return NextResponse.json(data);
   } catch (error) {
     console.error('💥 Checkout API error:', error);

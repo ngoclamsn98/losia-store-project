@@ -4,9 +4,11 @@
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/app/providers/CartProvider';
+import { useSession } from 'next-auth/react';
 
 export interface SideOrderSummaryProps {
   onPlaceOrder?: () => void | Promise<void>; // ✅ cho phép trang gọi callback
+  onVoucherChange?: (voucherCode: string, discountAmount: number) => void; // ✅ callback khi voucher thay đổi
 }
 
 // format tiền sang VND
@@ -19,9 +21,11 @@ function formatVND(n: number) {
   }).format(n);
 }
 
-export default function SideOrderSummary({ onPlaceOrder }: SideOrderSummaryProps) {
+export default function SideOrderSummary({ onPlaceOrder, onVoucherChange }: SideOrderSummaryProps) {
   const router = useRouter();
   const { items: cartItems } = useCart();
+  const { data: session } = useSession();
+
   // TODO: Implement isFirstPurchase and isRemoving
   const isFirstPurchase = false;
   const isRemoving = false;
@@ -31,6 +35,9 @@ export default function SideOrderSummary({ onPlaceOrder }: SideOrderSummaryProps
   const [appliedCode, setAppliedCode] = useState<string>(initialCode);
   const [inputValue, setInputValue] = useState<string>(initialCode);
   const [isEditing, setIsEditing] = useState<boolean>(!initialCode);
+  const [isValidating, setIsValidating] = useState<boolean>(false);
+  const [validationError, setValidationError] = useState<string>('');
+  const [validationSuccess, setValidationSuccess] = useState<string>('');
 
   // Gift card toggle
   const [showGiftCard, setShowGiftCard] = useState<boolean>(false);
@@ -45,8 +52,7 @@ const subtotal = useMemo(() => {
 }, [cartItems]);
 
   // Discount & totals
-  const discountAmount =
-    appliedCode.trim().toUpperCase() === 'FIRST50' ? subtotal * 0.5 : 0;
+  const [discountAmount, setDiscountAmount] = useState<number>(0);
 
   const shippingCost = 20000;       // ví dụ 20.000₫
   const isFreeShipping = true;      // bind theo lựa chọn shipping nếu có
@@ -75,12 +81,52 @@ const subtotal = useMemo(() => {
     setAppliedCode('');
     setInputValue('');
     setIsEditing(true);
+    setDiscountAmount(0);
+    setValidationError('');
+    setValidationSuccess('');
+    onVoucherChange?.('', 0);
   };
 
-  const handleApply = () => {
-    if (inputValue.trim()) {
+  const handleApply = async () => {
+    if (!inputValue.trim()) return;
+
+    setIsValidating(true);
+    setValidationError('');
+    setValidationSuccess('');
+
+    try {
+      const response = await fetch('/api/vouchers/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: inputValue.trim(),
+          orderValue: subtotal,
+          clientUserId: session?.user?.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.valid) {
+        setValidationError(data.message || 'Mã voucher không hợp lệ');
+        setAppliedCode('');
+        setDiscountAmount(0);
+        onVoucherChange?.('', 0);
+        return;
+      }
+
       setAppliedCode(inputValue.trim());
+      setDiscountAmount(data.discountAmount);
+      setValidationSuccess(data.message || 'Áp dụng mã thành công!');
       setIsEditing(false);
+      onVoucherChange?.(inputValue.trim(), data.discountAmount);
+    } catch (err: any) {
+      setValidationError(err.message || 'Có lỗi xảy ra');
+      setAppliedCode('');
+      setDiscountAmount(0);
+      onVoucherChange?.('', 0);
+    } finally {
+      setIsValidating(false);
     }
   };
 
@@ -139,23 +185,34 @@ const subtotal = useMemo(() => {
               <button
                 type="button"
                 onClick={handleRemove}
-                className="self-end rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-black"
+                className="self-end rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
               >
                 Remove
               </button>
             ) : (
               <button
                 type="submit"
-                disabled={!inputValue.trim()}
+                disabled={!inputValue.trim() || isValidating}
                 className="self-end rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Apply
+                {isValidating ? 'Checking...' : 'Apply'}
               </button>
             )}
           </div>
-          <p className="mt-2 text-xs text-gray-500">
-            One code per order. Applies to eligible items.
-          </p>
+
+          {validationError && (
+            <p className="mt-2 text-xs text-red-600">❌ {validationError}</p>
+          )}
+
+          {validationSuccess && !validationError && (
+            <p className="mt-2 text-xs text-green-600">✅ {validationSuccess}</p>
+          )}
+
+          {!appliedCode && !validationError && !validationSuccess && (
+            <p className="mt-2 text-xs text-gray-500">
+              One code per order. Applies to eligible items.
+            </p>
+          )}
         </form>
 
         {/* Gift cards toggle */}
