@@ -110,11 +110,13 @@ export type VariantFilters = {
   attributes: Record<string, VariantFilter>;
 };
 
-// Type for category filters
+// Type for category filters with hierarchical structure
 export type CategoryFilter = {
   id: string;
   name: string;
   slug: string;
+  parentId?: string | null;
+  children?: CategoryFilter[];
   productCount?: number;
 };
 
@@ -183,14 +185,43 @@ async function fetchVariantFilters(): Promise<VariantFilters> {
 }
 
 /**
- * Fetch categories từ Backend API
+ * Fetch categories từ Backend API with hierarchical structure
  * Server-side function
  */
 async function fetchCategories(): Promise<CategoryFilter[]> {
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    const url = `${apiUrl}/categories?isActive=true&limit=100`;
 
+    // Try to fetch hierarchical categories first (mega-menu endpoint)
+    try {
+      const megaMenuUrl = `${apiUrl}/categories/mega-menu`;
+      const megaMenuRes = await fetch(megaMenuUrl, {
+        next: {
+          revalidate: process.env.NODE_ENV === 'production' ? 60 : 0,
+          tags: ['categories']
+        },
+      });
+
+      if (megaMenuRes.ok) {
+        const megaMenuData = await megaMenuRes.json();
+        // Map mega menu data to CategoryFilter format
+        const mapCategory = (cat: any): CategoryFilter => ({
+          id: cat.id,
+          name: cat.name,
+          slug: cat.slug,
+          parentId: cat.parentId || null,
+          children: cat.children ? cat.children.map(mapCategory) : [],
+          productCount: 0, // Will be calculated on client side
+        });
+
+        return megaMenuData.map(mapCategory);
+      }
+    } catch (megaMenuError) {
+      console.warn('Mega menu endpoint not available, falling back to flat categories');
+    }
+
+    // Fallback to flat categories and build hierarchy manually
+    const url = `${apiUrl}/categories?isActive=true&limit=100`;
     const res = await fetch(url, {
       next: {
         revalidate: process.env.NODE_ENV === 'production' ? 60 : 0,
@@ -204,16 +235,41 @@ async function fetchCategories(): Promise<CategoryFilter[]> {
     }
 
     const data = await res.json();
-
-    // Map categories to CategoryFilter format
-    const categories: CategoryFilter[] = (data.data || []).map((cat: any) => ({
+    const flatCategories: CategoryFilter[] = (data.data || []).map((cat: any) => ({
       id: cat.id,
       name: cat.name,
       slug: cat.slug,
-      productCount: 0, // Will be calculated on client side
+      parentId: cat.parentId || null,
+      children: [],
+      productCount: 0,
     }));
 
-    return categories;
+    // Build hierarchy from flat list
+    const categoryMap = new Map<string, CategoryFilter>();
+    const rootCategories: CategoryFilter[] = [];
+
+    // First pass: create map
+    flatCategories.forEach(cat => {
+      categoryMap.set(cat.id, { ...cat, children: [] });
+    });
+
+    // Second pass: build hierarchy
+    flatCategories.forEach(cat => {
+      const category = categoryMap.get(cat.id)!;
+      if (cat.parentId) {
+        const parent = categoryMap.get(cat.parentId);
+        if (parent) {
+          parent.children = parent.children || [];
+          parent.children.push(category);
+        } else {
+          rootCategories.push(category);
+        }
+      } else {
+        rootCategories.push(category);
+      }
+    });
+
+    return rootCategories;
   } catch (error) {
     console.error('Error fetching categories:', error);
     return [];

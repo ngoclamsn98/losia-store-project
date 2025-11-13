@@ -1,3 +1,9 @@
+// Polyfill for crypto (fix @nestjs/typeorm issue)
+import * as crypto from 'crypto';
+if (typeof global.crypto === 'undefined') {
+  (global as any).crypto = crypto;
+}
+
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -46,6 +52,7 @@ async function bootstrap() {
     .addTag('products', 'Product management endpoints')
     .addTag('files', 'File upload and management endpoints')
     .addTag('dashboard', 'Dashboard statistics and analytics endpoints')
+    .addTag('menus', 'Dynamic menu management endpoints')
     .addBearerAuth(
       {
         type: 'http',

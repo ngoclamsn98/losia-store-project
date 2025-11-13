@@ -129,6 +129,17 @@ export class ProductsController {
   @ApiQuery({ name: 'isFeatured', required: false, type: Boolean, description: 'Filter featured products' })
   @ApiQuery({ name: 'search', required: false, description: 'Search in product name and description' })
   @ApiQuery({ name: 'variantAttributes', required: false, description: 'Filter by variant attributes (format: color:Red,size:M)' })
+  @ApiQuery({ name: 'department_tags', required: false, description: 'Filter by department tags (comma-separated: women,premium)' })
+  @ApiQuery({ name: 'category_tags', required: false, description: 'Filter by category tags (comma-separated: dresses,tops)' })
+  @ApiQuery({ name: 'style_tags', required: false, description: 'Filter by style tags (comma-separated: belts,hats)' })
+  @ApiQuery({ name: 'color_names', required: false, description: 'Filter by color names (comma-separated: red,blue)' })
+  @ApiQuery({ name: 'chars_pattern', required: false, description: 'Filter by pattern (solid, striped, etc.)' })
+  @ApiQuery({ name: 'condition', required: false, description: 'Filter by condition (e.g., q1_nwt for new with tags)' })
+  @ApiQuery({ name: 'listed_days', required: false, type: Number, description: 'Filter products listed in last N days' })
+  @ApiQuery({ name: 'price', required: false, description: 'Filter by price range (format: min,max or just max)' })
+  @ApiQuery({ name: 'luxe_brand', required: false, type: Boolean, description: 'Filter luxury brands' })
+  @ApiQuery({ name: 'curation_id', required: false, description: 'Filter by curation ID' })
+  @ApiQuery({ name: 'sort', required: false, description: 'Sort by: price_low_high, price_high_low, newest, oldest' })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 10, max: 100)' })
   @ApiResponse({ status: 200, description: 'Returns paginated list of products' })
@@ -138,6 +149,17 @@ export class ProductsController {
     @Query('isFeatured') isFeatured?: string,
     @Query('search') search?: string,
     @Query('variantAttributes') variantAttributes?: string,
+    @Query('department_tags') departmentTags?: string,
+    @Query('category_tags') categoryTags?: string,
+    @Query('style_tags') styleTags?: string,
+    @Query('color_names') colorNames?: string,
+    @Query('chars_pattern') charsPattern?: string,
+    @Query('condition') condition?: string,
+    @Query('listed_days') listedDays?: string,
+    @Query('price') price?: string,
+    @Query('luxe_brand') luxeBrand?: string,
+    @Query('curation_id') curationId?: string,
+    @Query('sort') sort?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
@@ -160,12 +182,37 @@ export class ProductsController {
       }
     }
 
+    // Parse price range (format: "0,25" or "25")
+    let priceMin: number | undefined;
+    let priceMax: number | undefined;
+    if (price) {
+      const priceParts = price.split(',');
+      if (priceParts.length === 2) {
+        priceMin = parseFloat(priceParts[0]);
+        priceMax = parseFloat(priceParts[1]);
+      } else if (priceParts.length === 1) {
+        priceMax = parseFloat(priceParts[0]);
+      }
+    }
+
     return this.productsService.findAll({
       categoryIds: categoryIdsArray,
       status,
       isFeatured: isFeatured === 'true',
       search,
       variantAttributes: parsedVariantAttributes,
+      departmentTags: departmentTags ? departmentTags.split(',').map(t => t.trim()) : undefined,
+      categoryTags: categoryTags ? categoryTags.split(',').map(t => t.trim()) : undefined,
+      styleTags: styleTags ? styleTags.split(',').map(t => t.trim()) : undefined,
+      colorNames: colorNames ? colorNames.split(',').map(t => t.trim()) : undefined,
+      charsPattern,
+      condition,
+      listedDays: listedDays ? parseInt(listedDays, 10) : undefined,
+      priceMin,
+      priceMax,
+      luxeBrand: luxeBrand === 'true',
+      curationId,
+      sort,
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
     });
@@ -197,6 +244,69 @@ export class ProductsController {
     @Query('status') status?: ProductStatus,
   ) {
     return this.productsService.searchProducts(query, {
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      status,
+    });
+  }
+
+  @Get('categories/:slug1/:slug2/:slug3')
+  @ApiOperation({ summary: 'Get products by nested category slugs (level 1, 2, 3)' })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 12)' })
+  @ApiQuery({ name: 'status', required: false, enum: ProductStatus, description: 'Filter by product status (default: ACTIVE)' })
+  @ApiResponse({ status: 200, description: 'Returns paginated list of products for the category' })
+  @ApiResponse({ status: 404, description: 'Category not found' })
+  findByNestedCategorySlugs(
+    @Param('slug1') slug1: string,
+    @Param('slug2') slug2?: string,
+    @Param('slug3') slug3?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('status') status?: ProductStatus,
+  ) {
+    return this.productsService.findByNestedCategorySlugs(slug1, slug2, slug3, {
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      status,
+    });
+  }
+
+  @Get('categories/:slug1/:slug2')
+  @ApiOperation({ summary: 'Get products by nested category slugs (level 1, 2)' })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 12)' })
+  @ApiQuery({ name: 'status', required: false, enum: ProductStatus, description: 'Filter by product status (default: ACTIVE)' })
+  @ApiResponse({ status: 200, description: 'Returns paginated list of products for the category' })
+  @ApiResponse({ status: 404, description: 'Category not found' })
+  findByNestedCategorySlugs2(
+    @Param('slug1') slug1: string,
+    @Param('slug2') slug2: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('status') status?: ProductStatus,
+  ) {
+    return this.productsService.findByNestedCategorySlugs(slug1, slug2, undefined, {
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      status,
+    });
+  }
+
+  @Get('categories/:slug1')
+  @ApiOperation({ summary: 'Get products by category slug (level 1)' })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 12)' })
+  @ApiQuery({ name: 'status', required: false, enum: ProductStatus, description: 'Filter by product status (default: ACTIVE)' })
+  @ApiResponse({ status: 200, description: 'Returns paginated list of products for the category' })
+  @ApiResponse({ status: 404, description: 'Category not found' })
+  findByNestedCategorySlugs1(
+    @Param('slug1') slug1: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('status') status?: ProductStatus,
+  ) {
+    return this.productsService.findByNestedCategorySlugs(slug1, undefined, undefined, {
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
       status,

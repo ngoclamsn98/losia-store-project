@@ -9,7 +9,7 @@ interface PromoCodeFormProps {
 }
 
 export default function PromoCodeForm({ onVoucherApplied }: PromoCodeFormProps) {
-  const { total } = useCart();
+  const { total, count } = useCart();
   const [code, setCode] = useState('');
   const [appliedCode, setAppliedCode] = useState('');
   const [discountAmount, setDiscountAmount] = useState(0);
@@ -17,9 +17,18 @@ export default function PromoCodeForm({ onVoucherApplied }: PromoCodeFormProps) 
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
+  // Kiểm tra giỏ hàng có trống không
+  const isCartEmpty = count === 0 || total === 0;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!code.trim()) return;
+
+    // Kiểm tra giỏ hàng trống
+    if (isCartEmpty) {
+      setError('Vui lòng thêm sản phẩm vào giỏ hàng trước khi áp dụng mã giảm giá');
+      return;
+    }
 
     setIsLoading(true);
     setError('');
@@ -80,7 +89,7 @@ export default function PromoCodeForm({ onVoucherApplied }: PromoCodeFormProps) 
           value={code}
           onChange={(e) => setCode(e.target.value)}
           placeholder={appliedCode || "Nhập mã khuyến mãi"}
-          disabled={!!appliedCode || isLoading}
+          disabled={!!appliedCode || isLoading || isCartEmpty}
           className="flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 disabled:bg-gray-100 disabled:cursor-not-allowed"
         />
         {appliedCode ? (
@@ -94,8 +103,9 @@ export default function PromoCodeForm({ onVoucherApplied }: PromoCodeFormProps) 
         ) : (
           <button
             type="submit"
-            disabled={!code.trim() || isLoading}
+            disabled={!code.trim() || isLoading || isCartEmpty}
             className="rounded-lg border bg-black text-white px-3 py-2 text-sm font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            title={isCartEmpty ? 'Vui lòng thêm sản phẩm vào giỏ hàng' : ''}
           >
             {isLoading ? 'Đang kiểm tra...' : 'Áp dụng'}
           </button>
@@ -117,7 +127,11 @@ export default function PromoCodeForm({ onVoucherApplied }: PromoCodeFormProps) 
       )}
 
       {!appliedCode && !error && !message && (
-        <p className="mt-1 text-xs text-gray-500">* Giảm giá sẽ hiển thị khi mã hợp lệ.</p>
+        <p className="mt-1 text-xs text-gray-500">
+          {isCartEmpty
+            ? '⚠️ Vui lòng thêm sản phẩm vào giỏ hàng để áp dụng mã giảm giá'
+            : '* Giảm giá sẽ hiển thị khi mã hợp lệ.'}
+        </p>
       )}
     </form>
   );

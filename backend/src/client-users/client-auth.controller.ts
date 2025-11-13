@@ -25,4 +25,3 @@ export class ClientAuthController {
     return this.clientUsersService.getMe(user.id);
   }
 }
-

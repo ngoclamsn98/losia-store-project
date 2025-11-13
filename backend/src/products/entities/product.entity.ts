@@ -8,7 +8,6 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
-  OneToOne,
   JoinTable,
   JoinColumn,
 } from 'typeorm';
@@ -84,6 +83,38 @@ export class Product {
   @Column({ type: 'simple-array', nullable: true })
   tags: string[];
 
+  // Department tags for filtering (e.g., 'women', 'premium', 'designer', 'shoes', etc.)
+  @Column({ type: 'simple-array', nullable: true, name: 'department_tags' })
+  departmentTags: string[];
+
+  // Style tags for filtering (e.g., 'belts', 'hats', 'ballerina-flat', etc.)
+  @Column({ type: 'simple-array', nullable: true, name: 'style_tags' })
+  styleTags: string[];
+
+  // Category tags for filtering (e.g., 'dresses', 'tops', 'jeans', etc.)
+  @Column({ type: 'simple-array', nullable: true, name: 'category_tags' })
+  categoryTags: string[];
+
+  // Color names for filtering
+  @Column({ type: 'simple-array', nullable: true, name: 'color_names' })
+  colorNames: string[];
+
+  // Pattern/characteristics (e.g., 'solid', 'striped', 'floral')
+  @Column({ nullable: true, name: 'chars_pattern' })
+  charsPattern: string;
+
+  // Price for filtering
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  price: number;
+
+  // Is luxury brand
+  @Column({ name: 'luxe_brand', default: false })
+  luxeBrand: boolean;
+
+  // Curation ID for curated collections
+  @Column({ name: 'curation_id', nullable: true })
+  curationId: string;
+
   @Column({ default: 0 })
   views: number;
 
@@ -96,10 +127,13 @@ export class Product {
   @Column({ name: 'seo_keywords', type: 'simple-array', nullable: true })
   seoKeywords: string[];
 
-  // Eco Impact relationship
-  @OneToOne(() => EcoImpact, { onDelete: 'SET NULL', nullable: true })
+  // Eco Impact relationship - ManyToOne allows multiple products to share same eco impact
+  @ManyToOne(() => EcoImpact, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'eco_impact_id' })
   ecoImpact: EcoImpact | null;
+
+  @Column({ name: 'eco_impact_id', type: 'uuid', nullable: true })
+  ecoImpactId: string | null;
 
   // Season field
   @Column({
@@ -109,10 +143,13 @@ export class Product {
   })
   season: ProductSeason;
 
-  // Product Condition relationship
-  @OneToOne(() => ProductCondition, { onDelete: 'SET NULL', nullable: true })
+  // Product Condition relationship - ManyToOne allows multiple products to share same condition
+  @ManyToOne(() => ProductCondition, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'product_condition_id' })
   productCondition: ProductCondition | null;
+
+  @Column({ name: 'product_condition_id', type: 'uuid', nullable: true })
+  productConditionId: string | null;
 
   @Column({ name: 'created_by_id', type: 'uuid', nullable: true })
   createdById: string;

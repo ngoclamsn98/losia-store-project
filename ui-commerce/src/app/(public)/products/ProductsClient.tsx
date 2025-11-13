@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import type { ProductCard, VariantFilters, CategoryFilter } from "./page";
-import { ColumnsIcon, EyeIcon, Grid2X2, LayoutGrid, Rows2Icon, ShoppingCartIcon, Square, X } from "lucide-react";
+import { ColumnsIcon, EyeIcon, Grid2X2, LayoutGrid, Rows2Icon, ShoppingCartIcon, Square, X, ChevronDown, ChevronRight } from "lucide-react";
 import { addToLocalCart } from '@/lib/cart/localStorage';
 import { internalPost } from '@/lib/api/internal';
 import FavoriteButton from '@/components/product/FavoriteButton';
@@ -72,6 +72,12 @@ export default function ProductsClient({ initialProducts, variantFilters, catego
   // Format: ["category-id-1", "category-id-2"]
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
+  // Dropdown states
+  const [isPriceDropdownOpen, setIsPriceDropdownOpen] = useState(false);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const [variantDropdownStates, setVariantDropdownStates] = useState<Record<string, boolean>>({});
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+
   // Toggle variant filter
   const toggleVariantFilter = (attributeName: string, value: string) => {
     setSelectedVariants(prev => {
@@ -109,19 +115,76 @@ export default function ProductsClient({ initialProducts, variantFilters, catego
     setSelectedCategories([]);
   };
 
+  // Toggle category expansion
+  const toggleCategoryExpansion = (categoryId: string) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId);
+      } else {
+        newSet.add(categoryId);
+      }
+      return newSet;
+    });
+  };
+
+  // Toggle variant dropdown
+  const toggleVariantDropdown = (attributeName: string) => {
+    setVariantDropdownStates(prev => ({
+      ...prev,
+      [attributeName]: !prev[attributeName]
+    }));
+  };
+
+  // Get all category IDs recursively (for filtering products)
+  const getAllCategoryIds = (category: CategoryFilter): string[] => {
+    const ids = [category.id];
+    if (category.children && category.children.length > 0) {
+      category.children.forEach(child => {
+        ids.push(...getAllCategoryIds(child));
+      });
+    }
+    return ids;
+  };
+
   // Filter & Sort
   const filteredSorted = useMemo(() => {
     let arr = [...initialProducts];
 
     // Category filter
-    // Product must belong to at least one of the selected categories
+    // Product must belong to at least one of the selected categories (including child categories)
     if (selectedCategories.length > 0) {
+      // Build a set of all category IDs including children
+      const allSelectedCategoryIds = new Set<string>();
+
+      const addCategoryAndChildren = (categoryId: string) => {
+        allSelectedCategoryIds.add(categoryId);
+
+        // Find category in the tree and add all children
+        const findAndAddChildren = (cats: CategoryFilter[]) => {
+          for (const cat of cats) {
+            if (cat.id === categoryId) {
+              getAllCategoryIds(cat).forEach(id => allSelectedCategoryIds.add(id));
+              return true;
+            }
+            if (cat.children && cat.children.length > 0) {
+              if (findAndAddChildren(cat.children)) return true;
+            }
+          }
+          return false;
+        };
+
+        findAndAddChildren(categories);
+      };
+
+      selectedCategories.forEach(addCategoryAndChildren);
+
       arr = arr.filter((product) => {
         if (!product.categories || product.categories.length === 0) return false;
 
-        // Check if product has at least one category matching selected categories
+        // Check if product has at least one category matching selected categories or their children
         return product.categories.some((category) =>
-          selectedCategories.includes(category.id)
+          allSelectedCategoryIds.has(category.id)
         );
       });
     }
@@ -208,6 +271,10 @@ export default function ProductsClient({ initialProducts, variantFilters, catego
     setPriceMax(maxPrice || 0);
     clearVariantFilters();
     clearCategoryFilters();
+    // Optionally close all dropdowns on reset
+    // setIsPriceDropdownOpen(false);
+    // setIsCategoryDropdownOpen(false);
+    // setVariantDropdownStates({});
   };
 
   // Count active filters
@@ -217,7 +284,7 @@ export default function ProductsClient({ initialProducts, variantFilters, catego
 
   return (
     <div className="mx-auto max-w-[1600px] px-4 lg:px-6 py-6 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
-      {/* Sidebar Filters */}
+      {/* Sidebar Filters - Dropdown Style */}
       <aside className="lg:sticky lg:top-20 h-fit border rounded-2xl p-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold text-lg">Bộ lọc</h2>
@@ -229,86 +296,107 @@ export default function ProductsClient({ initialProducts, variantFilters, catego
           </button>
         </div>
 
-        {/* Giá */}
-        <div className="mb-6">
-          <h3 className="font-medium mb-3">Khoảng giá</h3>
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <input
-                type="number"
-                value={priceMin}
-                onChange={(e) => setPriceMin(Math.max(0, Number(e.target.value || 0)))}
-                className="w-1/2 rounded-md border px-3 py-1.5"
-                min={0}
-              />
-              <span className="text-gray-500">—</span>
-              <input
-                type="number"
-                value={priceMax}
-                onChange={(e) => setPriceMax(Math.max(priceMin, Number(e.target.value || 0)))}
-                className="w-1/2 rounded-md border px-3 py-1.5"
-                min={0}
-              />
+        {/* Giá - Dropdown */}
+        <div className="mb-4 border-b pb-4">
+          <button
+            onClick={() => setIsPriceDropdownOpen(!isPriceDropdownOpen)}
+            className="w-full flex items-center justify-between font-medium py-2 hover:text-emerald-600 transition-colors"
+          >
+            <span>Khoảng giá</span>
+            <ChevronDown className={`h-4 w-4 transition-transform ${isPriceDropdownOpen ? 'rotate-180' : ''}`} />
+          </button>
+          {isPriceDropdownOpen && (
+            <div className="mt-3 space-y-2">
+              <div className="flex items-center gap-3">
+                <input
+                  type="number"
+                  value={priceMin}
+                  onChange={(e) => setPriceMin(Math.max(0, Number(e.target.value || 0)))}
+                  className="w-1/2 rounded-md border px-3 py-1.5 text-sm"
+                  min={0}
+                  placeholder="Tối thiểu"
+                />
+                <span className="text-gray-500">—</span>
+                <input
+                  type="number"
+                  value={priceMax}
+                  onChange={(e) => setPriceMax(Math.max(priceMin, Number(e.target.value || 0)))}
+                  className="w-1/2 rounded-md border px-3 py-1.5 text-sm"
+                  min={0}
+                  placeholder="Tối đa"
+                />
+              </div>
+              <div className="text-xs text-gray-500">
+                {fmtVND(priceMin || 0)} — {fmtVND(priceMax || 0)}
+              </div>
             </div>
-            <div className="text-sm text-gray-500">
-              {fmtVND(priceMin || 0)} — {fmtVND(priceMax || 0)}
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* Category Filters */}
+        {/* Category Filters - Dropdown with 3-level hierarchy */}
         {categories.length > 0 && (
-          <div className="mb-6">
-            <h3 className="font-medium mb-3">Danh mục</h3>
-            <div className="space-y-2">
-              {categories.map((category) => {
-                const isSelected = selectedCategories.includes(category.id);
-                return (
-                  <label
+          <div className="mb-4 border-b pb-4">
+            <button
+              onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+              className="w-full flex items-center justify-between font-medium py-2 hover:text-emerald-600 transition-colors"
+            >
+              <span>Danh mục</span>
+              <ChevronDown className={`h-4 w-4 transition-transform ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {isCategoryDropdownOpen && (
+              <div className="mt-3 space-y-1">
+                {categories.map((category) => (
+                  <CategoryTreeItem
                     key={category.id}
-                    className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => toggleCategoryFilter(category.id)}
-                      className="w-4 h-4 rounded border-gray-300"
-                    />
-                    <span className="text-sm">{category.name}</span>
-                  </label>
-                );
-              })}
-            </div>
+                    category={category}
+                    level={0}
+                    selectedCategories={selectedCategories}
+                    expandedCategories={expandedCategories}
+                    onToggleCategory={toggleCategoryFilter}
+                    onToggleExpansion={toggleCategoryExpansion}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
 
-        {/* Variant Filters */}
-        {Object.entries(variantFilters.attributes).map(([attrKey, attrData]) => (
-          <div key={attrKey} className="mb-6">
-            <h3 className="font-medium mb-3 capitalize">{attrData.name}</h3>
-            <div className="space-y-2">
-              {attrData.values.map((value) => {
-                const isSelected = selectedVariants[attrKey]?.includes(value) || false;
-                return (
-                  <label
-                    key={value}
-                    className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => toggleVariantFilter(attrKey, value)}
-                      className="w-4 h-4 rounded border-gray-300"
-                    />
-                    <span className="text-sm">{value}</span>
-                  </label>
-                );
-              })}
+        {/* Variant Filters - Dropdown */}
+        {Object.entries(variantFilters.attributes).map(([attrKey, attrData]) => {
+          const isOpen = variantDropdownStates[attrKey] || false;
+          return (
+            <div key={attrKey} className="mb-4 border-b pb-4 last:border-b-0">
+              <button
+                onClick={() => toggleVariantDropdown(attrKey)}
+                className="w-full flex items-center justify-between font-medium py-2 hover:text-emerald-600 transition-colors"
+              >
+                <span className="capitalize">{attrData.name}</span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {isOpen && (
+                <div className="mt-3 space-y-2 max-h-60 overflow-y-auto">
+                  {attrData.values.map((value) => {
+                    const isSelected = selectedVariants[attrKey]?.includes(value) || false;
+                    return (
+                      <label
+                        key={value}
+                        className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleVariantFilter(attrKey, value)}
+                          className="w-4 h-4 rounded border-gray-300"
+                        />
+                        <span className="text-sm">{value}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          </div>
-        ))}
-
-        
+          );
+        })}
       </aside>
 
       {/* Main */}
@@ -695,12 +783,87 @@ function ProductListItem({
   );
 }
 
+// Category Tree Item Component - Recursive 3-level hierarchy
+function CategoryTreeItem({
+  category,
+  level,
+  selectedCategories,
+  expandedCategories,
+  onToggleCategory,
+  onToggleExpansion,
+}: {
+  category: CategoryFilter;
+  level: number;
+  selectedCategories: string[];
+  expandedCategories: Set<string>;
+  onToggleCategory: (categoryId: string) => void;
+  onToggleExpansion: (categoryId: string) => void;
+}) {
+  const hasChildren = category.children && category.children.length > 0;
+  const isExpanded = expandedCategories.has(category.id);
+  const isSelected = selectedCategories.includes(category.id);
+
+  // Indentation based on level
+  const paddingLeft = level * 16;
+
+  return (
+    <div>
+      <div
+        className="flex items-center gap-2 hover:bg-gray-50 p-1.5 rounded"
+        style={{ paddingLeft: `${paddingLeft}px` }}
+      >
+        {/* Expansion toggle for parent categories */}
+        {hasChildren ? (
+          <button
+            onClick={() => onToggleExpansion(category.id)}
+            className="flex-shrink-0 p-0.5 hover:bg-gray-200 rounded"
+          >
+            <ChevronRight className={`h-3 w-3 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+          </button>
+        ) : (
+          <div className="w-4" /> // Spacer for alignment
+        )}
+
+        {/* Checkbox */}
+        <label className="flex items-center gap-2 cursor-pointer flex-1">
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={() => onToggleCategory(category.id)}
+            className="w-4 h-4 rounded border-gray-300"
+          />
+          <span className={`text-sm ${level === 0 ? 'font-medium' : ''}`}>
+            {category.name}
+          </span>
+        </label>
+      </div>
+
+      {/* Children categories */}
+      {hasChildren && isExpanded && (
+        <div className="mt-1">
+          {category.children!.map((child) => (
+            <CategoryTreeItem
+              key={child.id}
+              category={child}
+              level={level + 1}
+              selectedCategories={selectedCategories}
+              expandedCategories={expandedCategories}
+              onToggleCategory={onToggleCategory}
+              onToggleExpansion={onToggleExpansion}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Quick View Modal
 function QuickViewModal({ product, onClose }: { product: ProductCard; onClose: () => void }) {
   const discount = getDiscountPercent(product);
-  const price = Number(product.price);  
+  const price = Number(product.price);
   const oldPrice = Number(product.oldPrice);
-  
+
   return (
     <div
       role="dialog"

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import type { ProductsResponse } from "@/types/product";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import FavoriteButton from "@/components/product/FavoriteButton";
+import { formatPrice } from "@/utils";
 
 interface CategoryProductsClientProps {
   slug: string;
@@ -90,11 +91,11 @@ export default function CategoryProductsClient({
                       </h3>
                       <div className="flex items-center gap-2">
                         <span className="text-lg font-bold text-gray-900">
-                          {price.toLocaleString("vi-VN")}₫
+                          {formatPrice(price)}
                         </span>
                         {compareAtPrice && (
                           <span className="text-sm text-gray-400 line-through">
-                            {compareAtPrice.toLocaleString("vi-VN")}₫
+                            {formatPrice(compareAtPrice)}
                           </span>
                         )}
                       </div>

@@ -12,6 +12,9 @@ export * from './products';
 // Categories
 export * from './categories';
 
+// Menus
+export * from './menus';
+
 // Users
 export * from './users';
 

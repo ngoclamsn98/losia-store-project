@@ -9,7 +9,7 @@ import clsx from "clsx";
 import { useCart } from "@/app/providers/CartProvider";
 import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
-import type { Category } from "@/lib/api/categories";
+import type { Menu as MenuType } from "@/lib/api/menus";
 
 const containerClass = "max-w-[1600px] mx-auto px-4 lg:px-6";
 
@@ -55,13 +55,14 @@ const scrollbarStyles = `
 // -----------------------------
 
 interface MegaMenuItem {
-  label: string;
-  href?: string;
+  id: string;
+  name: string;
+  slug: string;
   children?: MegaMenuItem[];
 }
 
 interface HeaderClientProps {
-  categories: Category[];
+  menus: MenuType[];
 }
 
 // -----------------------------
@@ -255,11 +256,11 @@ function SearchBar() {
 // Mega Menu Component
 // -----------------------------
 
-function MegaMenu({ category, onClose }: { category: Category; onClose: () => void }) {
-  if (!category.children || category.children.length === 0) return null;
+function MegaMenu({ menu, onClose, allMenus }: { menu: MenuType; onClose: () => void; allMenus: MenuType[] }) {
+  if (!menu.children || menu.children.length === 0) return null;
 
   // Calculate number of columns based on children count
-  const childrenCount = category.children.length;
+  const childrenCount = menu.children.length;
   const columns = Math.min(childrenCount, 5); // Max 5 columns
 
   return (
@@ -273,10 +274,10 @@ function MegaMenu({ category, onClose }: { category: Category; onClose: () => vo
               gridTemplateColumns: `repeat(${columns}, minmax(220px, 280px))`,
             }}
           >
-            {category.children.map((child) => (
+            {menu.children.map((child) => (
               <div key={child.id} className="min-w-0">
                 <Link
-                  href={`/categories/${child.slug}`}
+                  href={buildSlugPath(child, allMenus)}
                   className="mb-4 block text-sm font-semibold text-gray-500 hover:text-emerald-600 transition-colors uppercase tracking-wide"
                   onClick={onClose}
                 >
@@ -287,7 +288,7 @@ function MegaMenu({ category, onClose }: { category: Category; onClose: () => vo
                     {child.children.map((grandchild) => (
                       <li key={grandchild.id}>
                         <Link
-                          href={`/categories/${grandchild.slug}`}
+                          href={buildSlugPath(grandchild, allMenus)}
                           className="text-sm text-gray-400 hover:text-emerald-600 hover:translate-x-1 transition-all block"
                           onClick={onClose}
                           title={grandchild.name}
@@ -311,10 +312,104 @@ function MegaMenu({ category, onClose }: { category: Category; onClose: () => vo
 // Main Header Client Component
 // -----------------------------
 
-export default function HeaderClient({ categories }: HeaderClientProps) {
+// Helper function to build slug path from menu item
+function buildSlugPath(item: MenuType, allMenus: MenuType[]): string {
+  const slugs: string[] = [item.slug];
+  let current = item;
+  
+  // Build path from child to parent
+  while (current.parentId) {
+    const parent = findMenuById(current.parentId, allMenus);
+    if (parent) {
+      slugs.unshift(parent.slug);
+      current = parent;
+    } else {
+      break;
+    }
+  }
+  
+  return `/categories/${slugs.join("/")}`;
+}
+
+// Helper function to find menu by id
+function findMenuById(id: string, menus: MenuType[]): MenuType | undefined {
+  for (const menu of menus) {
+    if (menu.id === id) return menu;
+    if (menu.children) {
+      const found = findMenuById(id, menu.children);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
+
+// Mobile Menu Item Component
+function MobileMenuItem({ 
+  item, 
+  level = 0, 
+  onClose,
+  allMenus,
+}: { 
+  item: MenuType; 
+  level?: number;
+  onClose: () => void;
+  allMenus: MenuType[];
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const hasChildren = item.children && item.children.length > 0;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between py-1">
+        <Link
+          href={buildSlugPath(item, allMenus)}
+          className={clsx(
+            "flex-1 px-2 py-1.5 transition-colors hover:text-emerald-600 rounded",
+            level === 0 && "font-semibold text-gray-900",
+            level === 1 && "text-sm text-gray-700",
+            level === 2 && "text-xs text-gray-600",
+          )}
+          onClick={onClose}
+        >
+          {item.name}
+        </Link>
+        {hasChildren && (
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="ml-2 p-1 hover:bg-gray-100 rounded"
+            aria-label="Toggle submenu"
+          >
+            <ChevronDown 
+              className={clsx(
+                "h-4 w-4 transition-transform",
+                isExpanded && "rotate-180"
+              )}
+            />
+          </button>
+        )}
+      </div>
+      
+      {hasChildren && isExpanded && item.children && (
+        <div className={clsx("space-y-2", level === 0 ? "pl-6" : "pl-4")}>
+          {item.children.map((child) => (
+            <MobileMenuItem
+              key={child.id}
+              item={child}
+              level={level + 1}
+              onClose={onClose}
+              allMenus={allMenus}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function HeaderClient({ menus }: HeaderClientProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const [hoveredMenu, setHoveredMenu] = useState<string | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -326,10 +421,10 @@ export default function HeaderClient({ categories }: HeaderClientProps) {
 
   useEffect(() => {
     setMobileOpen(false);
-    setHoveredCategory(null);
+    setHoveredMenu(null);
   }, [pathname]);
 
-  const rootCategories = categories.filter(cat => !cat.parentId);
+  const rootMenus = menus.filter(menu => !menu.parentId);
 
   return (
     <>
@@ -345,7 +440,7 @@ export default function HeaderClient({ categories }: HeaderClientProps) {
         </div>
 
       {/* Main Header */}
-      <div className="border-b" onMouseLeave={() => setHoveredCategory(null)}>
+      <div className="border-b" onMouseLeave={() => setHoveredMenu(null)}>
         <div className={clsx(containerClass, "flex items-center justify-between gap-4")}>
           {/* Mobile Menu Button */}
           <button
@@ -370,21 +465,21 @@ export default function HeaderClient({ categories }: HeaderClientProps) {
           {/* Desktop Navigation - 2 rows + CTA */}
           <div className="hidden lg:flex items-center gap-6 flex-1 justify-center py-[15px]">
             {/* Navigation - 2 rows */}
-            <nav className="flex flex-col gap-3">
+            <nav className="flex gap-3">
               {/* First row */}
               <div className="flex items-center justify-center gap-6">
-                {rootCategories.slice(0, Math.ceil(rootCategories.length / 2)).map((category) => (
+                {rootMenus.slice(0, Math.ceil(rootMenus.length / 2)).map((menu) => (
                   <div
-                    key={category.id}
-                    onMouseEnter={() => setHoveredCategory(category.id)}
+                    key={menu.id}
+                    onMouseEnter={() => setHoveredMenu(menu.id)}
                     className="relative"
                   >
                     <Link
-                      href={`/categories/${category.slug}`}
+                      href={`/categories/${menu.slug}`}
                       className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors whitespace-nowrap px-2 py-1"
                     >
-                      {category.name}
-                      {category.children && category.children.length > 0 && (
+                      {menu.name}
+                      {menu.children && menu.children.length > 0 && (
                         <ChevronDown className="h-4 w-4" />
                       )}
                     </Link>
@@ -394,18 +489,18 @@ export default function HeaderClient({ categories }: HeaderClientProps) {
 
               {/* Second row */}
               <div className="flex items-center justify-center gap-6">
-                {rootCategories.slice(Math.ceil(rootCategories.length / 2)).map((category) => (
+                {rootMenus.slice(Math.ceil(rootMenus.length / 2)).map((menu) => (
                   <div
-                    key={category.id}
-                    onMouseEnter={() => setHoveredCategory(category.id)}
+                    key={menu.id}
+                    onMouseEnter={() => setHoveredMenu(menu.id)}
                     className="relative"
                   >
                     <Link
-                      href={`/categories/${category.slug}`}
+                      href={`/categories/${menu.slug}`}
                       className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors whitespace-nowrap px-2 py-1"
                     >
-                      {category.name}
-                      {category.children && category.children.length > 0 && (
+                      {menu.name}
+                      {menu.children && menu.children.length > 0 && (
                         <ChevronDown className="h-4 w-4" />
                       )}
                     </Link>
@@ -433,7 +528,7 @@ export default function HeaderClient({ categories }: HeaderClientProps) {
 
         {/* Desktop Mega Menu */}
         <AnimatePresence>
-          {hoveredCategory && (
+          {hoveredMenu && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -441,12 +536,13 @@ export default function HeaderClient({ categories }: HeaderClientProps) {
               transition={{ duration: 0.2 }}
               className="absolute left-0 right-0 top-full"
             >
-              {rootCategories.map((category) =>
-                category.id === hoveredCategory ? (
+              {rootMenus.map((menu) =>
+                menu.id === hoveredMenu ? (
                   <MegaMenu
-                    key={category.id}
-                    category={category}
-                    onClose={() => setHoveredCategory(null)}
+                    key={menu.id}
+                    menu={menu}
+                    onClose={() => setHoveredMenu(null)}
+                    allMenus={menus}
                   />
                 ) : null
               )}
@@ -466,36 +562,18 @@ export default function HeaderClient({ categories }: HeaderClientProps) {
           >
             {/* Scrollable mobile menu with max height */}
             <div className="max-h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar">
-              <div className="p-4 space-y-4">
-                {rootCategories.map((category) => (
-                  <div key={category.id} className="space-y-2">
-                    <Link
-                      href={`/categories/${category.slug}`}
-                      className="block font-semibold text-gray-900 hover:text-emerald-600 transition-colors"
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      {category.name}
-                    </Link>
-                    {category.children && category.children.length > 0 && (
-                      <div className="grid grid-cols-2 gap-2 pl-4">
-                        {category.children.map((child) => (
-                          <Link
-                            key={child.id}
-                            href={`/categories/${child.slug}`}
-                            className="text-sm text-gray-600 hover:text-emerald-600 transition-colors truncate"
-                            onClick={() => setMobileOpen(false)}
-                            title={child.name}
-                          >
-                            {child.name}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+              <div className="p-6 space-y-4">
+                {rootMenus.map((menu) => (
+                  <MobileMenuItem
+                    key={menu.id}
+                    item={menu}
+                    onClose={() => setMobileOpen(false)}
+                    allMenus={menus}
+                  />
                 ))}
                 <Link
                   href="/products"
-                  className="block rounded-lg bg-emerald-600 px-4 py-2 text-center font-semibold text-white hover:bg-emerald-700 transition-colors"
+                  className="block rounded-lg bg-emerald-600 px-6 py-3 text-center font-semibold text-white hover:bg-emerald-700 transition-colors mt-6"
                   onClick={() => setMobileOpen(false)}
                 >
                   Tất cả sản phẩm

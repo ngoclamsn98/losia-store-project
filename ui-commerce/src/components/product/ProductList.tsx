@@ -4,6 +4,7 @@ import { useProducts } from '@/lib/api';
 import type { ProductFilters } from '@/types/product';
 import Link from 'next/link';
 import Image from 'next/image';
+import { formatPrice } from '@/utils';
 
 interface ProductListProps {
   filters?: ProductFilters;
@@ -127,7 +128,7 @@ export default function ProductList({ filters }: ProductListProps) {
                 {/* Price */}
                 <div className="flex items-center justify-between">
                   <p className="text-lg font-bold text-gray-900">
-                    {price.toLocaleString('vi-VN')}₫
+                    {formatPrice(price)}
                   </p>
                   <p className="text-xs text-gray-500">
                     {stock > 0 ? `Còn ${stock}` : 'Hết hàng'}

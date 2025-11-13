@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { ArrowLeft, Package, MapPin, CreditCard, Loader2, AlertCircle, Truck, CheckCircle } from 'lucide-react';
+import { formatPrice } from '@/utils';
 
 interface OrderItem {
   productId: string;
@@ -126,13 +127,6 @@ export default function OrderDetailClient({ orderId }: { orderId: string }) {
       setError('Vui lòng đăng nhập để xem chi tiết đơn hàng');
     }
   }, [status, session, orderId, fetchOrder]);
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-    }).format(price);
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('vi-VN', {

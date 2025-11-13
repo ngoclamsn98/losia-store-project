@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getProductsByNestedCategorySlugs } from "@/lib/api/products";
-import CategoryProductsClient from "./CategoryProductsClient";
+import CategoryProductsClient from "../[slug]/CategoryProductsClient";
 
 type PageProps = {
-  params: { slug: string };
+  params: { slugs?: string[] };
   searchParams: { page?: string };
 };
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const categoryName = params.slug
+  const slugs = params.slugs || [];
+  const slug = slugs[slugs.length - 1] || "categories";
+  
+  const categoryName = slug
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
@@ -26,28 +29,40 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   const page = searchParams.page ? parseInt(searchParams.page, 10) : 1;
   const limit = 12;
 
+  const slugs = params.slugs || [];
+
+  // Validate slug count (1-3 levels supported)
+  if (slugs.length === 0 || slugs.length > 3) {
+    notFound();
+  }
+
   let productsData;
 
   try {
-    // Use the new nested category API for consistency
-    productsData = await getProductsByNestedCategorySlugs([params.slug], {
+    // Use the new nested category API that properly validates the hierarchy
+    productsData = await getProductsByNestedCategorySlugs(slugs, {
       page,
       limit,
       status: "ACTIVE",
     });
   } catch (error) {
-    console.error("Failed to fetch products for category:", params.slug, error);
+    console.error("Failed to fetch products for category:", slugs.join("/"), error);
     notFound();
   }
 
-  const categoryName = params.slug
+  // Use the deepest slug for display name
+  const slug = slugs[slugs.length - 1];
+  const categoryName = slug
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 
+  // Reconstruct the full path for pagination
+  const fullPath = slugs.join("/");
+
   return (
     <CategoryProductsClient
-      slug={params.slug}
+      slug={fullPath}
       categoryName={categoryName}
       initialData={productsData}
       currentPage={page}

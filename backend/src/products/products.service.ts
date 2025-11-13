@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Product, ProductStatus, ProductSeason } from './entities/product.entity';
@@ -11,6 +11,8 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateProductVariantDto } from './dto/update-product-variant.dto';
 import { PaginatedResult } from '../common/dto/pagination.dto';
 import * as dayjs from 'dayjs';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 
 @Injectable()
 export class ProductsService {
@@ -25,22 +27,18 @@ export class ProductsService {
     private ecoImpactRepository: Repository<EcoImpact>,
     @InjectRepository(ProductCondition)
     private productConditionRepository: Repository<ProductCondition>,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
-  async create(createProductDto: CreateProductDto, userId?: string): Promise<Product> {
-    // Generate slug if not provided
+  async create(createProductDto: CreateProductDto, userId?: string): Promise<Product | undefined> {
+    try {
+      // Generate slug if not provided
     if (!createProductDto.slug) {
       createProductDto.slug = this.generateSlug(createProductDto.name);
     }
 
-    // Check if slug already exists
-    const existingProduct = await this.productRepository.findOne({
-      where: { slug: createProductDto.slug },
-    });
-
-    if (existingProduct) {
-      throw new BadRequestException('Product with this slug already exists');
-    }
+    // Check if slug already exists and auto-generate unique slug
+    createProductDto.slug = await this.ensureUniqueSlug(createProductDto.slug);
 
     // Ensure at least one variant is marked as default
     const hasDefault = createProductDto.variants.some((v) => v.isDefault);
@@ -78,7 +76,7 @@ export class ProductsService {
         throw new BadRequestException('Eco impact not found');
       }
 
-      product.ecoImpact = ecoImpact;
+      product.ecoImpactId = ecoImpactId;
     }
 
     // Handle product condition if provided
@@ -91,7 +89,7 @@ export class ProductsService {
         throw new BadRequestException('Product condition not found');
       }
 
-      product.productCondition = productCondition;
+      product.productConditionId = productConditionId;
     }
 
     // Save product first
@@ -110,6 +108,9 @@ export class ProductsService {
 
     // Return product with variants
     return await this.findOne(savedProduct.id);
+    } catch (error) {
+      this.logger.error('Error creating product', error);
+    }
   }
 
   async findAll(filters?: {
@@ -122,6 +123,19 @@ export class ProductsService {
     limit?: number;
     userId?: string; // Filter by creator
     userRole?: string; // User role to determine if can see all
+    // New filters for menu navigation
+    departmentTags?: string[]; // e.g., ['women', 'premium']
+    categoryTags?: string[]; // e.g., ['dresses', 'tops']
+    styleTags?: string[]; // e.g., ['belts', 'hats']
+    colorNames?: string[]; // e.g., ['red', 'blue']
+    charsPattern?: string; // e.g., 'solid', 'striped'
+    condition?: string; // e.g., 'q1_nwt' (new with tags)
+    listedDays?: number; // e.g., 7 (products listed in last 7 days)
+    priceMin?: number;
+    priceMax?: number;
+    luxeBrand?: boolean;
+    curationId?: string;
+    sort?: string; // e.g., 'price_low_high', 'newest'
   }): Promise<PaginatedResult<Product>> {
     const page = filters?.page || 1;
     const limit = filters?.limit || 10;
@@ -197,7 +211,100 @@ export class ProductsService {
       }
     }
 
-    query.orderBy('product.createdAt', 'DESC');
+    // New filters for menu navigation
+    if (filters?.departmentTags?.length) {
+      query.andWhere('product.department_tags && :departmentTags', {
+        departmentTags: filters.departmentTags,
+      });
+    }
+
+    if (filters?.categoryTags?.length) {
+      query.andWhere('product.category_tags && :categoryTags', {
+        categoryTags: filters.categoryTags,
+      });
+    }
+
+    if (filters?.styleTags?.length) {
+      query.andWhere('product.style_tags && :styleTags', {
+        styleTags: filters.styleTags,
+      });
+    }
+
+    if (filters?.colorNames?.length) {
+      query.andWhere('product.color_names && :colorNames', {
+        colorNames: filters.colorNames,
+      });
+    }
+
+    if (filters?.charsPattern) {
+      query.andWhere('product.chars_pattern = :charsPattern', {
+        charsPattern: filters.charsPattern,
+      });
+    }
+
+    if (filters?.condition) {
+      // Map condition to productCondition value
+      query.andWhere('productCondition.value = :condition', {
+        condition: filters.condition,
+      });
+    }
+
+    if (filters?.listedDays) {
+      const daysAgo = new Date();
+      daysAgo.setDate(daysAgo.getDate() - filters.listedDays);
+      query.andWhere('product.created_at >= :daysAgo', { daysAgo });
+    }
+
+    if (filters?.priceMin !== undefined || filters?.priceMax !== undefined) {
+      if (filters.priceMin !== undefined && filters.priceMax !== undefined) {
+        query.andWhere('product.price BETWEEN :priceMin AND :priceMax', {
+          priceMin: filters.priceMin,
+          priceMax: filters.priceMax,
+        });
+      } else if (filters.priceMin !== undefined) {
+        query.andWhere('product.price >= :priceMin', {
+          priceMin: filters.priceMin,
+        });
+      } else if (filters.priceMax !== undefined) {
+        query.andWhere('product.price <= :priceMax', {
+          priceMax: filters.priceMax,
+        });
+      }
+    }
+
+    if (filters?.luxeBrand !== undefined) {
+      query.andWhere('product.luxe_brand = :luxeBrand', {
+        luxeBrand: filters.luxeBrand,
+      });
+    }
+
+    if (filters?.curationId) {
+      query.andWhere('product.curation_id = :curationId', {
+        curationId: filters.curationId,
+      });
+    }
+
+    // Sorting
+    if (filters?.sort) {
+      switch (filters.sort) {
+        case 'price_low_high':
+          query.orderBy('product.price', 'ASC');
+          break;
+        case 'price_high_low':
+          query.orderBy('product.price', 'DESC');
+          break;
+        case 'newest':
+          query.orderBy('product.createdAt', 'DESC');
+          break;
+        case 'oldest':
+          query.orderBy('product.createdAt', 'ASC');
+          break;
+        default:
+          query.orderBy('product.createdAt', 'DESC');
+      }
+    } else {
+      query.orderBy('product.createdAt', 'DESC');
+    }
 
     // Get total count
     const total = await query.getCount();
@@ -320,15 +427,9 @@ export class ProductsService {
   async update(id: string, updateProductDto: UpdateProductDto): Promise<Product> {
     const product = await this.findOne(id);
 
-    // Check if slug is being updated and if it already exists
+    // Check if slug is being updated and ensure it's unique
     if (updateProductDto.slug && updateProductDto.slug !== product.slug) {
-      const existingProduct = await this.productRepository.findOne({
-        where: { slug: updateProductDto.slug },
-      });
-
-      if (existingProduct) {
-        throw new BadRequestException('Product with this slug already exists');
-      }
+      updateProductDto.slug = await this.ensureUniqueSlug(updateProductDto.slug, id);
     }
 
     // Handle categories update
@@ -359,9 +460,9 @@ export class ProductsService {
           throw new BadRequestException('Eco impact not found');
         }
 
-        product.ecoImpact = ecoImpact;
+        product.ecoImpactId = updateProductDto.ecoImpactId;
       } else {
-        product.ecoImpact = null;
+        product.ecoImpactId = null;
       }
     }
 
@@ -376,9 +477,9 @@ export class ProductsService {
           throw new BadRequestException('Product condition not found');
         }
 
-        product.productCondition = productCondition;
+        product.productConditionId = updateProductDto.productConditionId;
       } else {
-        product.productCondition = null;
+        product.productConditionId = null;
       }
     }
 
@@ -715,6 +816,134 @@ export class ProductsService {
   }
 
   /**
+   * Find products by nested category slugs (supports 1, 2, or 3 levels)
+   * - Level 1 only (slug1): get all products from slug1 and its descendants
+   * - Level 1 & 2 (slug1/slug2): get all products from slug2 and its descendants
+   * - Level 1 & 2 & 3 (slug1/slug2/slug3): get products from slug3 and its descendants
+   */
+  async findByNestedCategorySlugs(
+    slug1: string,
+    slug2?: string,
+    slug3?: string,
+    filters?: {
+      status?: ProductStatus;
+      page?: number;
+      limit?: number;
+    },
+  ): Promise<PaginatedResult<Product>> {
+    // Find the target category based on the slug hierarchy
+    let targetCategory: Category | null = null;
+
+    // First, find level 1 category
+    const level1Category = await this.categoryRepository.findOne({
+      where: { slug: slug1, isActive: true },
+      relations: ['children'],
+    });
+
+    if (!level1Category) {
+      throw new NotFoundException(`Category with slug "${slug1}" not found`);
+    }
+
+    // If only slug1 provided, use level1
+    if (!slug2) {
+      targetCategory = level1Category;
+    } else {
+      // Find level 2 category as child of level 1
+      const level2Category = await this.categoryRepository.findOne({
+        where: {
+          slug: slug2,
+          parentId: level1Category.id,
+          isActive: true,
+        },
+        relations: ['children'],
+      });
+
+      if (!level2Category) {
+        throw new NotFoundException(
+          `Category with slug "${slug1}/${slug2}" not found`,
+        );
+      }
+
+      // If only slug1 and slug2 provided, use level2
+      if (!slug3) {
+        targetCategory = level2Category;
+      } else {
+        // Find level 3 category as child of level 2
+        const level3Category = await this.categoryRepository.findOne({
+          where: {
+            slug: slug3,
+            parentId: level2Category.id,
+            isActive: true,
+          },
+          relations: ['children'],
+        });
+
+        if (!level3Category) {
+          throw new NotFoundException(
+            `Category with slug "${slug1}/${slug2}/${slug3}" not found`,
+          );
+        }
+
+        targetCategory = level3Category;
+      }
+    }
+
+    // Collect all category IDs to search (include descendants)
+    const categoryIds: string[] = [targetCategory.id];
+
+    // If category has children, recursively get all descendant IDs
+    if (targetCategory.children && targetCategory.children.length > 0) {
+      const descendantIds = await this.getAllDescendantCategoryIds(
+        targetCategory.id,
+      );
+      categoryIds.push(...descendantIds);
+    }
+
+    // Build query
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 12;
+    const skip = (page - 1) * limit;
+
+    const query = this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.variants', 'variants')
+      .leftJoinAndSelect('product.categories', 'categories')
+      .leftJoinAndSelect('product.ecoImpact', 'ecoImpact')
+      .leftJoinAndSelect('product.productCondition', 'productCondition')
+      .where('categories.id IN (:...categoryIds)', { categoryIds });
+
+    // Filter by status (default to ACTIVE for public)
+    const status = filters?.status || ProductStatus.ACTIVE;
+    query.andWhere('product.status = :status', { status });
+
+    query.orderBy('product.createdAt', 'DESC');
+
+    // Get total count
+    const total = await query.getCount();
+
+    // Apply pagination
+    query.skip(skip).take(limit);
+
+    // Get data
+    const data = await query.getMany();
+
+    // Calculate pagination meta
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    };
+  }
+
+  /**
    * Find products by category slug
    * - If parent category: get all products from all descendant categories
    * - If child category: get products only from that category
@@ -900,6 +1129,33 @@ export class ProductsService {
       .replace(/đ/g, 'd')
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
+  }
+
+  /**
+   * Ensure slug is unique by appending a number if necessary
+   * e.g., "product-name" -> "product-name-2" -> "product-name-3"
+   */
+  private async ensureUniqueSlug(baseSlug: string, excludeId?: string): Promise<string> {
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (true) {
+      const query = this.productRepository.createQueryBuilder('product')
+        .where('product.slug = :slug', { slug });
+
+      if (excludeId) {
+        query.andWhere('product.id != :excludeId', { excludeId });
+      }
+
+      const existing = await query.getOne();
+
+      if (!existing) {
+        return slug;
+      }
+
+      counter++;
+      slug = `${baseSlug}-${counter}`;
+    }
   }
 }
 
