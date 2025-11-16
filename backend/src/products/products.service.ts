@@ -1138,53 +1138,92 @@ export class ProductsService {
     const skip = (page - 1) * limit;
     const sortOrder = filters?.sortOrder || 'ASC';
 
-    const query = this.productRepository
+    // First, get product IDs with their likes count
+    const subQuery = this.productRepository
+      .createQueryBuilder('product')
+      .select('product.id', 'productId')
+      .addSelect('COUNT(favorites.id)::int', 'likesCount')
+      .leftJoin('favorite_products', 'favorites', 'favorites.product_id = product.id')
+      .groupBy('product.id');
+
+    // Filter by status (default to ACTIVE for public)
+    const status = filters?.status || ProductStatus.ACTIVE;
+    subQuery.where('product.status = :status', { status });
+
+    // Filter by categories if provided
+    if (filters?.categoryIds?.length) {
+      subQuery
+        .leftJoin('product.categories', 'categories')
+        .andWhere('categories.id IN (:...categoryIds)', {
+          categoryIds: filters.categoryIds,
+        });
+    }
+
+    // Sort by likes count - use quoted alias for case sensitivity
+    subQuery.orderBy('"likesCount"', sortOrder);
+
+    // Get total count before pagination
+    const totalResult = await subQuery.getRawMany();
+    const total = totalResult.length;
+
+    // Apply pagination
+    subQuery.offset(skip).limit(limit);
+
+    // Get paginated product IDs with likes count
+    const productIdsWithLikes = await subQuery.getRawMany();
+
+    if (productIdsWithLikes.length === 0) {
+      return {
+        data: [],
+        meta: {
+          total: 0,
+          page,
+          limit,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        },
+      };
+    }
+
+    // Extract product IDs and create a map of likes counts
+    const productIds = productIdsWithLikes.map((item) => item.productId);
+    const likesCountMap = new Map(
+      productIdsWithLikes.map((item) => [
+        item.productId,
+        parseInt(item.likesCount, 10),
+      ]),
+    );
+
+    // Fetch full product details
+    const products = await this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.variants', 'variants')
       .leftJoinAndSelect('product.categories', 'categories')
       .leftJoinAndSelect('product.ecoImpact', 'ecoImpact')
       .leftJoinAndSelect('product.productCondition', 'productCondition')
-      .leftJoin('favorite_products', 'favorites', 'favorites.product_id = product.id')
-      .groupBy('product.id')
-      .addSelect('COUNT(favorites.id)', 'likesCount');
+      .where('product.id IN (:...productIds)', { productIds })
+      .getMany();
 
-    // Filter by categories if provided
-    if (filters?.categoryIds?.length) {
-      query.andWhere('categories.id IN (:...categoryIds)', {
-        categoryIds: filters.categoryIds,
-      });
-    }
-
-    // Filter by status (default to ACTIVE for public)
-    const status = filters?.status || ProductStatus.ACTIVE;
-    query.andWhere('product.status = :status', { status });
-
-    // Sort by likes count
-    query.orderBy('likesCount', sortOrder);
-
-    // Get total count
-    const total = await query.getCount();
-
-    // Apply pagination
-    query.skip(skip).take(limit);
-
-    // Get data
-    const rawData = await query.getRawAndEntities();
-    
-    // Merge the likes count with product data
-    const data = rawData.entities.map((product, index) => {
-      const likesCount = rawData.raw[index].likesCount;
-      return {
-        ...product,
-        likesCount: parseInt(likesCount, 10),
-      };
-    });
+    // Sort products by the original order and add likes count
+    const sortedProducts = productIds
+      .map((id) => {
+        const product = products.find((p) => p.id === id);
+        if (product) {
+          return {
+            ...product,
+            likesCount: likesCountMap.get(id) || 0,
+          };
+        }
+        return null;
+      })
+      .filter((p) => p !== null);
 
     // Calculate pagination meta
     const totalPages = Math.ceil(total / limit);
 
     return {
-      data,
+      data: sortedProducts,
       meta: {
         total,
         page,
@@ -1381,23 +1420,28 @@ export class ProductsService {
     const maxPerBrand = Math.min(Math.max(limitPerBrand, 1), 10);
 
     // Build query to get distinct brands
+    // Use subquery to avoid DISTINCT + ORDER BY RANDOM() issue
     const brandsQuery = this.productRepository
       .createQueryBuilder('product')
-      .select('DISTINCT product.brandName', 'brandName')
+      .select('product.brandName', 'brandName')
       .where('product.status = :status', { status: ProductStatus.ACTIVE })
       .andWhere('product.brandName IS NOT NULL')
-      .andWhere('product.brandName != :empty', { empty: '' });
+      .andWhere('product.brandName != :empty', { empty: '' })
+      .groupBy('product.brandName');
 
     // Exclude current brand if provided
     if (currentBrand) {
       brandsQuery.andWhere('product.brandName != :currentBrand', { currentBrand });
     }
 
-    // Get random brands (using ORDER BY RANDOM() for PostgreSQL)
-    brandsQuery.orderBy('RANDOM()').limit(maxBrands);
-
+    // Get all brands first, then shuffle in memory
     const brandResults = await brandsQuery.getRawMany();
-    const brandNames = brandResults.map((r) => r.brandName);
+
+    // Shuffle brands randomly
+    const shuffledBrands = brandResults.sort(() => Math.random() - 0.5);
+
+    // Take only the required number of brands
+    const brandNames = shuffledBrands.slice(0, maxBrands).map((r) => r.brandName);
 
     if (brandNames.length === 0) {
       return [];

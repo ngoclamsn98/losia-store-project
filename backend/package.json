@@ -20,7 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed": "ts-node -r tsconfig-paths/register src/database/seed.ts",
     "seed:product-data": "ts-node -r tsconfig-paths/register src/database/seed-product-data.ts",
-    "seed:categories": "ts-node -r tsconfig-paths/register src/database/seed-categories.ts"
+    "seed:categories": "ts-node -r tsconfig-paths/register src/database/seed-categories.ts",
+    "seed:test-data": "ts-node -r tsconfig-paths/register src/database/seed-test-data.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
