@@ -14,10 +14,10 @@ const ITEMS_PER_LOAD = 24;
 const DEFAULT_SORT = "newest";
 
 const fmtVND = (n?: string | number | null) => {
-  if (!n) return '0VNĐ';
+  if (!n) return '0đ';
 
   const num =  typeof(n) === "string" ? Number(n) : n;
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 'VNĐ';
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 'đ';
 }
 
 function getDiscountPercent(p: ProductCard) {

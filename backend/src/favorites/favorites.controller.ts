@@ -28,25 +28,6 @@ import { ClientJwtAuthGuard } from '../client-users/guards/client-jwt-auth.guard
 export class FavoritesController {
   constructor(private readonly favoritesService: FavoritesService) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Add product to favorites' })
-  @ApiResponse({ status: 201, description: 'Product added to favorites successfully' })
-  @ApiResponse({ status: 404, description: 'Product not found' })
-  @ApiResponse({ status: 409, description: 'Product is already in favorites' })
-  addFavorite(@Request() req, @Body() dto: AddFavoriteDto) {
-    return this.favoritesService.addFavorite(req.user.id, dto);
-  }
-
-  @Delete(':productId')
-  @ApiOperation({ summary: 'Remove product from favorites' })
-  @ApiParam({ name: 'productId', description: 'Product ID to remove from favorites' })
-  @ApiResponse({ status: 200, description: 'Product removed from favorites successfully' })
-  @ApiResponse({ status: 404, description: 'Favorite not found' })
-  async removeFavorite(@Request() req, @Param('productId') productId: string) {
-    await this.favoritesService.removeFavorite(req.user.id, productId);
-    return { message: 'Product removed from favorites successfully' };
-  }
-
   @Get()
   @ApiOperation({ summary: 'Get all favorite products' })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
@@ -87,5 +68,26 @@ export class FavoritesController {
     const count = await this.favoritesService.getFavoritesCount(req.user.id);
     return { count };
   }
+
+  @Post(':productId')
+  @ApiOperation({ summary: 'Add product to favorites' })
+  @ApiResponse({ status: 201, description: 'Product added to favorites successfully' })
+  @ApiResponse({ status: 404, description: 'Product not found' })
+  @ApiResponse({ status: 409, description: 'Product is already in favorites' })
+  addFavorite(@Request() req, @Param('productId') productId: string) {
+    return this.favoritesService.addFavorite(req.user.id, productId);
+  }
+
+  @Delete(':productId')
+  @ApiOperation({ summary: 'Remove product from favorites' })
+  @ApiParam({ name: 'productId', description: 'Product ID to remove from favorites' })
+  @ApiResponse({ status: 200, description: 'Product removed from favorites successfully' })
+  @ApiResponse({ status: 404, description: 'Favorite not found' })
+  async removeFavorite(@Request() req, @Param('productId') productId: string) {
+    await this.favoritesService.removeFavorite(req.user.id, productId);
+    return { message: 'Product removed from favorites successfully' };
+  }
+
+  
 }
 

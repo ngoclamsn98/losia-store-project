@@ -18,10 +18,10 @@ export class FavoritesService {
   /**
    * Add a product to user's favorites
    */
-  async addFavorite(clientUserId: string, dto: AddFavoriteDto): Promise<FavoriteProduct> {
+  async addFavorite(clientUserId: string, productId: string): Promise<FavoriteProduct> {
     // Check if product exists
     const product = await this.productRepository.findOne({
-      where: { id: dto.productId },
+      where: { id: productId },
     });
 
     if (!product) {
@@ -32,7 +32,7 @@ export class FavoritesService {
     const existingFavorite = await this.favoriteRepository.findOne({
       where: {
         clientUserId,
-        productId: dto.productId,
+        productId: productId,
       },
     });
 
@@ -43,7 +43,7 @@ export class FavoritesService {
     // Create favorite
     const favorite = this.favoriteRepository.create({
       clientUserId,
-      productId: dto.productId,
+      productId: productId,
     });
 
     return await this.favoriteRepository.save(favorite);
