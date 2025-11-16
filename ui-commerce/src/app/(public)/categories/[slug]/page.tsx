@@ -68,6 +68,14 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
         limit,
       });
       categoryName = "Giảm Giá";
+    } else if (isMostFavorite) {
+      // Call by-likes API (DESC: most liked first)
+      productsData = await getProductsByLikes({
+        page,
+        limit,
+        sort: 'DESC',
+      });
+      categoryName = "Sản Phẩm Yêu Thích Nhất";
     } else {
       // Call regular category API
       productsData = await getProductsByCategorySlug(params.slug, {

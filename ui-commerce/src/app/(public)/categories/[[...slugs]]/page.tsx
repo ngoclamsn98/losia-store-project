@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getProductsByCategorySlug, getNewArrivals, getDiscountedProducts } from "@/lib/api/products";
+import { getProductsByCategorySlug, getNewArrivals, getDiscountedProducts, getProductsByLikes } from "@/lib/api/products";
 import CategoryProductsClient from "../[slug]/CategoryProductsClient";
 
 type PageProps = {
@@ -15,6 +15,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const isNewArrivals = slug === 'h-ng-m-i-v' || slug === 'hang-moi-ve' || slug === 'new-arrivals';
   const isDiscounted = slug === 'gi-m-gi' || slug === 'giam-gia' || slug === 'discounted' || slug === 'sale';
+  const isMostFavorite = slug === 'yeu-thich' || slug === 'yêu-thích' || slug === 'most-favorite' || slug === 'favorites';
 
   let categoryName: string;
   let description: string;
@@ -25,6 +26,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   } else if (isDiscounted) {
     categoryName = "Giảm Giá";
     description = "Khám phá các sản phẩm đang giảm giá tại Losia Store. Tiết kiệm ngay hôm nay!";
+  } else if (isMostFavorite) {
+    categoryName = "Sản Phẩm Yêu Thích Nhất";
+    description = "Khám phá những sản phẩm được yêu thích nhất tại Losia Store. Được nhiều người lựa chọn.";
   } else {
     categoryName = slug
       .split("-")
@@ -56,6 +60,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   // Check special categories
   const isNewArrivals = slug === 'h-ng-m-i-v' || slug === 'hang-moi-ve' || slug === 'new-arrivals';
   const isDiscounted = slug === 'gi-m-gi' || slug === 'giam-gia' || slug === 'discounted' || slug === 'sale';
+  const isMostFavorite = slug === 'yeu-thich' || slug === 'yêu-thích' || slug === 'most-favorite' || slug === 'favorites';
 
   let productsData;
   let categoryName: string;
@@ -75,6 +80,14 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
         limit,
       });
       categoryName = "Giảm Giá";
+    } else if (isMostFavorite) {
+      // Call by-likes API (DESC: most liked first)
+      productsData = await getProductsByLikes({
+        page,
+        limit,
+        sort: 'DESC',
+      });
+      categoryName = "Sản Phẩm Yêu Thích Nhất";
     } else {
       // Call regular category API
       productsData = await getProductsByCategorySlug(slug, {
