@@ -11,9 +11,6 @@ export async function POST(request: NextRequest) {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
     const url = `${apiUrl}/orders/checkout`;
 
-    console.log('🛒 Checkout request to:', url);
-    console.log('📦 Request body:', JSON.stringify(body, null, 2));
-
     const res = await fetch(url, {
       method: 'POST',
       headers: {
@@ -22,8 +19,6 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(body),
     });
 
-    console.log('📡 Backend response status:', res.status);
-    console.log('📡 Backend response headers:', Object.fromEntries(res.headers.entries()));
 
     // Check if response is JSON
     const contentType = res.headers.get('content-type');

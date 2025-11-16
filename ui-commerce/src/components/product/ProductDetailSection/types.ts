@@ -66,6 +66,8 @@ export interface ProductDetail {
   kmsOfDriving?: number | null;
 
   content: string | null;
+
+  brandName?: string | null;
 }
 
 // Auth-related

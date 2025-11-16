@@ -36,7 +36,7 @@ async function fetchSeasonOutfits(): Promise<any[]> {
         price: Number(defaultVariant?.price) || 0,
         oldPrice: Number(defaultVariant?.compareAtPrice) || null,
         retailPrice: defaultVariant?.compareAtPrice || null,
-        brandName: p.categories?.[0]?.name || null, 
+        brandName: p.brandName || null, 
         productTypeName: p.categories?.[0]?.name || null,
         sizeLabel: defaultVariant.name || null,
         favoriteCount: 0,

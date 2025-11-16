@@ -114,41 +114,6 @@ export async function getProductsByCategorySlug(
 }
 
 /**
- * Get products by nested category slugs (supports 1, 2, or 3 levels)
- * - Level 1 only (slug1): get all products from slug1 and its descendants
- * - Level 1 & 2 (slug1/slug2): get all products from slug2 and its descendants
- * - Level 1 & 2 & 3 (slug1/slug2/slug3): get products from slug3 and its descendants
- */
-export async function getProductsByNestedCategorySlugs(
-  slugs: string[],
-  filters?: {
-    page?: number;
-    limit?: number;
-    status?: string;
-  }
-): Promise<ProductsResponse> {
-  const params: Record<string, string> = {};
-
-  if (filters?.page) params.page = String(filters.page);
-  if (filters?.limit) params.limit = String(filters.limit);
-  if (filters?.status) params.status = filters.status;
-
-  // Build the endpoint based on the number of slugs
-  let endpoint = '/products/categories';
-  if (slugs.length === 1) {
-    endpoint = `/products/categories/${slugs[0]}`;
-  } else if (slugs.length === 2) {
-    endpoint = `/products/categories/${slugs[0]}/${slugs[1]}`;
-  } else if (slugs.length === 3) {
-    endpoint = `/products/categories/${slugs[0]}/${slugs[1]}/${slugs[2]}`;
-  } else {
-    throw new Error('Invalid number of category slugs. Expected 1-3 slugs.');
-  }
-
-  return get<ProductsResponse>(endpoint, params);
-}
-
-/**
  * Search products by keyword
  */
 export async function searchProducts(

@@ -88,26 +88,12 @@ export default function OrdersClient() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       const accessToken = (session?.user as any)?.accessToken;
 
-      console.log('🔍 Fetching orders with session:', {
-        hasSession: !!session,
-        hasUser: !!session?.user,
-        hasAccessToken: !!accessToken,
-        userEmail: session?.user?.email,
-        accessToken: accessToken
-      });
-
       const response = await fetch(`${apiUrl}/orders/my-orders`, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
       });
-
-      console.log('📦 Orders response:', {
-        status: response.status,
-        ok: response.ok,
-      });
-      
 
       if (!response.ok) {
         throw new Error('Failed to fetch orders');

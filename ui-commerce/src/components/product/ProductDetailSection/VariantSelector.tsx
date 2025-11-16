@@ -13,6 +13,7 @@ export type ProductVariant = {
   isActive: boolean;
   imageUrl?: string | null;
   attributes?: Record<string, string> | null;
+  brandName?: string | null;
 };
 
 type Props = {

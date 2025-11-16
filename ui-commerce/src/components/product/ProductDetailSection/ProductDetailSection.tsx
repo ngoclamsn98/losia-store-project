@@ -52,6 +52,7 @@ export default function ProductDetailSection({ product }: { product: ProductDeta
         isPopular={product.isPopular}
         content={product.content}
         description={product.description}
+        brandName={product.brandName || ''}
         cta={
           <AddToCartTracked
             product={{

@@ -23,6 +23,14 @@ export class CreateProductDto {
   @IsOptional()
   slug?: string;
 
+  @ApiPropertyOptional({ example: 'Apple', description: 'Brand name' })
+  @IsString()
+  brandName: string;
+
+  @ApiPropertyOptional({ example: '2025-01-01', description: 'Import date' })
+  @IsString()
+  importDate: string;
+
   @ApiPropertyOptional({ example: 'Latest iPhone with A17 Pro chip', description: 'Short product description' })
   @IsString()
   @IsOptional()

@@ -166,7 +166,7 @@ export function shapeCard(p: any) {
     cover: urls[0] || "/assets/images/main/product1.jpg",
     images: urls,
     createdAt: p.createdAt,
-    brandName: p.brand?.name ?? null,
+    brandName: p.brandName ?? null,
     productTypeName: p.productType?.name ?? p.category?.name ?? null,
 sizeLabel: p.size ?? null,
 

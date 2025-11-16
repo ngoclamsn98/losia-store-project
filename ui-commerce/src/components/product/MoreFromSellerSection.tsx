@@ -93,7 +93,7 @@ export default function MoreFromSellerSection({
           price: p.price ?? null,
           oldPrice: p.oldPrice ?? null,
           retailPrice: typeof p.retailPrice === "number" ? p.retailPrice : p.oldPrice ?? null,
-          brandName: p.brandName ?? p.brand?.name ?? null,
+          brandName: p.brandName ?? null,
           productTypeName: p.productTypeName ?? p.category?.name ?? null,
           sizeLabel: p.sizeLabel ?? p.sizeDisplay ?? (typeof p.size === "string" ? p.size : null),
           favoriteCount: p.favoriteCount ?? p?._count?.favorites ?? null,

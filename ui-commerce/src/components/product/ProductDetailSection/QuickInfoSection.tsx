@@ -18,6 +18,7 @@ type Props = {
   cta?: React.ReactNode;  
   content?: string | undefined | null;
   description?: string | undefined | null;
+  brandName?: string | undefined | null;
 };
 
 export default function QuickInfoSection({
@@ -33,10 +34,10 @@ export default function QuickInfoSection({
   isPopular,
   cta,
   content,
-  description
+  description,
+  brandName
 }: Props) {
   const hasDiscount = (discountPercent ?? 0) > 0;
-
   // Chuẩn hoá brand & sizeLabel
   const brandText = (brand ?? "").trim() || "LOSIA";
   const sizeText = normalizeSize(sizeLabel);
@@ -44,7 +45,7 @@ export default function QuickInfoSection({
   return (
     <section>
       {/* Tiêu đề */}
-      <h1 className="text-xl font-semibold underline">{title}</h1>
+      <h1 className="text-xl font-semibold underline">{brandName}</h1>
 
       {/* Brand • Size */}
       <div className="mt-1 text-m text-gray-600">
@@ -61,7 +62,7 @@ export default function QuickInfoSection({
             </span>
           </>
         ) : null}
-        <span> {description}</span>
+        <span> {title}</span>
       </div>
 
       {/* Giá + badge giảm giá/mã giảm */}

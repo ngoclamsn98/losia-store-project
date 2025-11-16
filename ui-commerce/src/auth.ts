@@ -15,7 +15,6 @@ async function verifyUser(email: string, password: string) {
 
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    console.log('🔐 Attempting login to:', `${apiUrl}/client-auth/login`);
 
     const response = await fetch(`${apiUrl}/client-auth/login`, {
       method: 'POST',
@@ -25,7 +24,6 @@ async function verifyUser(email: string, password: string) {
       body: JSON.stringify({ email, password }),
     });
 
-    console.log('📡 Login response status:', response.status);
 
     if (!response.ok) {
       return null;

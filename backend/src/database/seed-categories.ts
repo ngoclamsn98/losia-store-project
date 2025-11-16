@@ -37,101 +37,86 @@ const AppDataSource = new DataSource({
   synchronize: false,
 });
 
-// Helper function to generate slug from name
-function generateSlug(name: string): string {
-  return name
+// Helper function to generate slug from name with parent prefix
+function generateSlug(name: string, parentName: string | null): string {
+  const slug = name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+  
+  // Add parent prefix if parentName is provided
+  if (parentName) {
+    const parentSlug = parentName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    return `${parentSlug}-${slug}`;
+  }
+  
+  return slug;
 }
 
 // Category data from category.txt
 const CATEGORY_DATA = [
-  // Danh mục cha: Dress
-  { name: 'Dress', parent: null },
-  { name: 'Casual Dress', parent: 'Dress' },
-  { name: 'Cocktail Dress', parent: 'Dress' },
-
-  // Danh mục cha: Top
-  { name: 'Top', parent: null },
-  { name: 'Short Sleeve T-Shirt', parent: 'Top' },
-  { name: 'Short Sleeve Top', parent: 'Top' },
-  { name: 'Tank Top', parent: 'Top' },
-  { name: 'Zip Up Hoodie', parent: 'Top' },
-  { name: 'Sleeveless Blouse', parent: 'Top' },
-  { name: 'Sleeve Blouse', parent: 'Top' },
-  { name: 'Sleeveless Top', parent: 'Top' },
-  { name: 'Cardigan', parent: 'Top' },
-  { name: 'Pullover Sweater', parent: 'Top' },
-  { name: 'Long Sleeve T-Shirt', parent: 'Top' },
-  { name: 'Sweatshirt', parent: 'Top' },
-  { name: 'Long Sleeve Blouse', parent: 'Top' },
-  { name: 'Long Sleeve Top', parent: 'Top' },
-  { name: 'Turtleneck Sweater', parent: 'Top' },
-  { name: 'Wool Pullover Sweater', parent: 'Top' },
-
-  // Danh mục cha: Sweaters
-  { name: 'Sweaters', parent: null },
-  { name: 'Pullover Sweater', parent: 'Sweaters' },
-  { name: 'Cardigan', parent: 'Sweaters' },
-  { name: 'Turtleneck Sweater', parent: 'Sweaters' },
-
-  // Danh mục cha: Coats & Jackets
-  { name: 'Coats & Jackets', parent: null },
-  { name: 'Blazer', parent: 'Coats & Jackets' },
-  { name: 'Vintage Blazer', parent: 'Coats & Jackets' },
-  { name: 'Wool Blazer', parent: 'Coats & Jackets' },
-  { name: 'Vest', parent: 'Coats & Jackets' },
-  { name: 'Trenchcoat', parent: 'Coats & Jackets' },
-  { name: 'Coat', parent: 'Coats & Jackets' },
-  { name: 'Jacket', parent: 'Coats & Jackets' },
-  { name: 'Denim Jacket', parent: 'Coats & Jackets' },
-  { name: 'Leather Jacket', parent: 'Coats & Jackets' },
-  { name: 'Wool Coat', parent: 'Coats & Jackets' },
-
-  // Danh mục cha: Jeans
-  { name: 'Jeans', parent: null },
-
-  // Danh mục cha: Pants
-  { name: 'Pants', parent: null },
-  { name: 'Wool Pants', parent: 'Pants' },
-  { name: 'Track Pants', parent: 'Pants' },
-  { name: 'Linen Pants', parent: 'Pants' },
-  { name: 'Casual Pants', parent: 'Pants' },
-  { name: 'Dress Pants', parent: 'Pants' },
-  { name: 'Active Pants', parent: 'Pants' },
-
-  // Danh mục cha: Skirts
-  { name: 'Skirts', parent: null },
-  { name: 'Formal Skirt', parent: 'Skirts' },
-  { name: 'Wool Skirt', parent: 'Skirts' },
-  { name: 'Casual Skirt', parent: 'Skirts' },
-
-  // Danh mục cha: Shorts
-  { name: 'Shorts', parent: null },
-  { name: 'Denim Shorts', parent: 'Shorts' },
-  { name: 'Khaki Shorts', parent: 'Shorts' },
-  { name: 'Vintage Shorts', parent: 'Shorts' },
-  { name: 'Romper', parent: 'Shorts' },
-
-  // Danh mục cha: Handbags
+  // Parent categories
+  { name: 'Women', parent: null },
+  { name: 'Sports', parent: null },
   { name: 'Handbags', parent: null },
-  { name: 'Leather Shoulder Bag', parent: 'Handbags' },
-  { name: 'Shoulder Bag', parent: 'Handbags' },
-  { name: 'Vintage Leather Wallet', parent: 'Handbags' },
-  { name: 'Toe', parent: 'Handbags' },
-  { name: 'Leather Satchel', parent: 'Handbags' },
-  { name: 'Leather Tote', parent: 'Handbags' },
-  { name: 'Leather Wristlet', parent: 'Handbags' },
-  { name: 'Crossbody Bag', parent: 'Handbags' },
-
-  // Danh mục cha: Shoes
-  { name: 'Shoes', parent: null },
-  { name: 'Sneakers', parent: 'Shoes' },
-  { name: 'Heels', parent: 'Shoes' },
-  { name: 'Wedges', parent: 'Shoes' },
-  { name: 'Sandals', parent: 'Shoes' },
-  { name: 'Boots', parent: 'Shoes' },
+  { name: 'Accessories', parent: null },
+  { name: 'Kids', parent: null },
+  { name: 'Giảm giá', parent: null },
+  { name: 'Hàng mới về', parent: null },
+  
+  // Women subcategories
+  { name: 'Váy', parent: 'Women' },
+  { name: 'Áo', parent: 'Women' },
+  { name: 'Áo Len', parent: 'Women' },
+  { name: 'Áo Khoác & Jacket', parent: 'Women' },
+  { name: 'Quần Jean', parent: 'Women' },
+  { name: 'Quần Dài', parent: 'Women' },
+  { name: 'Túi Xách', parent: 'Women' },
+  { name: 'Phụ Kiện', parent: 'Women' },
+  
+  // Sports subcategories
+  { name: 'Vợt Pickleball', parent: 'Sports' },
+  { name: 'Thể Thao Nam', parent: 'Sports' },
+  { name: 'Thể Thao Nữ', parent: 'Sports' },
+  
+  // Handbags subcategories
+  { name: 'Ba lô', parent: 'Handbags' },
+  { name: 'Túi Bucket', parent: 'Handbags' },
+  { name: 'Ví Câm Tay', parent: 'Handbags' },
+  { name: 'Túi Đeo Chéo', parent: 'Handbags' },
+  { name: 'Túi Đeo Vai', parent: 'Handbags' },
+  { name: 'Ví Tiền', parent: 'Handbags' },
+  
+  // Accessories subcategories
+  { name: 'Dây Chuyền', parent: 'Accessories' },
+  { name: 'Vòng Tay', parent: 'Accessories' },
+  { name: 'Nhân', parent: 'Accessories' },
+  { name: 'Hoa Tai', parent: 'Accessories' },
+  { name: 'Đông hộ', parent: 'Accessories' },
+  { name: 'Ví Tiền', parent: 'Accessories' },
+  
+  // Kids subcategories (Bé Trai, Bé Gái are sub-categories of Kids)
+  { name: 'Bé Trai', parent: 'Kids' },
+  { name: 'Bé Gái', parent: 'Kids' },
+  
+  // Bé Trai subcategories
+  { name: 'Áo', parent: 'Bé Trai' },
+  { name: 'Áo Len', parent: 'Bé Trai' },
+  { name: 'Áo Gió', parent: 'Bé Trai' },
+  { name: 'Áo Khoác & Jacket', parent: 'Bé Trai' },
+  { name: 'Quần Jeans', parent: 'Bé Trai' },
+  { name: 'Giày', parent: 'Bé Trai' },
+  
+  // Bé Gái subcategories
+  { name: 'Váy', parent: 'Bé Gái' },
+  { name: 'Áo', parent: 'Bé Gái' },
+  { name: 'Áo Len', parent: 'Bé Gái' },
+  { name: 'Áo Khoác & Jacket', parent: 'Bé Gái' },
+  { name: 'Quần Jeans', parent: 'Bé Gái' },
+  { name: 'Giày', parent: 'Bé Gái' },
 ];
 
 async function seedCategories() {
@@ -140,6 +125,14 @@ async function seedCategories() {
     await AppDataSource.initialize();
 
     const categoryRepository = AppDataSource.getRepository(Category);
+    
+    // Clear category table with CASCADE to handle foreign key constraints
+    try {
+      await AppDataSource.query('TRUNCATE TABLE "categories" CASCADE');
+      console.log('✓ Cleared existing categories');
+    } catch (error) {
+      console.log('⚠ Could not truncate categories, will proceed with existing data');
+    }
 
     // Map to store parent categories by name
     const parentCategoryMap = new Map<string, Category>();
@@ -149,53 +142,57 @@ async function seedCategories() {
     // First pass: Create all parent categories (where parent is null)
     for (const data of CATEGORY_DATA) {
       if (data.parent === null) {
-        const existing = await categoryRepository.findOne({
-          where: { name: data.name },
+        const category = categoryRepository.create({
+          name: data.name,
+          slug: generateSlug(data.name, data.parent),
+          isActive: true,
         });
-
-        if (!existing) {
-          const category = categoryRepository.create({
-            name: data.name,
-            slug: generateSlug(data.name),
-            isActive: true,
-          });
-          const saved = await categoryRepository.save(category);
-          parentCategoryMap.set(data.name, saved);
-          console.log(`✓ Created parent category: ${data.name}`);
-        } else {
-          parentCategoryMap.set(data.name, existing);
-          console.log(`- Parent category already exists: ${data.name}`);
-        }
+        const saved = await categoryRepository.save(category);
+        parentCategoryMap.set(data.name, saved);
+        console.log(`✓ Created parent category: ${data.name}`);
       }
     }
 
-    // Second pass: Create child categories
-    for (const data of CATEGORY_DATA) {
-      if (data.parent !== null) {
-        const existing = await categoryRepository.findOne({
-          where: { name: data.name, parentId: parentCategoryMap.get(data.parent)?.id },
-        });
+    // Second pass: Create child categories (multiple iterations to handle nested levels)
+    let remainingData = CATEGORY_DATA.filter(data => data.parent !== null);
+    let iteration = 0;
+    const maxIterations = 10; // Prevent infinite loops
 
-        if (!existing) {
-          const parentCategory = parentCategoryMap.get(data.parent);
-          
-          if (!parentCategory) {
-            console.log(`⚠ Parent category not found for: ${data.name} (parent: ${data.parent})`);
-            continue;
-          }
+    while (remainingData.length > 0 && iteration < maxIterations) {
+      iteration++;
+      const processed: typeof CATEGORY_DATA = [];
 
-          const category = categoryRepository.create({
-            name: data.name,
-            slug: generateSlug(data.name),
-            parentId: parentCategory.id,
-            isActive: true,
-          });
-          await categoryRepository.save(category);
-          console.log(`✓ Created child category: ${data.name} (parent: ${data.parent})`);
-        } else {
-          console.log(`- Child category already exists: ${data.name} (parent: ${data.parent})`);
+      for (const data of remainingData) {
+        const parentCategory = parentCategoryMap.get(data.parent);
+
+        if (!parentCategory) {
+          // Parent not found yet, keep it for next iteration
+          continue;
         }
+
+        const category = categoryRepository.create({
+          name: data.name,
+          slug: generateSlug(data.name, data.parent),
+          parentId: parentCategory.id,
+          isActive: true,
+        });
+        const saved = await categoryRepository.save(category);
+        parentCategoryMap.set(data.name, saved);
+        processed.push(data);
+        console.log(`✓ Created child category: ${data.name} (parent: ${data.parent})`);
       }
+
+      if (processed.length === 0 && remainingData.length > 0) {
+        // No progress made, some categories couldn't be processed
+        console.log(`⚠ Could not find parents for:`);
+        remainingData.forEach(data => {
+          console.log(`  - ${data.name} (parent: ${data.parent})`);
+        });
+        break;
+      }
+
+      // Remove processed data from remaining
+      remainingData = remainingData.filter(data => !processed.includes(data));
     }
 
     console.log('\n✅ Category seeding completed successfully!');

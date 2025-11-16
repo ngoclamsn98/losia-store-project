@@ -93,7 +93,7 @@ function normalize(input: any, index?: number): ProductCard {
     retailPrice: typeof input?.retailPrice === "number" ? input.retailPrice : typeof oldPrice === "number" ? oldPrice : null,
 
     // LẤY THẲNG từ API (đã có sẵn)
-    brandName: input?.brandName ?? input?.brand?.name ?? null,
+    brandName: input?.brandName ?? null,
     productTypeName: input?.productTypeName ?? input?.productType?.name ?? input?.category?.name ?? null,
     sizeLabel: input?.sizeLabel ?? input?.size ?? input?.sizeDisplay ?? input?.size?.label ?? null,
 
@@ -164,8 +164,8 @@ function CardLikeProducts({ p, index }: { p: ProductCard; index: number }) {
         {/* THÔNG TIN */}
         <div className="p-3 relative z-10">
           {p.name && (
-            <Link href={`/product/${p.id}`} className="block text-sm text-gray-900" title={p.name || ""}>
-              <span className="font-semibold">{p.name}</span>
+            <Link href={`/product/${p.id}`} className="block text-sm text-gray-900" title={p.brandName || ""}>
+              <span className="font-semibold">{p.brandName}</span>
             </Link>
           )}
 

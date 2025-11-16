@@ -26,14 +26,6 @@ export default function EcoImpactSection({
   hoursOfLighting,
   kmsOfDriving,
 }: Props) {
-  // Debug log
-  console.log("EcoImpactSection props:", {
-    productType,
-    glassesOfWater,
-    hoursOfLighting,
-    kmsOfDriving,
-  });
-
   // state hiển thị (đã hợp nhất props + default)
   const [defaults, setDefaults] = useState<EcoImpactDefault | null>(null);
   const [loading, setLoading] = useState(false);
@@ -65,7 +57,6 @@ export default function EcoImpactSection({
           list.find(
             (i) => i.productGroup?.toLowerCase() === String(productType).toLowerCase()
           ) || null;
-        console.log("Fetched defaults:", { productType, match, list });
         if (alive) setDefaults(match);
       } catch (err) {
         console.error("Failed to fetch eco impacts:", err);
@@ -84,7 +75,6 @@ export default function EcoImpactSection({
     const g = glassesOfWater ?? defaults?.glassesOfWater ?? 0;
     const h = hoursOfLighting ?? defaults?.hoursOfLighting ?? 0;
     const km = kmsOfDriving ?? defaults?.kmsOfDriving ?? 0;
-    console.log("Final numbers:", { glasses: g, hours: h, kms: km, defaults });
     return { glasses: g, hours: h, kms: km };
   }, [glassesOfWater, hoursOfLighting, kmsOfDriving, defaults]);
 

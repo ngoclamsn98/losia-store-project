@@ -1121,6 +1121,210 @@ export class ProductsService {
     };
   }
 
+  /**
+   * Get products sorted by favorites count (likes)
+   * Sort from small to large (ascending order)
+   */
+  async findByLikesCount(filters?: {
+    status?: ProductStatus;
+    page?: number;
+    limit?: number;
+    sortOrder?: 'ASC' | 'DESC'; // ASC: small to large, DESC: large to small
+    categoryIds?: string[];
+  }): Promise<PaginatedResult<Product>> {
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 12;
+    const skip = (page - 1) * limit;
+    const sortOrder = filters?.sortOrder || 'ASC';
+
+    const query = this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.variants', 'variants')
+      .leftJoinAndSelect('product.categories', 'categories')
+      .leftJoinAndSelect('product.ecoImpact', 'ecoImpact')
+      .leftJoinAndSelect('product.productCondition', 'productCondition')
+      .leftJoin('favorite_products', 'favorites', 'favorites.product_id = product.id')
+      .groupBy('product.id')
+      .addSelect('COUNT(favorites.id)', 'likesCount');
+
+    // Filter by categories if provided
+    if (filters?.categoryIds?.length) {
+      query.andWhere('categories.id IN (:...categoryIds)', {
+        categoryIds: filters.categoryIds,
+      });
+    }
+
+    // Filter by status (default to ACTIVE for public)
+    const status = filters?.status || ProductStatus.ACTIVE;
+    query.andWhere('product.status = :status', { status });
+
+    // Sort by likes count
+    query.orderBy('likesCount', sortOrder);
+
+    // Get total count
+    const total = await query.getCount();
+
+    // Apply pagination
+    query.skip(skip).take(limit);
+
+    // Get data
+    const rawData = await query.getRawAndEntities();
+    
+    // Merge the likes count with product data
+    const data = rawData.entities.map((product, index) => {
+      const likesCount = rawData.raw[index].likesCount;
+      return {
+        ...product,
+        likesCount: parseInt(likesCount, 10),
+      };
+    });
+
+    // Calculate pagination meta
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    };
+  }
+
+  /**
+   * Find new products (imported within last 15 days)
+   * Where: currentDate - importDate <= 15 days
+   */
+  async findNewProducts(filters?: {
+    status?: ProductStatus;
+    page?: number;
+    limit?: number;
+    categoryIds?: string[];
+  }): Promise<PaginatedResult<Product>> {
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 12;
+    const skip = (page - 1) * limit;
+
+    // Calculate the date 15 days ago
+    const fifteenDaysAgo = new Date();
+    fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+
+    const query = this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.variants', 'variants')
+      .leftJoinAndSelect('product.categories', 'categories')
+      .leftJoinAndSelect('product.ecoImpact', 'ecoImpact')
+      .leftJoinAndSelect('product.productCondition', 'productCondition')
+      .where('product.importDate IS NOT NULL')
+      .andWhere('CAST(product.importDate AS DATE) >= :fifteenDaysAgo', {
+        fifteenDaysAgo: fifteenDaysAgo.toISOString().split('T')[0],
+      });
+
+    // Filter by categories if provided
+    if (filters?.categoryIds?.length) {
+      query.andWhere('categories.id IN (:...categoryIds)', {
+        categoryIds: filters.categoryIds,
+      });
+    }
+
+    // Filter by status (default to ACTIVE for public)
+    const status = filters?.status || ProductStatus.ACTIVE;
+    query.andWhere('product.status = :status', { status });
+
+    // Sort by importDate DESC (newest first)
+    query.orderBy('product.importDate', 'DESC');
+
+    // Get total count
+    const total = await query.getCount();
+
+    // Apply pagination
+    query.skip(skip).take(limit);
+
+    // Get data
+    const data = await query.getMany();
+
+    // Calculate pagination meta
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    };
+  }
+
+  /**
+   * Find discounted products (compareAtPrice > price)
+   */
+  async findDiscountedProducts(filters?: {
+    status?: ProductStatus;
+    page?: number;
+    limit?: number;
+    categoryIds?: string[];
+  }): Promise<PaginatedResult<Product>> {
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 12;
+    const skip = (page - 1) * limit;
+
+    const query = this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.variants', 'variants')
+      .leftJoinAndSelect('product.categories', 'categories')
+      .leftJoinAndSelect('product.ecoImpact', 'ecoImpact')
+      .leftJoinAndSelect('product.productCondition', 'productCondition')
+      .where(
+        'EXISTS (SELECT 1 FROM product_variants pv WHERE pv.product_id = product.id AND pv.compare_at_price > pv.price AND pv.compare_at_price IS NOT NULL AND pv.is_active = true)'
+      );
+
+    // Filter by categories if provided
+    if (filters?.categoryIds?.length) {
+      query.andWhere('categories.id IN (:...categoryIds)', {
+        categoryIds: filters.categoryIds,
+      });
+    }
+
+    // Filter by status (default to ACTIVE for public)
+    const status = filters?.status || ProductStatus.ACTIVE;
+    query.andWhere('product.status = :status', { status });
+
+    // Sort by createdAt DESC (newest first)
+    query.orderBy('product.createdAt', 'DESC');
+
+    // Get total count
+    const total = await query.getCount();
+
+    // Apply pagination
+    query.skip(skip).take(limit);
+
+    // Get data
+    const data = await query.getMany();
+
+    // Calculate pagination meta
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    };
+  }
+
   private generateSlug(name: string): string {
     return name
       .toLowerCase()

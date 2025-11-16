@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getProductsByNestedCategorySlugs } from "@/lib/api/products";
+import { getProductsByCategorySlug } from "@/lib/api/products";
 import CategoryProductsClient from "./CategoryProductsClient";
 
 type PageProps = {
@@ -27,10 +27,9 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   const limit = 12;
 
   let productsData;
-
+  
   try {
-    // Use the new nested category API for consistency
-    productsData = await getProductsByNestedCategorySlugs([params.slug], {
+    productsData = await getProductsByCategorySlug(params.slug, {
       page,
       limit,
       status: "ACTIVE",

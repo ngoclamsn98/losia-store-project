@@ -230,6 +230,82 @@ export class ProductsController {
     });
   }
 
+  @Get('discounted')
+  @ApiOperation({ summary: 'Get discounted products (compareAtPrice > price) (public)' })
+  @ApiQuery({ name: 'categoryIds', required: false, isArray: true, type: String, description: 'Filter by category IDs (optional, can pass multiple)' })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 12)' })
+  @ApiResponse({ status: 200, description: 'Returns paginated list of discounted products' })
+  getDiscountedProducts(
+    @Query('categoryIds') categoryIds?: string | string[],
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    // Normalize categoryIds to array
+    const categoryIdsArray = categoryIds
+      ? (Array.isArray(categoryIds) ? categoryIds : [categoryIds])
+      : undefined;
+
+    return this.productsService.findDiscountedProducts({
+      status: ProductStatus.ACTIVE,
+      categoryIds: categoryIdsArray,
+      page: page ? parseInt(page, 10) : 1,
+      limit: limit ? parseInt(limit, 10) : 12,
+    });
+  }
+
+  @Get('new-arrivals')
+  @ApiOperation({ summary: 'Get new products (imported within last 15 days) (public)' })
+  @ApiQuery({ name: 'categoryIds', required: false, isArray: true, type: String, description: 'Filter by category IDs (optional, can pass multiple)' })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 12)' })
+  @ApiResponse({ status: 200, description: 'Returns paginated list of newly arrived products' })
+  getNewArrivals(
+    @Query('categoryIds') categoryIds?: string | string[],
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    // Normalize categoryIds to array
+    const categoryIdsArray = categoryIds
+      ? (Array.isArray(categoryIds) ? categoryIds : [categoryIds])
+      : undefined;
+
+    return this.productsService.findNewProducts({
+      status: ProductStatus.ACTIVE,
+      categoryIds: categoryIdsArray,
+      page: page ? parseInt(page, 10) : 1,
+      limit: limit ? parseInt(limit, 10) : 12,
+    });
+  }
+
+  @Get('by-likes')
+  @ApiOperation({ summary: 'Get products sorted by likes/favorites count (public)' })
+  @ApiQuery({ name: 'categoryIds', required: false, isArray: true, type: String, description: 'Filter by category IDs (optional, can pass multiple)' })
+  @ApiQuery({ name: 'sort', required: false, enum: ['ASC', 'DESC'], description: 'Sort order: ASC (small to large) or DESC (large to small) (default: ASC)' })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 12)' })
+  @ApiResponse({ status: 200, description: 'Returns paginated list of products sorted by likes count' })
+  getProductsByLikes(
+    @Query('categoryIds') categoryIds?: string | string[],
+    @Query('sort') sort?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    // Normalize categoryIds to array
+    const categoryIdsArray = categoryIds
+      ? (Array.isArray(categoryIds) ? categoryIds : [categoryIds])
+      : undefined;
+
+    const sortOrder = (sort?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC') as 'ASC' | 'DESC';
+    return this.productsService.findByLikesCount({
+      status: ProductStatus.ACTIVE,
+      categoryIds: categoryIdsArray,
+      sortOrder,
+      page: page ? parseInt(page, 10) : 1,
+      limit: limit ? parseInt(limit, 10) : 12,
+    });
+  }
+
   @Get('search')
   @ApiOperation({ summary: 'Search products by keyword (public)' })
   @ApiQuery({ name: 'q', required: true, type: String, description: 'Search keyword' })

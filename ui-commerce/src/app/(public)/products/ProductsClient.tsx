@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import type { ProductCard, VariantFilters, CategoryFilter } from "./page";
-import { ColumnsIcon, EyeIcon, Grid2X2, LayoutGrid, Rows2Icon, ShoppingCartIcon, Square, X, ChevronDown, ChevronRight } from "lucide-react";
+import { EyeIcon, LayoutGrid, ShoppingCartIcon, Square, ChevronDown, ChevronRight } from "lucide-react";
 import { addToLocalCart } from '@/lib/cart/localStorage';
 import { internalPost } from '@/lib/api/internal';
 import FavoriteButton from '@/components/product/FavoriteButton';
@@ -487,13 +487,12 @@ export default function ProductsClient({ initialProducts, variantFilters, catego
 // Product Card Component
 function ProductCardItem({
   p,
-  index,
   onQuickView,
 }: {
   p: ProductCard;
   index: number;
   onQuickView: () => void;
-}) {
+  }) {
   const discount = getDiscountPercent(p);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
@@ -600,8 +599,9 @@ function ProductCardItem({
       </Link>
 
       <div className="p-3">
-        <Link href={`/product/${p.slug}`} className="block text-sm" title={p.title}>
-          <span className="font-semibold line-clamp-2">{p.title}</span>
+        <Link href={`/product/${p.slug}`} className="block text-sm flex gap-[5px]" title={p.title}>
+          <span className="font-semibold line-clamp-2">{p.brandName}</span>
+          <span className="text-xs text-gray-500">{p.title}</span>
         </Link>
 
         <div className="mt-1.5 flex items-baseline gap-2">

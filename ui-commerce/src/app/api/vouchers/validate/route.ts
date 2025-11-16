@@ -11,8 +11,6 @@ export async function POST(request: NextRequest) {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
     const url = `${apiUrl}/vouchers/validate`;
 
-    console.log('🎟️ Voucher validation request to:', url);
-    console.log('📦 Request body:', JSON.stringify(body, null, 2));
 
     const res = await fetch(url, {
       method: 'POST',
@@ -23,7 +21,6 @@ export async function POST(request: NextRequest) {
     });
 
     const data = await res.json();
-    console.log('📡 Voucher validation response:', data);
 
     if (!res.ok) {
       return NextResponse.json(

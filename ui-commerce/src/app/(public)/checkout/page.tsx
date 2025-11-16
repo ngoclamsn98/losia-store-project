@@ -264,9 +264,6 @@ function CheckoutClient({ cart, clearCart }: { cart: CartResponse; clearCart: ()
       // Call Next.js API proxy to avoid CORS issues
       // Use different endpoint based on authentication status
       const checkoutEndpoint = session?.user ? '/api/checkout-auth' : '/api/checkout';
-      console.log('🛒 Sending checkout request to:', checkoutEndpoint);
-      console.log('🛒 Order data:', orderData);
-      console.log('👤 User session:', session?.user ? 'Authenticated' : 'Guest');
 
       const response = await fetch(checkoutEndpoint, {
         method: 'POST',
@@ -274,7 +271,6 @@ function CheckoutClient({ cart, clearCart }: { cart: CartResponse; clearCart: ()
         body: JSON.stringify(orderData),
       });
 
-      console.log('📡 Checkout response status:', response.status);
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({ error: 'Đặt hàng thất bại' }));

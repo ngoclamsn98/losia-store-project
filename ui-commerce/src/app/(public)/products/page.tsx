@@ -36,6 +36,7 @@ type ProductFromAPI = {
   createdAt: string;
   updatedAt: string;
   content?: string | null;
+  brandName?: string | null;
 };
 
 // Type cho UI component
@@ -43,6 +44,7 @@ export type ProductCard = {
   id: string;
   slug: string;
   title: string;
+  brandName: string;
   description?: string | null;
   price: number;
   oldPrice?: number | null;
@@ -301,6 +303,7 @@ function mapProductToCard(p: ProductFromAPI): ProductCard {
     content: p.content,
     variants: p.variants || [], // Include all variants for filtering
     categories: p.categories || [], // Include all categories for filtering
+    brandName: p.brandName || '',
   };
 }
 

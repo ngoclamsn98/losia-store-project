@@ -47,6 +47,7 @@ type ProductDetail = {
   glassesOfWater?: number | null;
   hoursOfLighting?: number | null;
   kmsOfDriving?: number | null;
+  brandName?: string | null;
 };
 
 type Props = {
@@ -86,6 +87,7 @@ export default function ProductDetailClient({ product: initialProduct, variants 
       sizeDisplay: selectedVariant.name || initialProduct.sizeDisplay,
       sku: selectedVariant.sku || initialProduct.sku,
       isOnlyOneAvailable: selectedVariant.stock === 1,
+      brandName: selectedVariant.brandName || initialProduct.brandName,
     };
   }, [selectedVariantId, variants, defaultVariant, initialProduct]);
 
@@ -195,6 +197,7 @@ export default function ProductDetailClient({ product: initialProduct, variants 
         isPopular={product.isPopular}
         content={product.content}
         description={product.description}
+        brandName={product.brandName}
         cta={
           <div className="space-y-3">
             <button
@@ -242,7 +245,7 @@ export default function ProductDetailClient({ product: initialProduct, variants 
       )}
 
       {/* Thông tin sản phẩm */}
-      <ItemDetailsSection description={product.content || ''} />
+      <ItemDetailsSection description={product.description || ''} />
 
       {/* Kích cỡ & phom dáng */}
       <SizeFitSection

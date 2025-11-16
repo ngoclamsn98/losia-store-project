@@ -65,6 +65,7 @@ type ProductFromAPI = {
   productCondition?: ProductCondition | null;
   createdAt: string;
   updatedAt: string;
+  brandName?: string | null;
 };
 
 // Type cho UI component
@@ -103,6 +104,7 @@ type ProductDetail = {
   glassesOfWater?: number | null;
   hoursOfLighting?: number | null;
   kmsOfDriving?: number | null;
+  brandName?: string | null;
 };
 
 /**
@@ -200,6 +202,7 @@ function mapProductToDetail(p: ProductFromAPI): ProductDetail {
     glassesOfWater: p.ecoImpact?.glassesOfWater || null,
     hoursOfLighting: p.ecoImpact?.hoursOfLighting || null,
     kmsOfDriving: p.ecoImpact?.kmsOfDriving || null,
+    brandName: p.brandName || null,
   };
 }
 

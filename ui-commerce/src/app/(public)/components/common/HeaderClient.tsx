@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { Search, ShoppingCart, User, Menu, X, ChevronDown, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
@@ -263,6 +263,59 @@ function MegaMenu({ menu, onClose, allMenus }: { menu: MenuType; onClose: () => 
   const childrenCount = menu.children.length;
   const columns = Math.min(childrenCount, 5); // Max 5 columns
 
+  const isMenuLevel3 = menu.children[0]?.children && menu.children[0]?.children.length > 0;
+
+  const renderMenuLevel3 = useMemo(() => {
+    if (!menu.children) return null;
+    if (isMenuLevel3) {
+      return menu.children?.map((child) => (
+        <div key={child.id} className="min-w-0">
+          <Link
+            href={buildSlugPath(child, allMenus)}
+            className="mb-4 block text-sm font-semibold text-gray-500 hover:text-emerald-600 transition-colors uppercase tracking-wide"
+            onClick={onClose}
+          >
+            {child.name}
+          </Link>
+          {child.children && child.children.length > 0 && (
+            <ul className="space-y-2.5">
+              {child.children.map((grandchild) => (
+                <li key={grandchild.id}>
+                  <Link
+                    href={buildSlugPath(grandchild, allMenus)}
+                    className="text-sm text-gray-400 hover:text-emerald-600 hover:translate-x-1 transition-all block"
+                    onClick={onClose}
+                    title={grandchild.name}
+                  >
+                    {grandchild.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ))
+    }
+    
+    return (
+      <ul className="space-y-2.5">
+        {menu?.children.map((grandchild) => (
+          <li key={grandchild.id}>
+            <Link
+              href={buildSlugPath(grandchild, allMenus)}
+              className="text-sm text-gray-400 hover:text-emerald-600 hover:translate-x-1 transition-all block"
+              onClick={onClose}
+              title={grandchild.name}
+            >
+              {grandchild.name}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    )
+
+  }, [isMenuLevel3]);
+
   return (
     <div className="border-t bg-white shadow-xl">
       <div className={clsx(containerClass, "py-10")}>
@@ -274,33 +327,7 @@ function MegaMenu({ menu, onClose, allMenus }: { menu: MenuType; onClose: () => 
               gridTemplateColumns: `repeat(${columns}, minmax(220px, 280px))`,
             }}
           >
-            {menu.children.map((child) => (
-              <div key={child.id} className="min-w-0">
-                <Link
-                  href={buildSlugPath(child, allMenus)}
-                  className="mb-4 block text-sm font-semibold text-gray-500 hover:text-emerald-600 transition-colors uppercase tracking-wide"
-                  onClick={onClose}
-                >
-                  {child.name}
-                </Link>
-                {child.children && child.children.length > 0 && (
-                  <ul className="space-y-2.5">
-                    {child.children.map((grandchild) => (
-                      <li key={grandchild.id}>
-                        <Link
-                          href={buildSlugPath(grandchild, allMenus)}
-                          className="text-sm text-gray-400 hover:text-emerald-600 hover:translate-x-1 transition-all block"
-                          onClick={onClose}
-                          title={grandchild.name}
-                        >
-                          {grandchild.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
+            {renderMenuLevel3}
           </div>
         </div>
       </div>

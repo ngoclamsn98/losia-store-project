@@ -4,6 +4,7 @@ import Link from 'next/link';
 import SmartImage from '@/components/media/SmartImage';
 import { normalizeImageUrl, pickDemoImageUrl } from '@/lib/images';
 import FavoriteButton from '@/components/product/FavoriteButton';
+import { getDiscountPercent } from '@/lib/utils';
 
 // ===== Types =====
 type ProductVariant = {
@@ -40,14 +41,17 @@ type RelatedProduct = {
   variants: ProductVariant[];
   categories?: Category[];
   createdBy?: Creator | null;
+  brandName?: string | null;
+  price: number;
+  compareAtPrice?: number | null;
 };
 
 // ===== Helper Functions =====
 const formatVND = (n?: string | null) => {
-  if (!n) return '0VNĐ';
+  if (!n) return '0đ';
 
   const num = parseInt(n);
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 'VNĐ';
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 'đ';
 }
 
 const percentOff = (price?: number | null, oldPrice?: number | null) => {
@@ -100,13 +104,12 @@ async function fetchRelatedProducts(productId: string, limit: number = 8): Promi
 // ===== Product Card Component =====
 function ProductCard({ product, index }: { product: RelatedProduct; index: number }) {
   const defaultVariant = product.variants?.find((v) => v.isDefault) || product.variants?.[0];
-  const price = defaultVariant?.price || 0;
-  const oldPrice = defaultVariant?.compareAtPrice || null;
-  const discount = percentOff(price, oldPrice);
+  const price = Number(defaultVariant?.price) || 0;
+  const oldPrice = Number(defaultVariant?.compareAtPrice) || null;
+  const discount = getDiscountPercent({price, oldPrice} as any);
   const imgUrl = firstImageSrc(product, index);
-  const category = product.categories?.[0];
-  const seller = product.createdBy;
   const sizeLabel = product.variants?.[0]?.name || null;
+
 
   return (
     <div className="group snap-start shrink-0 w-full">
@@ -143,20 +146,14 @@ function ProductCard({ product, index }: { product: RelatedProduct; index: numbe
         </Link>
 
         {/* Info */}
-        <div className="p-3 space-y-1">
+        <div className="p-3 space-y-1 bg-wite">
           {/* Product Name */}
-          <Link href={`/product/${product.slug}`} className="block">
+          <Link href={`/product/${product.slug}`} className="flex">
             <h3 className="text-sm font-medium text-gray-900 line-clamp-2 group-hover:text-emerald-600 transition">
-              {product.name}
+              {product.brandName}
             </h3>
           </Link>
 
-          {/* Category */}
-          {/* {category && (
-            <p className="text-xs text-gray-500">
-              {category.name}
-            </p>
-          )} */}
 
            <p className="text-xs text-gray-500">
               Size {sizeLabel}
@@ -164,9 +161,9 @@ function ProductCard({ product, index }: { product: RelatedProduct; index: numbe
 
           {/* Price */}
           <div className="flex items-baseline gap-2">
-            <span className="text-base font-bold text-gray-900">{formatVND(price?.toString())}</span>
+            <span className="text-[13px] font-bold text-gray-900">{formatVND(price?.toString())}</span>
             {oldPrice && oldPrice > price && (
-              <span className="text-sm text-gray-400 line-through">{formatVND(oldPrice?.toString())}</span>
+              <span className="text-[10px] text-gray-500 line-through">{formatVND(oldPrice?.toString())}</span>
             )}
           </div>
 
@@ -216,7 +213,7 @@ export default async function RelatedProducts({
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4">
+        <div className=" flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth no-scrollbar md:overflow-visible md:snap-none md:grid md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 md:gap-4">
           {products.map((product, index) => (
             <ProductCard key={product.id} product={product} index={index} />
           ))}

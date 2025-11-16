@@ -26,10 +26,6 @@ export async function POST(request: NextRequest) {
     // Get access token from session
     const accessToken = (session.user as any).accessToken;
 
-    console.log('🔐 Authenticated checkout request to:', url);
-    console.log('👤 User:', session.user.email);
-    console.log('📦 Request body:', JSON.stringify(body, null, 2));
-
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
@@ -37,7 +33,6 @@ export async function POST(request: NextRequest) {
     // Add Authorization header if access token exists
     if (accessToken) {
       headers['Authorization'] = `Bearer ${accessToken}`;
-      console.log('🔑 Access token included in request');
     } else {
       console.warn('⚠️ No access token found in session');
     }
@@ -48,8 +43,6 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(body),
     });
 
-    console.log('📡 Backend response status:', res.status);
-    console.log('📡 Backend response headers:', Object.fromEntries(res.headers.entries()));
 
     // Check if response is JSON
     const contentType = res.headers.get('content-type');

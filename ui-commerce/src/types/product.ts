@@ -59,6 +59,7 @@ export interface Product {
   slug: string;
   description?: string;
   content?: string;
+  bandName?: string;
   categories?: Category[];
   imageUrls?: string[];
   thumbnailUrl?: string;
@@ -142,6 +143,7 @@ export interface CreateProductDto {
   slug?: string;
   description?: string;
   content?: string;
+  bandName?: string;
   categoryIds?: string[];
   imageUrls?: string[];
   thumbnailUrl?: string;
@@ -161,6 +163,7 @@ export interface UpdateProductDto {
   slug?: string;
   description?: string;
   content?: string;
+  bandName?: string;
   categoryIds?: string[];
   imageUrls?: string[];
   thumbnailUrl?: string;

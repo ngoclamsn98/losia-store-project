@@ -39,6 +39,9 @@ export class Product {
   id: string;
 
   @Column()
+  brandName: string;
+
+  @Column()
   name: string;
 
   @Column({ unique: true })
@@ -49,6 +52,9 @@ export class Product {
 
   @Column({ type: 'text', nullable: true })
   content: string;
+
+  @Column({ nullable: true })
+  importDate: string;
 
   @ManyToMany(() => Category, (category) => category.products)
   @JoinTable({
