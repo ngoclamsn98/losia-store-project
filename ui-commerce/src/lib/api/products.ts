@@ -135,3 +135,41 @@ export async function searchProducts(
   return get<ProductsResponse>('/products/search', params);
 }
 
+/**
+ * Product mini type for also-shop feature
+ */
+export interface ProductMini {
+  id: string;
+  slug?: string;
+  image: string;
+  title: string;
+  size?: string | null;
+  price?: number | null;
+  retailPrice?: number | null;
+}
+
+/**
+ * Brand group type for also-shop feature
+ */
+export interface BrandGroup {
+  brand: string;
+  products: ProductMini[];
+}
+
+/**
+ * Get products grouped by brand for "People Also Shop" feature
+ */
+export async function getProductsGroupedByBrand(
+  currentBrand?: string,
+  limitBrands: number = 3,
+  limitPerBrand: number = 3
+): Promise<BrandGroup[]> {
+  const params: Record<string, string> = {};
+
+  if (currentBrand) params.currentBrand = currentBrand;
+  params.limitBrands = String(limitBrands);
+  params.limitPerBrand = String(limitPerBrand);
+
+  return get<BrandGroup[]>('/products/also-shop', params);
+}
+

@@ -3,20 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-
-type ProductMini = {
-  id: string;
-  image: string;
-  title: string;
-  size?: string | null;
-  price?: number | null;
-  retailPrice?: number | null;
-};
-
-type BrandGroup = {
-  brand: string;
-  products: ProductMini[];
-};
+import { getProductsGroupedByBrand, type BrandGroup } from "@/lib/api/products";
 
 type Props = {
   currentBrand?: string | null;
@@ -43,17 +30,13 @@ export default function PeopleAlsoShop({
     let mounted = true;
     (async () => {
       try {
-        const qs = new URLSearchParams();
-        if (currentBrand) qs.set("currentBrand", currentBrand);
-        qs.set("limitBrands", String(limitBrands));
-        qs.set("limitPerBrand", String(limitPerBrand));
+        // Use the API helper function
+        const data = await getProductsGroupedByBrand(
+          currentBrand || undefined,
+          limitBrands,
+          limitPerBrand
+        );
 
-        let res = await fetch(`/also-shop?${qs.toString()}`, { cache: "no-store" });
-        if (res.status === 404) {
-          res = await fetch(`/products/also-shop?${qs.toString()}`, { cache: "no-store" });
-        }
-        if (!res.ok) throw new Error("Failed to fetch recommended products");
-        const data: BrandGroup[] = await res.json();
         if (!mounted) return;
         setGroups(Array.isArray(data) ? data : []);
       } catch (e: any) {
@@ -96,7 +79,12 @@ export default function PeopleAlsoShop({
             {/* 3 ảnh: kích thước đồng bộ MoreFromSeller */}
             <div className="flex justify-between gap-3 md:gap-4 mb-4">
               {group.products.map((p) => (
-                <Link key={p.id} href={`/product/${p.id}`} className="block" aria-label={p.title}>
+                <Link
+                  key={p.id}
+                  href={`/product/${p.slug || p.id}`}
+                  className="block"
+                  aria-label={p.title}
+                >
                   <div
                     className={`relative rounded-[4px]  ring-gray-300 bg-white overflow-hidden ${IMG_WIDTH_CLASSES}`}
                     style={{ aspectRatio: "3 / 4" }}

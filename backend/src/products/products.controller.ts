@@ -417,6 +417,24 @@ export class ProductsController {
     return this.productsService.findBySlug(slug);
   }
 
+  @Get('also-shop')
+  @ApiOperation({ summary: 'Get products grouped by brand for "People Also Shop" feature (public)' })
+  @ApiQuery({ name: 'currentBrand', required: false, type: String, description: 'Current brand to exclude from results' })
+  @ApiQuery({ name: 'limitBrands', required: false, type: Number, description: 'Number of brands to return (default: 3, max: 10)' })
+  @ApiQuery({ name: 'limitPerBrand', required: false, type: Number, description: 'Number of products per brand (default: 3, max: 10)' })
+  @ApiResponse({ status: 200, description: 'Returns products grouped by brand' })
+  getAlsoShop(
+    @Query('currentBrand') currentBrand?: string,
+    @Query('limitBrands') limitBrands?: string,
+    @Query('limitPerBrand') limitPerBrand?: string,
+  ) {
+    return this.productsService.findProductsGroupedByBrand(
+      currentBrand,
+      limitBrands ? parseInt(limitBrands, 10) : 3,
+      limitPerBrand ? parseInt(limitPerBrand, 10) : 3,
+    );
+  }
+
   @Get(':id/related')
   @ApiOperation({ summary: 'Get related products from same seller (public)' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of products to return (default: 8, max: 20)' })

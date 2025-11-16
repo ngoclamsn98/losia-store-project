@@ -10,6 +10,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateProductVariantDto } from './dto/update-product-variant.dto';
 import { PaginatedResult } from '../common/dto/pagination.dto';
+import { BrandGroupDto, ProductMiniDto } from './dto/also-shop-response.dto';
 import * as dayjs from 'dayjs';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
@@ -1360,6 +1361,84 @@ export class ProductsService {
       counter++;
       slug = `${baseSlug}-${counter}`;
     }
+  }
+
+  /**
+   * Find products grouped by brand for "People Also Shop" feature
+   * Returns brands (excluding currentBrand) with their products
+   *
+   * @param currentBrand - Brand to exclude from results (optional)
+   * @param limitBrands - Number of brands to return (default: 3)
+   * @param limitPerBrand - Number of products per brand (default: 3)
+   */
+  async findProductsGroupedByBrand(
+    currentBrand?: string,
+    limitBrands: number = 3,
+    limitPerBrand: number = 3,
+  ): Promise<BrandGroupDto[]> {
+    // Validate limits
+    const maxBrands = Math.min(Math.max(limitBrands, 1), 10);
+    const maxPerBrand = Math.min(Math.max(limitPerBrand, 1), 10);
+
+    // Build query to get distinct brands
+    const brandsQuery = this.productRepository
+      .createQueryBuilder('product')
+      .select('DISTINCT product.brandName', 'brandName')
+      .where('product.status = :status', { status: ProductStatus.ACTIVE })
+      .andWhere('product.brandName IS NOT NULL')
+      .andWhere('product.brandName != :empty', { empty: '' });
+
+    // Exclude current brand if provided
+    if (currentBrand) {
+      brandsQuery.andWhere('product.brandName != :currentBrand', { currentBrand });
+    }
+
+    // Get random brands (using ORDER BY RANDOM() for PostgreSQL)
+    brandsQuery.orderBy('RANDOM()').limit(maxBrands);
+
+    const brandResults = await brandsQuery.getRawMany();
+    const brandNames = brandResults.map((r) => r.brandName);
+
+    if (brandNames.length === 0) {
+      return [];
+    }
+
+    // For each brand, get products
+    const brandGroups: BrandGroupDto[] = [];
+
+    for (const brandName of brandNames) {
+      const products = await this.productRepository
+        .createQueryBuilder('product')
+        .leftJoinAndSelect('product.variants', 'variants')
+        .where('product.brandName = :brandName', { brandName })
+        .andWhere('product.status = :status', { status: ProductStatus.ACTIVE })
+        .orderBy('RANDOM()')
+        .limit(maxPerBrand)
+        .getMany();
+
+      if (products.length > 0) {
+        const productMinis: ProductMiniDto[] = products.map((product) => {
+          const defaultVariant = product.variants?.find((v) => v.isDefault) || product.variants?.[0];
+
+          return {
+            id: product.id,
+            slug: product.slug,
+            image: defaultVariant?.imageUrl || product.thumbnailUrl || '',
+            title: product.name,
+            size: defaultVariant?.attributes?.size || null,
+            price: defaultVariant?.price || null,
+            retailPrice: defaultVariant?.compareAtPrice || null,
+          };
+        });
+
+        brandGroups.push({
+          brand: brandName,
+          products: productMinis,
+        });
+      }
+    }
+
+    return brandGroups;
   }
 }
 

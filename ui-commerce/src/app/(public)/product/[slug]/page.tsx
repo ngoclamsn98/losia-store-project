@@ -4,6 +4,7 @@ import ProductAnalytics from '@/components/analytics/ProductAnalytics';
 import ProductImageSection from '@/components/product/ProductImageGallery/ProductImageSection';
 import ProductDetailClient from './ProductDetailClient';
 import RelatedProducts from '@/components/product/RelatedProducts';
+import PeopleAlsoShop from '@/components/product/PeopleAlsoShop';
 import { formatVND } from '@/lib/format';
 import { htmlToText } from '@/lib/htmlToText';
 
@@ -350,7 +351,16 @@ export default async function ProductDetailPage({
       </main>
 
       {/* Related Products Section - SSR */}
-      <RelatedProducts productId={product.id} limit={8} />
+      <div className="container mx-auto px-4">
+        <RelatedProducts productId={product.id} limit={8} />
+
+        {/* People Also Shop Section - Client Component */}
+        <PeopleAlsoShop
+          currentBrand={product.brand || undefined}
+          limitBrands={3}
+          limitPerBrand={3}
+        />
+      </div>
     </>
   );
 }
