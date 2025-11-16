@@ -10,6 +10,7 @@ import HeroCarousel from "@/components/home/HeroCarousel";
 import HeaderCarousel from "@/components/home/HeaderCarousel";
 import CleanOutSection from "@/components/home/CleanOutSection";
 import SeasonOutfitSectionWrapper from "@/components/home/SeasonOutfitSectionWrapper";
+import MostFavoriteSectionWrapper from "@/components/home/MostFavoriteSectionWrapper";
 import TrendingFinishingTouchesSection from "@/components/home/TrendingFinishingTouchesSection";
 import EarthMonthBillboard from "@/components/home/EarthMonthBillboard";
 import NaturalMaterialsSection from "@/components/home/NaturalMaterialsSection";
@@ -134,6 +135,9 @@ export default async function HomePage() {
 
       {/* Seasonal Outfits nhận data từ server với SSR */}
       <SeasonOutfitSectionWrapper />
+
+      {/* Most Favorite Products nhận data từ server với SSR */}
+      <MostFavoriteSectionWrapper />
 
       <TrendingFinishingTouchesSection />
 

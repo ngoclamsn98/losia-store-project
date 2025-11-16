@@ -173,3 +173,75 @@ export async function getProductsGroupedByBrand(
   return get<BrandGroup[]>('/products/also-shop', params);
 }
 
+/**
+ * Get new arrivals (products imported within last 15 days)
+ */
+export async function getNewArrivals(
+  filters?: {
+    page?: number;
+    limit?: number;
+    categoryIds?: string[];
+  }
+): Promise<ProductsResponse> {
+  const params: Record<string, string> = {};
+
+  if (filters?.page) params.page = String(filters.page);
+  if (filters?.limit) params.limit = String(filters.limit);
+  if (filters?.categoryIds?.length) {
+    // Backend expects categoryIds as array query params
+    filters.categoryIds.forEach((id, index) => {
+      params[`categoryIds[${index}]`] = id;
+    });
+  }
+
+  return get<ProductsResponse>('/products/new-arrivals', params);
+}
+
+/**
+ * Get discounted products (compareAtPrice > price)
+ */
+export async function getDiscountedProducts(
+  filters?: {
+    page?: number;
+    limit?: number;
+    categoryIds?: string[];
+  }
+): Promise<ProductsResponse> {
+  const params: Record<string, string> = {};
+
+  if (filters?.page) params.page = String(filters.page);
+  if (filters?.limit) params.limit = String(filters.limit);
+  if (filters?.categoryIds?.length) {
+    // Backend expects categoryIds as array query params
+    filters.categoryIds.forEach((id, index) => {
+      params[`categoryIds[${index}]`] = id;
+    });
+  }
+
+  return get<ProductsResponse>('/products/discounted', params);
+}
+
+/**
+ * Get products sorted by likes/favorites count
+ */
+export async function getProductsByLikes(
+  filters?: {
+    page?: number;
+    limit?: number;
+    categoryIds?: string[];
+    sort?: 'ASC' | 'DESC'; // ASC: small to large, DESC: large to small
+  }
+): Promise<ProductsResponse> {
+  const params: Record<string, string> = {};
+  if (filters?.page) params.page = String(filters.page);
+  if (filters?.limit) params.limit = String(filters.limit);
+  if (filters?.sort) params.sort = filters.sort;
+  if (filters?.categoryIds?.length) {
+    filters.categoryIds.forEach((id, index) => {
+      params[`categoryIds[${index}]`] = id;
+    });
+  }
+
+  return get<ProductsResponse>('/products/by-likes', params);
+}
+
