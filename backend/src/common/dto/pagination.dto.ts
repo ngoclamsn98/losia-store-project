@@ -38,5 +38,11 @@ export interface PaginatedResult<T> {
     hasNextPage: boolean;
     hasPreviousPage: boolean;
   };
+  category?: {
+    id: string;
+    name: string;
+    slug: string;
+    description?: string;
+  };
 }
 

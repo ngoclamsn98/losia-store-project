@@ -121,6 +121,12 @@ export interface ProductsResponse {
     hasNextPage: boolean;
     hasPreviousPage: boolean;
   };
+  category?: {
+    id: string;
+    name: string;
+    slug: string;
+    description?: string;
+  };
 }
 
 export interface CreateProductVariantDto {

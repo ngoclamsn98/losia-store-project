@@ -126,7 +126,7 @@ function CardLikeProducts({ p, index }: { p: ProductCard; index: number }) {
   const discount = percentOff(Number(p.price), Number(p.oldPrice));
 
   return (
-    <div className="group snap-start shrink-0 w-[180px]">
+    <div className="group snap-start shrink-0 w-[calc((100%-2rem)/2)] sm:w-[calc((100%-3rem)/4)] md:w-[calc((100%-4rem)/5)] lg:w-[calc((100%-6rem)/7)] xl:w-[calc((100%-8rem)/9)]">
       <div className="relative rounded-2xl border hover:shadow-sm transition overflow-hidden">
         {/* ẢNH */}
         <Link href={`/product/${p.slug}`} className="block relative z-0">
@@ -274,7 +274,7 @@ export default function MostFavoriteSection({ items: itemsProp }: { items?: any[
 
   return (
     <section className="relative w-full bg-white" aria-roledescription="carousel" aria-label="Trang phục theo mùa">
-      <div className="mx-auto max-w-6xl px-4 py-8">
+      <div className="mx-auto px-4 py-8">
         <SectionHeader />
 
         {!ready && items.length === 0 ? (

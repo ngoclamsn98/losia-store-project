@@ -111,7 +111,7 @@ export default async function HomePage() {
 
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-6">
+    <main className="mx-auto max-w-[1400px] px-4 py-6">
       {/* Promo full-bleed */}
       <div className="relative left-1/2 right-1/2 ml-[-50vw] mr-[-50vw] w-screen">
         <PromoBanner message="GIẢM 50% ĐƠN ĐẦU TIÊN" ctaText="Mua ngay" code="FALL50" />
@@ -130,16 +130,17 @@ export default async function HomePage() {
       {/* 4 thẻ danh mục nhỏ */}
       <HeaderCarousel />
 
+      <SeasonOutfitSectionWrapper />
+
       {/* Billboard Clean Out (full-bleed mặc định) */}
       <CleanOutSection />
 
-      {/* Seasonal Outfits nhận data từ server với SSR */}
-      <SeasonOutfitSectionWrapper />
-
       {/* Most Favorite Products nhận data từ server với SSR */}
-      <MostFavoriteSectionWrapper />
 
       <TrendingFinishingTouchesSection />
+
+      <MostFavoriteSectionWrapper />
+
 
       <EarthMonthBillboard />
 

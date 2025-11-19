@@ -76,7 +76,7 @@ const CONDITION_OPTIONS = [
   },
   {
     label: 'Very Good',
-    value: 'very good',
+    value: 'very-good',
     description: 'No major flaws. Inspection shows: minor wear on fabric.',
   },
   {
@@ -89,6 +89,16 @@ const CONDITION_OPTIONS = [
     value: 'flawed gem',
     description:
       'Still has life left in it, but has visible flaws that may require repair. May be from a best-selling brand that is eligible for resale due to high demand. Inspection shows: exterior staining.',
+  },
+  {
+    label: 'Rated Gem',
+    value: 'rare-gem',
+    description: 'Rare gem: from a best-selling brand that is eligible for resale due to high demand. Inspection shows: minor wear on fabric.',
+  },
+  {
+    label: 'New With Tags',
+    value: 'new-with-tags',
+    description: 'New with tags: shows no obvious signs of being worn or washed.',
   },
 ];
 

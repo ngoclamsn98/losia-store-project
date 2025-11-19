@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Heart } from 'lucide-react';
 import { useLoginPopup } from '@/app/providers/LoginPopupProvider';
+import {
+  isFavorite as checkIsFavorite,
+  addToFavorites,
+  removeFromFavorites
+} from '@/lib/favorites/localStorage';
 
 type FavoriteButtonProps = {
   productId: string;
@@ -23,82 +28,38 @@ export default function FavoriteButton({
   const [isFavorite, setIsFavorite] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load favorite status from localStorage or API
+  // Load favorite status from localStorage only
   useEffect(() => {
-    if (status === 'authenticated' && session?.user) {
-      // Load from API for authenticated users
-      loadFavoriteStatusFromAPI();
-    } else if (status === 'unauthenticated') {
-      // Load from localStorage for non-authenticated users
+    loadFavoriteStatusFromLocalStorage();
+  }, [productId]);
+
+  // Listen for favorites changes from other components
+  useEffect(() => {
+    const handleFavoritesChanged = () => {
       loadFavoriteStatusFromLocalStorage();
-    }
-  }, [productId, status, session]);
+    };
+
+    window.addEventListener('losia:favorites-changed', handleFavoritesChanged);
+    return () => {
+      window.removeEventListener('losia:favorites-changed', handleFavoritesChanged);
+    };
+  }, [productId]);
 
   const loadFavoriteStatusFromLocalStorage = () => {
     try {
-      const favorites = localStorage.getItem('losia_favorites');
-      if (favorites) {
-        const favArray = JSON.parse(favorites) as string[];
-        setIsFavorite(favArray.includes(productId));
-      }
+      setIsFavorite(checkIsFavorite(productId));
     } catch (error) {
       console.error('Error loading favorite status from localStorage:', error);
     }
   };
 
-  const loadFavoriteStatusFromAPI = async () => {
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      const accessToken = (session?.user as any)?.accessToken;
-
-      if (!accessToken) {
-        // Fallback to localStorage if no token
-        loadFavoriteStatusFromLocalStorage();
-        return;
-      }
-
-      const response = await fetch(`${apiUrl}/favorites`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      });
-
-      if (response.ok) {
-        const favorites = await response.json();
-        // Assuming API returns array of product IDs or objects with productId
-        const favoriteIds = Array.isArray(favorites)
-          ? favorites.map((f: any) => typeof f === 'string' ? f : f.productId || f.id)
-          : [];
-
-        setIsFavorite(favoriteIds.includes(productId));
-
-        // Sync to localStorage
-        localStorage.setItem('losia_favorites', JSON.stringify(favoriteIds));
-      } else {
-        // Fallback to localStorage if API fails
-        loadFavoriteStatusFromLocalStorage();
-      }
-    } catch (error) {
-      console.error('Error loading favorites from API:', error);
-      // Fallback to localStorage on error
-      loadFavoriteStatusFromLocalStorage();
-    }
-  };
-
   const saveFavoriteToLocalStorage = (favorite: boolean) => {
     try {
-      const favorites = localStorage.getItem('losia_favorites');
-      let favArray: string[] = favorites ? JSON.parse(favorites) : [];
-      
       if (favorite) {
-        if (!favArray.includes(productId)) {
-          favArray.push(productId);
-        }
+        addToFavorites(productId);
       } else {
-        favArray = favArray.filter(id => id !== productId);
+        removeFromFavorites(productId);
       }
-      
-      localStorage.setItem('losia_favorites', JSON.stringify(favArray));
     } catch (error) {
       console.error('Error saving favorite to localStorage:', error);
     }

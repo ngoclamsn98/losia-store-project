@@ -66,6 +66,16 @@ export async function apiClient<T>(
 
     const data = await response.json();
 
+    // Debug: Log raw response for category endpoints
+    if (url.includes('/products/category/')) {
+      console.log('🔧 [apiClient] Raw response:', {
+        url,
+        hasCategory: 'category' in data,
+        category: data.category,
+        keys: Object.keys(data)
+      });
+    }
+
     if (!response.ok) {
       const error: ApiError = data;
       throw new Error(error.message || `HTTP error! status: ${response.status}`);
@@ -92,6 +102,7 @@ export async function get<T>(endpoint: string, params?: Record<string, any>): Pr
 
   return apiClient<T>(`${endpoint}${queryString}`, {
     method: 'GET',
+    cache: 'no-store', // Disable cache for debugging
   });
 }
 

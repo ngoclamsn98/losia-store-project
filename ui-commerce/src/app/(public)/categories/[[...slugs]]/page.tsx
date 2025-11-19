@@ -30,11 +30,28 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     categoryName = "Sản Phẩm Yêu Thích Nhất";
     description = "Khám phá những sản phẩm được yêu thích nhất tại Losia Store. Được nhiều người lựa chọn.";
   } else {
-    categoryName = slug
-      .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-    description = `Khám phá bộ sưu tập ${categoryName} tại Losia Store. Thời trang bền vững, chất lượng cao.`;
+    // For regular categories, try to fetch category info from API
+    try {
+      const categoryData = await getProductsByCategorySlug(slug, { page: 1, limit: 1, status: "ACTIVE" });
+      if (categoryData.category) {
+        categoryName = categoryData.category.name;
+        description = categoryData.category.description || `Khám phá bộ sưu tập ${categoryName} tại Losia Store. Thời trang bền vững, chất lượng cao.`;
+      } else {
+        // Fallback if no category info
+        categoryName = slug
+          .split("-")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
+        description = `Khám phá bộ sưu tập ${categoryName} tại Losia Store. Thời trang bền vững, chất lượng cao.`;
+      }
+    } catch (error) {
+      // Fallback on error
+      categoryName = slug
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+      description = `Khám phá bộ sưu tập ${categoryName} tại Losia Store. Thời trang bền vững, chất lượng cao.`;
+    }
   }
 
   return {
@@ -95,7 +112,8 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
         limit,
         status: "ACTIVE",
       });
-      categoryName = slug
+      // Get category name from API response
+      categoryName = productsData.category?.name || slug
         .split("-")
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ");

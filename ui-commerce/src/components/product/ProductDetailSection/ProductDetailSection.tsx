@@ -33,6 +33,26 @@ export default function ProductDetailSection({ product }: { product: ProductDeta
     "Others";
 
   const description = norm(product.description) || ""; // cho phép rỗng
+console.log(product.glassesOfWater,'product.glassesOfWater');
+
+  const renderEcoImpactSection = () => {
+    if (product.glassesOfWater !== 0 && product.hoursOfLighting !== 0 && product.kmsOfDriving !== 0) {
+      return (
+        <EcoImpactSection
+          productType={
+            product.productType?.parent?.name ||
+            product.productType?.name ||
+            product.productKindForEco ||
+            "dress"
+          }
+          glassesOfWater={product.glassesOfWater ?? undefined}
+          hoursOfLighting={product.hoursOfLighting ?? undefined}
+          kmsOfDriving={product.kmsOfDriving ?? undefined}
+        />
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="space-y-6">
@@ -85,23 +105,12 @@ export default function ProductDetailSection({ product }: { product: ProductDeta
       />
 
       {/* Bán cùng LOSIA */}
-      <SellWithUsSection brandName={brand} />
+      <SellWithUsSection brandName={product.brandName} />
 
       {/* Vận chuyển & đổi trả */}
       <ShippingReturnsSection />
 
-      {/* Tác động môi trường */}
-      <EcoImpactSection
-        productType={
-          product.productType?.parent?.name ||
-          product.productType?.name ||
-          product.productKindForEco ||
-          "dress"
-        }
-        glassesOfWater={product.glassesOfWater ?? undefined}
-        hoursOfLighting={product.hoursOfLighting ?? undefined}
-        kmsOfDriving={product.kmsOfDriving ?? undefined}
-      />
+      {renderEcoImpactSection()}
 
       {/* Cam kết an toàn */}
       

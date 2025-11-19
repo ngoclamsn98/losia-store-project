@@ -110,7 +110,23 @@ export async function getProductsByCategorySlug(
   if (filters?.limit) params.limit = String(filters.limit);
   if (filters?.status) params.status = filters.status;
 
-  return get<ProductsResponse>(`/products/category/${slug}`, params);
+  console.log('🔍 [getProductsByCategorySlug] Request:', {
+    slug,
+    endpoint: `/products/category/${slug}`,
+    params
+  });
+
+  const response = await get<ProductsResponse>(`/products/category/${slug}`, params);
+
+  console.log('📦 [getProductsByCategorySlug] Response:', {
+    slug,
+    hasCategory: !!response.category,
+    category: response.category,
+    dataLength: response.data?.length,
+    meta: response.meta
+  });
+
+  return response;
 }
 
 /**

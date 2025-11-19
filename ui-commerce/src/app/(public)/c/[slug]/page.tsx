@@ -93,7 +93,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   };
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-6">
+    <main className="mx-auto px-4 py-6">
       {/* GA4: view_item_list */}
       <ItemListAnalytics items={listForAnalytics} listName={listName} listId={listId} />
 

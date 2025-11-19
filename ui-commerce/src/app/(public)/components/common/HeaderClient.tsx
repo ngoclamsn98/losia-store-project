@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useRef, useMemo } from "react";
-import { Search, ShoppingCart, User, Menu, X, ChevronDown, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, X, ChevronDown, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
 import { useCart } from "@/app/providers/CartProvider";
@@ -53,13 +53,6 @@ const scrollbarStyles = `
 // -----------------------------
 // Types
 // -----------------------------
-
-interface MegaMenuItem {
-  id: string;
-  name: string;
-  slug: string;
-  children?: MegaMenuItem[];
-}
 
 interface HeaderClientProps {
   menus: MenuType[];
@@ -122,6 +115,13 @@ function UserButton() {
                 onClick={() => setShowMenu(false)}
               >
                 Tài khoản
+              </Link>
+              <Link
+                href="/favorites"
+                className="block rounded px-3 py-2 text-sm hover:bg-gray-50"
+                onClick={() => setShowMenu(false)}
+              >
+                Yêu thích
               </Link>
               <Link
                 href="/orders"
@@ -259,47 +259,51 @@ function SearchBar() {
 function MegaMenu({ menu, onClose, allMenus }: { menu: MenuType; onClose: () => void; allMenus: MenuType[] }) {
   if (!menu.children || menu.children.length === 0) return null;
 
+  // Server already sorted children by order
+  const children = menu.children;
+
   // Calculate number of columns based on children count
-  const childrenCount = menu.children.length;
+  const childrenCount = children.length;
   const columns = Math.min(childrenCount, 5); // Max 5 columns
 
-  const isMenuLevel3 = menu.children[0]?.children && menu.children[0]?.children.length > 0;
+  const isMenuLevel3 = children[0]?.children && children[0]?.children.length > 0;
 
   const renderMenuLevel3 = useMemo(() => {
-    if (!menu.children) return null;
     if (isMenuLevel3) {
-      return menu.children?.map((child) => (
-        <div key={child.id} className="min-w-0">
-          <Link
-            href={buildSlugPath(child, allMenus)}
-            className="mb-4 block text-sm font-semibold text-gray-500 hover:text-emerald-600 transition-colors uppercase tracking-wide"
-            onClick={onClose}
-          >
-            {child.name}
-          </Link>
-          {child.children && child.children.length > 0 && (
-            <ul className="space-y-2.5">
-              {child.children.map((grandchild) => (
-                <li key={grandchild.id}>
-                  <Link
-                    href={buildSlugPath(grandchild, allMenus)}
-                    className="text-sm text-gray-400 hover:text-emerald-600 hover:translate-x-1 transition-all block"
-                    onClick={onClose}
-                    title={grandchild.name}
-                  >
-                    {grandchild.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      ))
+      return children?.map((child) => {
+        return (
+          <div key={child.id} className="min-w-0">
+            <Link
+              href={buildSlugPath(child, allMenus)}
+              className="mb-4 block text-sm font-semibold text-gray-500 hover:text-emerald-600 transition-colors uppercase tracking-wide"
+              onClick={onClose}
+            >
+              {child.name}
+            </Link>
+            {child.children && child.children.length > 0 && (
+              <ul className="space-y-2.5">
+                {child.children.map((grandchild) => (
+                  <li key={grandchild.id}>
+                    <Link
+                      href={buildSlugPath(grandchild, allMenus)}
+                      className="text-sm text-gray-400 hover:text-emerald-600 hover:translate-x-1 transition-all block"
+                      onClick={onClose}
+                      title={grandchild.name}
+                    >
+                      {grandchild.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        );
+      });
     }
-    
+
     return (
       <ul className="space-y-2.5">
-        {menu?.children.map((grandchild) => (
+        {children?.map((grandchild) => (
           <li key={grandchild.id}>
             <Link
               href={buildSlugPath(grandchild, allMenus)}
@@ -314,7 +318,7 @@ function MegaMenu({ menu, onClose, allMenus }: { menu: MenuType; onClose: () => 
       </ul>
     )
 
-  }, [isMenuLevel3]);
+  }, [isMenuLevel3, children, allMenus, onClose]);
 
   return (
     <div className="border-t bg-white shadow-xl">
@@ -371,13 +375,13 @@ function findMenuById(id: string, menus: MenuType[]): MenuType | undefined {
 }
 
 // Mobile Menu Item Component
-function MobileMenuItem({ 
-  item, 
-  level = 0, 
+function MobileMenuItem({
+  item,
+  level = 0,
   onClose,
   allMenus,
-}: { 
-  item: MenuType; 
+}: {
+  item: MenuType;
   level?: number;
   onClose: () => void;
   allMenus: MenuType[];
@@ -406,7 +410,7 @@ function MobileMenuItem({
             className="ml-2 p-1 hover:bg-gray-100 rounded"
             aria-label="Toggle submenu"
           >
-            <ChevronDown 
+            <ChevronDown
               className={clsx(
                 "h-4 w-4 transition-transform",
                 isExpanded && "rotate-180"
@@ -415,7 +419,7 @@ function MobileMenuItem({
           </button>
         )}
       </div>
-      
+
       {hasChildren && isExpanded && item.children && (
         <div className={clsx("space-y-2", level === 0 ? "pl-6" : "pl-4")}>
           {item.children.map((child) => (
@@ -451,6 +455,7 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
     setHoveredMenu(null);
   }, [pathname]);
 
+  // Filter root menus (server already sorted by order)
   const rootMenus = menus.filter(menu => !menu.parentId);
 
   return (
@@ -489,60 +494,75 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
             />
           </Link>
 
-          {/* Desktop Navigation - 2 rows + CTA */}
-          <div className="hidden lg:flex items-center gap-6 flex-1 justify-center py-[15px]">
-            {/* Navigation - 2 rows */}
-            <nav className="flex gap-3">
-              {/* First row */}
-              <div className="flex items-center justify-center gap-6">
-                {rootMenus.slice(0, Math.ceil(rootMenus.length / 2)).map((menu) => (
-                  <div
-                    key={menu.id}
-                    onMouseEnter={() => setHoveredMenu(menu.id)}
-                    className="relative"
+          {/* Desktop Navigation - 2 Rows Layout */}
+          <div className="hidden lg:flex flex-col gap-2 flex-1 justify-center py-3">
+            {/* Row 1: Main Categories */}
+            <nav className="flex items-center justify-center gap-4">
+              {rootMenus.slice(0, 6).map((menu) => (
+                <div
+                  key={menu.id}
+                  onMouseEnter={() => setHoveredMenu(menu.id)}
+                  className="relative"
+                >
+                  <Link
+                    href={`/categories/${menu.slug}`}
+                    className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors whitespace-nowrap px-2 py-1"
                   >
-                    <Link
-                      href={`/categories/${menu.slug}`}
-                      className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors whitespace-nowrap px-2 py-1"
-                    >
-                      {menu.name}
-                      {menu.children && menu.children.length > 0 && (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
-                    </Link>
-                  </div>
-                ))}
-              </div>
-
-              {/* Second row */}
-              <div className="flex items-center justify-center gap-6">
-                {rootMenus.slice(Math.ceil(rootMenus.length / 2)).map((menu) => (
-                  <div
-                    key={menu.id}
-                    onMouseEnter={() => setHoveredMenu(menu.id)}
-                    className="relative"
-                  >
-                    <Link
-                      href={`/categories/${menu.slug}`}
-                      className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors whitespace-nowrap px-2 py-1"
-                    >
-                      {menu.name}
-                      {menu.children && menu.children.length > 0 && (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
-                    </Link>
-                  </div>
-                ))}
-              </div>
+                    {menu.name}
+                    {menu.children && menu.children.length > 0 && (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Link>
+                </div>
+              ))}
             </nav>
 
-            {/* CTA Button - Same height as 2 rows */}
-            <Link
-              href="/products"
-              className="flex items-center rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors whitespace-nowrap shadow-md hover:shadow-lg"
-            >
-              Tất cả sản phẩm
-            </Link>
+            {/* Row 2: Secondary Categories + Actions */}
+            <div className="flex items-center justify-center gap-4">
+              {/* Remaining Categories */}
+              {rootMenus.slice(6, 10).map((menu) => (
+                <div
+                  key={menu.id}
+                  onMouseEnter={() => setHoveredMenu(menu.id)}
+                  className="relative"
+                >
+                  <Link
+                    href={`/categories/${menu.slug}`}
+                    className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors whitespace-nowrap px-2 py-1"
+                  >
+                    {menu.name}
+                    {menu.children && menu.children.length > 0 && (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Link>
+                </div>
+              ))}
+
+              {/* Divider */}
+              <div className="h-5 w-px bg-gray-300" />
+
+              {/* Additional Links */}
+              <Link
+                href="/products"
+                className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors whitespace-nowrap px-2 py-1"
+              >
+                Tất cả sản phẩm
+              </Link>
+
+              <Link
+                href="/shop"
+                className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors whitespace-nowrap px-2 py-1"
+              >
+                Shop
+              </Link>
+
+              <Link
+                href="/sell-with-us"
+                className="rounded-full bg-emerald-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors whitespace-nowrap shadow-sm hover:shadow-md"
+              >
+                Bán hàng
+              </Link>
+            </div>
           </div>
 
           {/* Right Actions */}
@@ -590,6 +610,7 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
             {/* Scrollable mobile menu with max height */}
             <div className="max-h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar">
               <div className="p-6 space-y-4">
+                {/* Category Menus */}
                 {rootMenus.map((menu) => (
                   <MobileMenuItem
                     key={menu.id}
@@ -598,12 +619,44 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
                     allMenus={menus}
                   />
                 ))}
+
+                {/* Divider */}
+                <div className="border-t my-4" />
+
+                {/* Additional Links */}
+                <div className="space-y-2">
+                  <Link
+                    href="/products"
+                    className="block px-2 py-2 text-sm font-medium text-gray-700 hover:text-emerald-600 hover:bg-gray-50 rounded transition-colors"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Tất cả sản phẩm
+                  </Link>
+
+                  <Link
+                    href="/favorites"
+                    className="block px-2 py-2 text-sm font-medium text-gray-700 hover:text-emerald-600 hover:bg-gray-50 rounded transition-colors"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Yêu thích
+                  </Link>
+
+                  <Link
+                    href="/shop"
+                    className="block px-2 py-2 text-sm font-medium text-gray-700 hover:text-emerald-600 hover:bg-gray-50 rounded transition-colors"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Shop
+                  </Link>
+                </div>
+
+                {/* CTA Button */}
                 <Link
-                  href="/products"
-                  className="block rounded-lg bg-emerald-600 px-6 py-3 text-center font-semibold text-white hover:bg-emerald-700 transition-colors mt-6"
+                  href="/sell-with-us"
+                  className="block rounded-lg bg-emerald-600 px-6 py-3 text-center font-semibold text-white hover:bg-emerald-700 transition-colors mt-4"
                   onClick={() => setMobileOpen(false)}
                 >
-                  Tất cả sản phẩm
+                  Bán với chúng tôi
                 </Link>
               </div>
             </div>

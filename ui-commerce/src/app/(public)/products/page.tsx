@@ -120,6 +120,7 @@ export type CategoryFilter = {
   parentId?: string | null;
   children?: CategoryFilter[];
   productCount?: number;
+  order: number;
 };
 
 /**
@@ -200,78 +201,81 @@ async function fetchCategories(): Promise<CategoryFilter[]> {
       const megaMenuRes = await fetch(megaMenuUrl, {
         next: {
           revalidate: process.env.NODE_ENV === 'production' ? 60 : 0,
-          tags: ['categories']
+          tags: ['megga-categories']
         },
       });
 
       if (megaMenuRes.ok) {
         const megaMenuData = await megaMenuRes.json();
         // Map mega menu data to CategoryFilter format
-        const mapCategory = (cat: any): CategoryFilter => ({
+        const mapCategory = (cat: any, index: number): CategoryFilter => ({
           id: cat.id,
           name: cat.name,
           slug: cat.slug,
           parentId: cat.parentId || null,
           children: cat.children ? cat.children.map(mapCategory) : [],
           productCount: 0, // Will be calculated on client side
+          order: cat.order || index,
         });
 
-        return megaMenuData.map(mapCategory);
+        return megaMenuData.map(mapCategory).sort();
       }
     } catch (megaMenuError) {
       console.warn('Mega menu endpoint not available, falling back to flat categories');
     }
-
-    // Fallback to flat categories and build hierarchy manually
-    const url = `${apiUrl}/categories?isActive=true&limit=100`;
-    const res = await fetch(url, {
-      next: {
-        revalidate: process.env.NODE_ENV === 'production' ? 60 : 0,
-        tags: ['categories']
-      },
-    });
-
-    if (!res.ok) {
-      console.error(`Failed to fetch categories: ${res.status}`);
       return [];
-    }
 
-    const data = await res.json();
-    const flatCategories: CategoryFilter[] = (data.data || []).map((cat: any) => ({
-      id: cat.id,
-      name: cat.name,
-      slug: cat.slug,
-      parentId: cat.parentId || null,
-      children: [],
-      productCount: 0,
-    }));
+    // // Fallback to flat categories and build hierarchy manually
+    // const url = `${apiUrl}/categories?isActive=true&limit=100`;
+    // const res = await fetch(url, {
+    //   next: {
+    //     revalidate: process.env.NODE_ENV === 'production' ? 60 : 0,
+    //     tags: ['categories']
+    //   },
+    // });
 
-    // Build hierarchy from flat list
-    const categoryMap = new Map<string, CategoryFilter>();
-    const rootCategories: CategoryFilter[] = [];
+    // if (!res.ok) {
+    //   console.error(`Failed to fetch categories: ${res.status}`);
+    //   return [];
+    // }
 
-    // First pass: create map
-    flatCategories.forEach(cat => {
-      categoryMap.set(cat.id, { ...cat, children: [] });
-    });
+    // const data = await res.json();
+    // const flatCategories: CategoryFilter[] = (data.data || []).map((cat: any) => ({
+    //   id: cat.id,
+    //   name: cat.name,
+    //   slug: cat.slug,
+    //   parentId: cat.parentId || null,
+    //   children: [],
+    //   productCount: 0,
+    //   order: cat.order,
+    // }));
 
-    // Second pass: build hierarchy
-    flatCategories.forEach(cat => {
-      const category = categoryMap.get(cat.id)!;
-      if (cat.parentId) {
-        const parent = categoryMap.get(cat.parentId);
-        if (parent) {
-          parent.children = parent.children || [];
-          parent.children.push(category);
-        } else {
-          rootCategories.push(category);
-        }
-      } else {
-        rootCategories.push(category);
-      }
-    });
+    // // Build hierarchy from flat list
+    // const categoryMap = new Map<string, CategoryFilter>();
+    // const rootCategories: CategoryFilter[] = [];
 
-    return rootCategories;
+    // // First pass: create map
+    // flatCategories.forEach(cat => {
+    //   categoryMap.set(cat.id, { ...cat, children: [] });
+    // });
+
+    // // Second pass: build hierarchy
+    // flatCategories.forEach(cat => {
+    //   const category = categoryMap.get(cat.id)!;
+    //   if (cat.parentId) {
+    //     const parent = categoryMap.get(cat.parentId);
+    //     if (parent) {
+    //       parent.children = parent.children || [];
+    //       parent.children.push(category);
+    //     } else {
+    //       rootCategories.push(category);
+    //     }
+    //   } else {
+    //     rootCategories.push(category);
+    //   }
+    // });
+
+    // return rootCategories.sort();
   } catch (error) {
     console.error('Error fetching categories:', error);
     return [];

@@ -31,7 +31,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
 
   if (!query || query.trim().length === 0) {
     return (
-      <main className="mx-auto max-w-6xl px-4 py-8">
+      <main className="mx-auto px-4 py-8">
         <h1 className="mb-4 text-2xl font-semibold">Tìm kiếm sản phẩm</h1>
         <p className="text-gray-600">Vui lòng nhập từ khóa để tìm kiếm.</p>
       </main>
@@ -53,7 +53,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
   const { data: products, meta } = searchResults;
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
+    <main className="mx-auto px-4 py-8">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold">
           Kết quả tìm kiếm cho &quot;{query}&quot;

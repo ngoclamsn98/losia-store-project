@@ -2,7 +2,7 @@ import Skeleton from '@/components/ui/Skeleton';
 
 export default function LoadingHome() {
   return (
-    <main className="mx-auto max-w-6xl px-4 py-6">
+    <main className="mx-auto px-4 py-6">
       <div className="h-7 w-64 mb-4"><Skeleton className="h-full w-full rounded" /></div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {Array.from({ length: 8 }).map((_, i) => (

@@ -131,32 +131,37 @@ export default function MainImage({
       role="img"
       aria-label={alt}
       onKeyDown={onKeyDown}
-      onMouseMove={onMove}
-      onMouseEnter={() => hoverZoom && setHover(true)}
-      onMouseLeave={() => hoverZoom && setHover(false)}
-      onPointerDown={onPointerDown}
-      onPointerUp={onPointerUp}
     >
-      {/* Ảnh chính */}
-      <SmartImage
-        kind="product"
-        photoId={photoId}
-        src={src}
-        preset="pdpMain"
-        alt={alt}
-        aspectRatio="3/4"
-        priority={priority}
-        sizes="(min-width:1024px) 612px, 100vw"
-        imgClassName="object-cover"
-        imgStyle={imgStyle}
-        placeholder={blur ? 'blur' : 'empty'}
-        blurDataURL={blur}
-      />
+      {/* Image interaction layer - handles zoom and swipe */}
+      <div
+        className="absolute inset-0 z-0"
+        onMouseMove={onMove}
+        onMouseEnter={() => hoverZoom && setHover(true)}
+        onMouseLeave={() => hoverZoom && setHover(false)}
+        onPointerDown={onPointerDown}
+        onPointerUp={onPointerUp}
+      >
+        {/* Ảnh chính */}
+        <SmartImage
+          kind="product"
+          photoId={photoId}
+          src={src}
+          preset="pdpMain"
+          alt={alt}
+          aspectRatio="3/4"
+          priority={priority}
+          sizes="(min-width:1024px) 612px, 100vw"
+          imgClassName="object-cover"
+          imgStyle={imgStyle}
+          placeholder={blur ? 'blur' : 'empty'}
+          blurDataURL={blur}
+        />
+      </div>
 
       {/* Overlay — chỉ khi KHÔNG zoom & KHÔNG 360 */}
       {src && !has360 && !hover && (
         <div
-          className="absolute inset-0 pointer-events-none rounded-xl"
+          className="absolute inset-0 pointer-events-none rounded-xl z-[1]"
           style={{
             backgroundImage: `url("${src}")`,
             backgroundPosition: '25.6536% 0.245098%',
@@ -168,7 +173,7 @@ export default function MainImage({
       )}
 
       {/* Shop Similar & Favorite (không có "View") */}
-      <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
+      <div className="absolute top-3 right-3 z-30 flex items-center gap-2 pointer-events-auto">
         {similarHref && (
           <a
             href={similarHref}
@@ -187,7 +192,7 @@ export default function MainImage({
       </div>
 
       {/* Arrow Prev/Next (nút trái mờ khi ở ảnh đầu) */}
-      <div className="absolute right-4 bottom-4 z-10 flex gap-2 pointer-events-none">
+      <div className="absolute right-4 bottom-4 z-20 flex gap-2 pointer-events-none">
         <button
           onClick={onPrev}
           disabled={!canGoPrev}

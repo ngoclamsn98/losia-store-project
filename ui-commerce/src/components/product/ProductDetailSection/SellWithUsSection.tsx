@@ -40,7 +40,7 @@ export default function SellWithUsSection({ brandName }: SellWithUsSectionProps)
             href="/cleanout"
             className="font-semibold text-black underline underline-offset-2 hover:opacity-80"
           >
-            Sell with us
+            Bán với chúng tôi
           </a>
         </p>
       </div>

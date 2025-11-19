@@ -69,9 +69,9 @@ export default function TrendingFinishingTouchesSection() {
 
         {/* Grid 6 thẻ ảnh: sát nhau, ảnh chữ nhật 4:5 */}
         <div className="mt-6 grid grid-cols-2 justify-items-center gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-6">
-          {CARDS.map((card) => (
+          {CARDS.map((card, index) => (
             <Link
-  key={card.href}
+  key={`finishing-touches-${index}`}
   href={card.href}
   aria-label={card.aria ?? card.alt}
   title={card.alt}

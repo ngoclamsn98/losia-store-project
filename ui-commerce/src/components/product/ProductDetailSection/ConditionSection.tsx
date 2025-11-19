@@ -92,14 +92,35 @@ function getBadgeStyle(level: Level) {
 function labelEn(level: Level) {
   switch (level) {
     case "excellent":
-      return "EXCELLENT";
+      return "Xuất sắc";
     case "very-good":
-      return "VERY GOOD";
+      return "Rất tốt";
     case "good":
-      return "GOOD";
+      return "Tốt";
     case "rare-gem":
-      return "RARE GEM";
+      return "Sản phẩm hiếm";
     case "new-with-tags":
-      return "New with Tags";
+      return "Mới (còn tag)";
+  }
+}
+
+export function ecoImpactGroupLabelVi(text: string) {
+  switch (text) {
+    case "Dress":
+      return "Váy";
+    case "Top":
+      return "Top";
+    case "Sweaters":
+      return "Áo len";
+    case "Coats & Jackets":
+      return "Áo khoác";
+    case "Jeans":
+      return "Quần jeans";
+    case "Pants":
+      return "Quần tây";
+    case "Skirts":
+      return "Quần đùi";
+    default:
+      return 'Quần Shorts';
   }
 }

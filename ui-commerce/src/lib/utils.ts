@@ -13,7 +13,6 @@ export function getDiscountPercent(p: ProductCard) {
   return pct > 0 ? pct : null;
 }
 
-
 export const fmtVND = (n?: string | number | null) => {
   if (!n) return '0đ';
 

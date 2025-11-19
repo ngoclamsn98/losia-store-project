@@ -1014,6 +1014,12 @@ export class ProductsService {
         hasNextPage: page < totalPages,
         hasPreviousPage: page > 1,
       },
+      category: {
+        id: category.id,
+        name: category.name,
+        slug: category.slug,
+        description: category.description,
+      },
     };
   }
 

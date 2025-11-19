@@ -356,7 +356,7 @@ export default async function ProductDetailPage({
 
         {/* People Also Shop Section - Client Component */}
         <PeopleAlsoShop
-          currentBrand={product.brand || undefined}
+          currentBrand={product.brandName || undefined}
           limitBrands={3}
           limitPerBrand={3}
         />

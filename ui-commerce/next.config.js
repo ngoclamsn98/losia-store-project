@@ -10,6 +10,7 @@ const nextConfig = {
       { protocol: 'https', hostname: '*.amazonaws.com' },
       { protocol: 'https', hostname: 's3.amazonaws.com' },
       { protocol: 'https', hostname: 'res.cloudinary.com' },
+      { protocol: 'https', hostname: 'images.unsplash.com' },
     ],
     deviceSizes: [360, 540, 720, 960, 1080, 1440, 1920],
     imageSizes: [64, 96, 120, 180, 240, 270, 400, 533],

@@ -5,7 +5,7 @@ import Image from "next/image";
 
 export default function Footer() {
   return (
-    <footer className="border-t bg-white">
+    <footer className="border-t bg-white mt-5">
       {/* giữ đúng container giống header để dóng lề */}
       <div className="mx-auto max-w-[1600px] px-4 lg:px-6 py-8">
         {/* 3 khối: Trái (Logo) - Giữa (4 cột) - Phải (Kết nối) */}

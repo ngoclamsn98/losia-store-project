@@ -15,7 +15,7 @@ dayjs.locale('vi');
  */
 export function formatVND(amount: number | string | null | undefined): string {
   const num = typeof amount === 'string' ? parseFloat(amount) : (amount || 0);
-  return `${num.toLocaleString('vi-VN')} VNĐ`;
+  return `${num.toLocaleString('vi-VN')} đ`;
 }
 
 /**

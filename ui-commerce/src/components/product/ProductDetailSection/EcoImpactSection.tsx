@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { ecoImpactGroupLabelVi } from "./ConditionSection";
 
 type Props = {
   /** Tên nhóm sản phẩm để tra default (vd: "dress", "top", ...) */
@@ -21,7 +22,7 @@ type EcoImpactDefault = {
 };
 
 export default function EcoImpactSection({
-  productType = "dress",
+  productType,
   glassesOfWater,
   hoursOfLighting,
   kmsOfDriving,
@@ -95,7 +96,7 @@ export default function EcoImpactSection({
       </div>
 
       <p className="text-sm text-gray-700 mb-4">
-        Khi bạn mua <span className="font-medium">{productType}</span> secondhand và mặc khoảng
+        Khi bạn mua <span className="font-medium">{ecoImpactGroupLabelVi(productType || '')}</span> đã qua sử dụng và mặc khoảng
         <span className="font-medium"> 10 lần</span>, bạn đã tiết kiệm tương đương:
       </p>
 

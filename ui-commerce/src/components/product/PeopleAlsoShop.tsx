@@ -11,11 +11,7 @@ type Props = {
   limitPerBrand?: number;   // mặc định 3
 };
 
-const fmtVND = (n?: number | null) =>
-  n == null ? "" : `${Number(n).toLocaleString("vi-VN")} ₫`;
 
-/** Kích thước ảnh đồng bộ với MoreFromSeller (3:4 + viền mảnh) */
-const IMG_WIDTH_CLASSES = "w-[120px] sm:w-[140px] md:w-[180px]";
 
 export default function PeopleAlsoShop({
   currentBrand,
@@ -50,11 +46,11 @@ export default function PeopleAlsoShop({
 
   if (loading) {
     return (
-      <section className="mt-12">
-        <h3 className="text-lg font-semibold mb-4">
+      <section className="mt-8 md:mt-12">
+        <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-4 px-4 sm:px-0">
           Mọi Người Mua {currentBrand || "this brand"} cũng Mua
         </h3>
-        <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 md:grid md:grid-cols-3 md:gap-6">
+        <div className="flex gap-3 sm:gap-4 md:gap-6 overflow-x-auto no-scrollbar pb-2 px-4 sm:px-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible">
           {Array.from({ length: limitBrands }).map((_, i) => (
             <SkeletonBrandBlock key={i} count={limitPerBrand} />
           ))}
@@ -65,19 +61,19 @@ export default function PeopleAlsoShop({
   if (error || groups.length === 0) return null;
 
   return (
-    <section className="mt-12">
-      <div className="mb-4 flex items-center justify-between">
-  <h2 className="text-xl font-semibold tracking-tight">
-    Mọi Người Mua {currentBrand || "this brand"} Cũng Mua
-  </h2>
-</div>
+    <section className="mt-8 md:mt-12">
+      <div className="mb-4 flex items-center justify-between px-4 sm:px-0">
+        <h2 className="text-base sm:text-lg md:text-xl font-semibold tracking-tight">
+          Mọi Người Mua {currentBrand || "this brand"} Cũng Mua
+        </h2>
+      </div>
 
-      {/* Mobile: scroll ngang; Desktop: 3 cột đều nhau */}
-      <div className="flex gap-6 overflow-x-auto no-scrollbar pb-2 md:grid md:grid-cols-3 md:gap-8 md:overflow-visible md:pb-0">
+      {/* Mobile: scroll ngang; Tablet: 2 cột; Desktop: 3 cột */}
+      <div className="flex gap-3 sm:gap-4 md:gap-6 lg:gap-8 overflow-x-auto no-scrollbar pb-2 px-4 sm:px-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible md:pb-0">
         {groups.map((group) => (
-          <div key={group.brand} className="min-w-[520px] md:min-w-0">
-            {/* 3 ảnh: kích thước đồng bộ MoreFromSeller */}
-            <div className="flex justify-between gap-3 md:gap-4 mb-4">
+          <div key={group.brand} className="min-w-[320px] sm:min-w-[360px] md:min-w-0 flex-shrink-0">
+            {/* 3 ảnh: grid layout tự động chia đều */}
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 mb-3 md:mb-4">
               {group.products.map((p) => (
                 <Link
                   key={p.id}
@@ -86,14 +82,14 @@ export default function PeopleAlsoShop({
                   aria-label={p.title}
                 >
                   <div
-                    className={`relative rounded-[4px]  ring-gray-300 bg-white overflow-hidden ${IMG_WIDTH_CLASSES}`}
+                    className="relative rounded-[4px] ring-1 ring-gray-200 bg-white overflow-hidden hover:ring-emerald-500 transition-all w-full"
                     style={{ aspectRatio: "3 / 4" }}
                   >
                     <Image
                       src={p.image || "/assets/images/main/product1.jpg"}
                       alt={p.title}
                       fill
-                      sizes="(max-width:768px) 150px, 200px"
+                      sizes="(max-width:640px) 33vw, (max-width:768px) 25vw, (max-width:1024px) 20vw, 160px"
                       className="object-cover"
                     />
                   </div>
@@ -101,17 +97,17 @@ export default function PeopleAlsoShop({
               ))}
             </div>
 
-            {/* Nút brand kéo dài kiểu ThredUp */}
+            {/* Nút brand responsive */}
             <Link
               href={`/c/${slugify(group.brand)}?brand_name_tags=${encodeURIComponent(group.brand)}`}
               className="
                 block mx-auto
-                h-10 w-full
+                h-9 sm:h-10 w-full
                 rounded-md border border-black
                 bg-white text-black
-                text-[12px] font-semibold uppercase tracking-[0.15em]
-                text-center leading-10
-                hover:bg-gray-50 transition
+                text-[11px] sm:text-[12px] font-semibold uppercase tracking-[0.12em] sm:tracking-[0.15em]
+                text-center leading-9 sm:leading-10
+                hover:bg-gray-50 transition-colors
               "
             >
               {group.brand}
@@ -131,22 +127,22 @@ function slugify(s: string) {
     .replace(/(^-|-$)+/g, "");
 }
 
-/* ---------- Skeleton: đồng bộ kích thước ---------- */
+/* ---------- Skeleton: responsive ---------- */
 function SkeletonBrandBlock({ count = 3 }: { count?: number }) {
   return (
-    <div className="min-w-[520px] md:min-w-0">
-      <div className="flex justify-between gap-3 md:gap-4 mb-4">
+    <div className="min-w-[320px] sm:min-w-[360px] md:min-w-0 flex-shrink-0">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 mb-3 md:mb-4">
         {Array.from({ length: count }).map((_, i) => (
           <div
             key={i}
-            className={`rounded-[4px] ring-1 ring-gray-300 bg-white animate-pulse ${IMG_WIDTH_CLASSES}`}
+            className="rounded-[4px] ring-1 ring-gray-200 bg-white animate-pulse w-full"
             style={{ aspectRatio: "3 / 4" }}
           >
             <div className="w-full h-full bg-gray-100" />
           </div>
         ))}
       </div>
-      <div className="h-10 w-full rounded-md border border-black bg-gray-100" />
+      <div className="h-9 sm:h-10 w-full rounded-md border border-black bg-gray-100 animate-pulse" />
     </div>
   );
 }

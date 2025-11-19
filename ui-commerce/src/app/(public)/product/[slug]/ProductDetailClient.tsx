@@ -180,6 +180,25 @@ export default function ProductDetailClient({ product: initialProduct, variants 
     }
   };
 
+  const renderEcoImpactSection = () => {
+     if (product.glassesOfWater && product.hoursOfLighting && product.kmsOfDriving) {
+      return (
+        <EcoImpactSection
+          productType={
+            product.productType?.parent?.name ||
+            product.productType?.name ||
+            product.productKindForEco ||
+            "dress"
+          }
+          glassesOfWater={product.glassesOfWater ?? undefined}
+          hoursOfLighting={product.hoursOfLighting ?? undefined}
+          kmsOfDriving={product.kmsOfDriving ?? undefined}
+        />
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="space-y-6">
       {/* Thông tin nhanh + CTA */}
@@ -254,24 +273,12 @@ export default function ProductDetailClient({ product: initialProduct, variants 
       />
 
       {/* Bán cùng LOSIA */}
-      <SellWithUsSection brandName={product.title} />
+      <SellWithUsSection brandName={product.brandName} />
 
       {/* Vận chuyển & đổi trả */}
       <ShippingReturnsSection />
 
-      {/* Tác động môi trường */}
-      <EcoImpactSection
-        productType={
-          product.ecoImpactGroup ||
-          product.productType?.parent?.name ||
-          product.productType?.name ||
-          product.productKindForEco ||
-          'dress'
-        }
-        glassesOfWater={product.glassesOfWater ?? undefined}
-        hoursOfLighting={product.hoursOfLighting ?? undefined}
-        kmsOfDriving={product.kmsOfDriving ?? undefined}
-      />
+      {renderEcoImpactSection()}
     </div>
   );
 }

@@ -63,9 +63,9 @@ export default function HeaderCarousel() {
 
         {/* Dãy 4 ảnh/link */}
         <div className="mt-6 grid grid-cols-2 justify-items-center gap-2 sm:grid-cols-4 sm:gap-3">
-          {CARDS.map((card) => (
+          {CARDS.map((card, index) => (
             <Link
-              key={card.href}
+              key={`header-carousel-${index}`}
               href={card.href}
               aria-label={card.aria ?? card.alt}
               title={card.alt}
