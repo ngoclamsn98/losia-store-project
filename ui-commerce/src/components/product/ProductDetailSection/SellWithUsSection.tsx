@@ -38,7 +38,7 @@ export default function SellWithUsSection({ brandName }: SellWithUsSectionProps)
           Mỗi sản phẩm trên LOSIA đều đến từ một tủ đồ như của bạn.
           <a
             href="/cleanout"
-            className="font-semibold text-black underline underline-offset-2 hover:opacity-80"
+            className="font-semibold text-black underline underline-offset-2 hover:opacity-80 pl-1"
           >
             Bán với chúng tôi
           </a>

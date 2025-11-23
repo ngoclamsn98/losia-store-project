@@ -92,6 +92,11 @@ export class CreateProductDto {
   @IsOptional()
   isFeatured?: boolean;
 
+  @ApiPropertyOptional({ example: true, description: 'Whether product is new with tags' })
+  @IsBoolean()
+  @IsOptional()
+  newWithTag?: boolean;
+
   @ApiPropertyOptional({ example: ['smartphone', 'apple', 'ios'], description: 'Product tags' })
   @IsArray()
   @IsString({ each: true })

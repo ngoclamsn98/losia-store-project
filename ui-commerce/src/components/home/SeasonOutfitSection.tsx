@@ -24,6 +24,7 @@ type ProductCard = {
   conditionValue?: string | null;
   slug?: string;
   name?: string;
+  numberCode?: string | null;
 };
 
 const fmtVND = (n?: number | null) =>
@@ -74,15 +75,15 @@ function normalize(input: any, index?: number): ProductCard {
     typeof input?.price === "number"
       ? input.price
       : typeof input?.salePrice === "string"
-      ? Number(String(input.salePrice).replace(/[^\d]/g, "")) || null
-      : null;
+        ? Number(String(input.salePrice).replace(/[^\d]/g, "")) || null
+        : null;
 
   const oldPrice =
     typeof input?.oldPrice === "number"
       ? input.oldPrice
       : typeof input?.originalPrice === "string"
-      ? Number(String(input.originalPrice).replace(/[^\d]/g, "")) || null
-      : null;
+        ? Number(String(input.originalPrice).replace(/[^\d]/g, "")) || null
+        : null;
 
   return {
     id: String(input?.id ?? input?.slug ?? crypto.randomUUID()),
@@ -127,7 +128,7 @@ function CardLikeProducts({ p, index }: { p: ProductCard; index: number }) {
 
   return (
     <div className="group snap-start shrink-0 w-[calc((100%-2rem)/2)] sm:w-[calc((100%-3rem)/4)] md:w-[calc((100%-4rem)/5)] lg:w-[calc((100%-6rem)/7)] xl:w-[calc((100%-8rem)/9)]">
-      <div className="relative rounded-2xl border hover:shadow-sm transition overflow-hidden">
+      <div className="relative rounded-[4px] border hover:shadow-sm transition overflow-hidden">
         {/* ẢNH */}
         <Link href={`/product/${p.slug}`} className="block relative z-0">
           <SmartImage
@@ -135,7 +136,7 @@ function CardLikeProducts({ p, index }: { p: ProductCard; index: number }) {
             alt={p.title || "product image"}
             preset="plp"
             src={imgUrl}
-            className="relative w-full aspect-[4/5] rounded-lg overflow-hidden bg-gray-100"
+            className="relative w-full aspect-[4/5] rounded-[4px] overflow-hidden bg-gray-100"
             imgClassName="object-cover transition duration-300 group-hover:scale-105"
             placeholder="blur"
             blurDataURL={BLUR_DATA_URL}
@@ -150,7 +151,7 @@ function CardLikeProducts({ p, index }: { p: ProductCard; index: number }) {
 
           {/* Favorite */}
           <div className="absolute right-2 top-2">
-            <FavoriteButton productId={p.id} className="h-8 w-8" iconSize={18} />
+            <FavoriteButton productId={p.id} className="p-[7px]" iconSize={18} />
           </div>
 
           {/* % giảm */}
@@ -171,7 +172,7 @@ function CardLikeProducts({ p, index }: { p: ProductCard; index: number }) {
 
           {p.sizeLabel && <div className="mt-0.5 text-xs text-gray-600">Size {p.sizeLabel}</div>}
 
-          <div className="mt-1.5 flex items-baseline gap-2">
+          <div className="mt-1.5 flex items-baseline flex-col">
             <span className="text-[15px] font-bold">{fmtVND(p.price)}</span>
             {Number(p.oldPrice) && (Number(p.price) ?? 0) < Number(p.oldPrice) && (
               <span className="text-xs text-gray-500 line-through">{fmtVND(p.oldPrice)}</span>

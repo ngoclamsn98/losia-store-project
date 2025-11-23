@@ -19,6 +19,11 @@ type ProductCard = {
   sizeLabel?: string | null;
   favoriteCount?: number | null;
   images?: Array<{ url?: string | null; main?: string | null; thumb?: string | null; order?: number | null }>;
+  cover?: string | null;
+  conditionValue?: string | null;
+  slug?: string;
+  name?: string;
+  numberCode?: string | null;
 };
 
 type Props = {
@@ -98,6 +103,11 @@ export default function MoreFromSellerSection({
           sizeLabel: p.sizeLabel ?? p.sizeDisplay ?? (typeof p.size === "string" ? p.size : null),
           favoriteCount: p.favoriteCount ?? p?._count?.favorites ?? null,
           images: Array.isArray(p.images) ? p.images : [],
+          cover: p.cover ?? null,
+          conditionValue: p.conditionValue ?? null,
+          slug: p.slug ?? null,
+          name: p.name ?? null,
+          numberCode: p.numberCode ?? null,
         }));
         setItems(normalized);
       } catch {
@@ -161,8 +171,8 @@ export default function MoreFromSellerSection({
           {loading
             ? skeletons.map((_, i) => <SkeletonCard key={i} />)
             : items.length > 0
-            ? items.map((p, i) => <CardLikeProducts key={p.id} p={p} index={i} />)
-            : <EmptyCard />}
+              ? items.map((p, i) => <CardLikeProducts key={p.id} p={p} index={i} />)
+              : <EmptyCard />}
         </div>
 
         {/* Prev/Next (mobile) */}
@@ -197,14 +207,14 @@ function CardLikeProducts({ p, index }: { p: ProductCard; index: number }) {
 
   return (
     <div className="group snap-start shrink-0 w-[170px] md:w-auto">
-      <div className="relative rounded-2xl border hover:shadow-sm transition overflow-hidden">
+      <div className="relative rounded-[4px] border hover:shadow-sm transition overflow-hidden">
         <Link href={`/product/${p.id}`} className="block relative">
           <SmartImage
             kind="product"
             alt={p.title}
             preset="plp"
             src={imgUrl}
-            className="relative w-full aspect-[4/5] rounded-lg overflow-hidden bg-gray-100"
+            className="relative w-full aspect-[4/5] rounded-[4px] overflow-hidden bg-gray-100"
             imgClassName="object-cover transition duration-300 group-hover:scale-105"
             placeholder="blur"
             blurDataURL={BLUR_DATA_URL}
@@ -213,13 +223,13 @@ function CardLikeProducts({ p, index }: { p: ProductCard; index: number }) {
           {/* NEW WITH TAGS (trái trên) */}
           {nwt && (
             <span className="absolute left-2 top-2 rounded-md bg-emerald-600 text-white text-[10px] font-semibold px-1.5 py-1 leading-none shadow-sm">
-              NEW<br/>WITH<br/>TAGS
+              NEW<br />WITH<br />TAGS
             </span>
           )}
 
           {/* Tim (phải trên) */}
           <div className="absolute right-2 top-2">
-            <FavoriteButton productId={p.id} className="h-8 w-8" iconSize={18} />
+            <FavoriteButton productId={p.id} className="p-[7px]" iconSize={18} />
           </div>
 
           {/* % giảm (trái trên) */}
@@ -241,7 +251,7 @@ function CardLikeProducts({ p, index }: { p: ProductCard; index: number }) {
           {p.sizeLabel && <div className="mt-0.5 text-xs text-gray-600">Size {p.sizeLabel}</div>}
 
           {/* Giá */}
-          <div className="mt-1.5 flex items-baseline gap-2">
+          <div className="mt-1.5 flex items-baseline flex-col">
             <span className="text-[15px] font-bold">{fmtVND(p.price)}</span>
             {p.oldPrice && p.oldPrice > (p.price ?? 0) && (
               <span className="text-xs text-gray-500 line-through">{fmtVND(p.oldPrice)}</span>

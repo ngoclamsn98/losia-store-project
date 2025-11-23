@@ -18,13 +18,12 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { FavoritesService } from './favorites.service';
-import { AddFavoriteDto } from './dto/add-favorite.dto';
 import { ClientJwtAuthGuard } from '../client-users/guards/client-jwt-auth.guard';
 
 @ApiTags('favorites')
 @Controller('favorites')
 @UseGuards(ClientJwtAuthGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class FavoritesController {
   constructor(private readonly favoritesService: FavoritesService) {}
 
@@ -87,7 +86,5 @@ export class FavoritesController {
     await this.favoritesService.removeFavorite(req.user.id, productId);
     return { message: 'Product removed from favorites successfully' };
   }
-
-  
 }
 

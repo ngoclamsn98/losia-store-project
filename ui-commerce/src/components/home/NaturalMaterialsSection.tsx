@@ -124,7 +124,7 @@ export default function NaturalMaterialsSection() {
       {/* Toast */}
       <BlockedToast message={blockedMsg} />
 
-      <div className="mx-auto max-w-6xl px-4 text-center">
+      <div className="mx-auto max-w-full text-center">
         {/* Tiêu đề */}
         <h2 className="text-2xl font-semibold tracking-tight text-gray-900 md:text-3xl">
           100% chất liệu tự nhiên. 100% secondhand.

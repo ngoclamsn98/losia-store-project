@@ -182,7 +182,7 @@ function SearchBar() {
   return (
     <>
       {/* Desktop Search */}
-      <form onSubmit={handleSearch} className="hidden md:block relative w-full max-w-md">
+      <form onSubmit={handleSearch} className="hidden md:block relative w-full">
         <input
           type="text"
           value={query}
@@ -347,7 +347,7 @@ function MegaMenu({ menu, onClose, allMenus }: { menu: MenuType; onClose: () => 
 function buildSlugPath(item: MenuType, allMenus: MenuType[]): string {
   const slugs: string[] = [item.slug];
   let current = item;
-  
+
   // Build path from child to parent
   while (current.parentId) {
     const parent = findMenuById(current.parentId, allMenus);
@@ -358,7 +358,7 @@ function buildSlugPath(item: MenuType, allMenus: MenuType[]): string {
       break;
     }
   }
-  
+
   return `/categories/${slugs.join("/")}`;
 }
 
@@ -471,34 +471,65 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
           </div>
         </div>
 
-      {/* Main Header */}
-      <div className="border-b" onMouseLeave={() => setHoveredMenu(null)}>
-        <div className={clsx(containerClass, "flex items-center justify-between gap-4")}>
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden p-2"
-            aria-label="Menu"
-          >
-            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+        {/* Header 1: Main Actions */}
+        <div className="border-b">
+          <div className={clsx(containerClass, "flex items-center gap-4 py-3")}>
+            {/* Left Side: Mobile Menu + Logo */}
+            <div className="flex items-center gap-2">
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setMobileOpen(!mobileOpen)}
+                className="lg:hidden p-2"
+                aria-label="Menu"
+              >
+                {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
 
-          {/* Logo */}
-          <Link href="/" className="flex items-center">
-            <Image
-              src="/assets/icons/logo-icon.svg"
-              alt="Losia"
-              width={120}
-              height={40}
-              priority
-            />
-          </Link>
+              {/* Logo */}
+              <Link href="/" className="flex items-center">
+                <Image
+                  src="/assets/icons/logo-icon.svg"
+                  alt="Losia"
+                  width={120}
+                  height={40}
+                  priority
+                />
+              </Link>
+            </div>
 
-          {/* Desktop Navigation - 2 Rows Layout */}
-          <div className="hidden lg:flex flex-col gap-2 flex-1 justify-center py-3">
-            {/* Row 1: Main Categories */}
-            <nav className="flex items-center justify-center gap-4">
-              {rootMenus.slice(0, 6).map((menu) => (
+            {/* Center: Search Bar */}
+            <div className="flex-1 max-w-2xl mx-auto">
+              <SearchBar />
+            </div>
+
+            {/* Right Side: Actions */}
+            <div className="flex items-center gap-3">
+              <Link
+                href="/shop"
+                className="hidden lg:inline-flex text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors whitespace-nowrap px-3 py-2"
+              >
+                Shop
+              </Link>
+
+              <Link
+                href="/sell-with-us"
+                className="hidden lg:inline-flex rounded-full bg-emerald-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors whitespace-nowrap shadow-sm hover:shadow-md"
+              >
+                Bán hàng
+              </Link>
+
+              <UserButton />
+              <CartButton />
+            </div>
+          </div>
+        </div>
+
+        {/* Header 2: Category Navigation */}
+        <div className="border-b" onMouseLeave={() => setHoveredMenu(null)}>
+          <div className={clsx(containerClass, "py-3")}>
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center justify-center gap-6 flex-wrap">
+              {rootMenus.map((menu) => (
                 <div
                   key={menu.id}
                   onMouseEnter={() => setHoveredMenu(menu.id)}
@@ -516,153 +547,98 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
                 </div>
               ))}
             </nav>
-
-            {/* Row 2: Secondary Categories + Actions */}
-            <div className="flex items-center justify-center gap-4">
-              {/* Remaining Categories */}
-              {rootMenus.slice(6, 10).map((menu) => (
-                <div
-                  key={menu.id}
-                  onMouseEnter={() => setHoveredMenu(menu.id)}
-                  className="relative"
-                >
-                  <Link
-                    href={`/categories/${menu.slug}`}
-                    className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors whitespace-nowrap px-2 py-1"
-                  >
-                    {menu.name}
-                    {menu.children && menu.children.length > 0 && (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
-                  </Link>
-                </div>
-              ))}
-
-              {/* Divider */}
-              <div className="h-5 w-px bg-gray-300" />
-
-              {/* Additional Links */}
-              <Link
-                href="/products"
-                className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors whitespace-nowrap px-2 py-1"
-              >
-                Tất cả sản phẩm
-              </Link>
-
-              <Link
-                href="/shop"
-                className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors whitespace-nowrap px-2 py-1"
-              >
-                Shop
-              </Link>
-
-              <Link
-                href="/sell-with-us"
-                className="rounded-full bg-emerald-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors whitespace-nowrap shadow-sm hover:shadow-md"
-              >
-                Bán hàng
-              </Link>
-            </div>
           </div>
 
-          {/* Right Actions */}
-          <div className="flex items-center gap-3">
-            <SearchBar />
-            <UserButton />
-            <CartButton />
-          </div>
+          {/* Desktop Mega Menu */}
+          <AnimatePresence>
+            {hoveredMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="absolute left-0 right-0 top-full"
+              >
+                {rootMenus.map((menu) =>
+                  menu.id === hoveredMenu ? (
+                    <MegaMenu
+                      key={menu.id}
+                      menu={menu}
+                      onClose={() => setHoveredMenu(null)}
+                      allMenus={menus}
+                    />
+                  ) : null
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* Desktop Mega Menu */}
+        {/* Mobile Menu */}
         <AnimatePresence>
-          {hoveredMenu && (
+          {mobileOpen && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="absolute left-0 right-0 top-full"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="border-b bg-white lg:hidden overflow-hidden"
             >
-              {rootMenus.map((menu) =>
-                menu.id === hoveredMenu ? (
-                  <MegaMenu
-                    key={menu.id}
-                    menu={menu}
-                    onClose={() => setHoveredMenu(null)}
-                    allMenus={menus}
-                  />
-                ) : null
-              )}
+              {/* Scrollable mobile menu with max height */}
+              <div className="max-h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar">
+                <div className="p-6 space-y-4">
+                  {/* Category Menus */}
+                  {rootMenus.map((menu) => (
+                    <MobileMenuItem
+                      key={menu.id}
+                      item={menu}
+                      onClose={() => setMobileOpen(false)}
+                      allMenus={menus}
+                    />
+                  ))}
+
+                  {/* Divider */}
+                  <div className="border-t my-4" />
+
+                  {/* Additional Links */}
+                  <div className="space-y-2">
+                    <Link
+                      href="/products"
+                      className="block px-2 py-2 text-sm font-medium text-gray-700 hover:text-emerald-600 hover:bg-gray-50 rounded transition-colors"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      Tất cả sản phẩm
+                    </Link>
+
+                    <Link
+                      href="/favorites"
+                      className="block px-2 py-2 text-sm font-medium text-gray-700 hover:text-emerald-600 hover:bg-gray-50 rounded transition-colors"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      Yêu thích
+                    </Link>
+
+                    <Link
+                      href="/shop"
+                      className="block px-2 py-2 text-sm font-medium text-gray-700 hover:text-emerald-600 hover:bg-gray-50 rounded transition-colors"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      Shop
+                    </Link>
+                  </div>
+
+                  {/* CTA Button */}
+                  <Link
+                    href="/sell-with-us"
+                    className="pl-1 block rounded-lg bg-emerald-600 px-6 py-3 text-center font-semibold text-white hover:bg-emerald-700 transition-colors mt-4"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Bán với chúng tôi
+                  </Link>
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="border-b bg-white lg:hidden overflow-hidden"
-          >
-            {/* Scrollable mobile menu with max height */}
-            <div className="max-h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar">
-              <div className="p-6 space-y-4">
-                {/* Category Menus */}
-                {rootMenus.map((menu) => (
-                  <MobileMenuItem
-                    key={menu.id}
-                    item={menu}
-                    onClose={() => setMobileOpen(false)}
-                    allMenus={menus}
-                  />
-                ))}
-
-                {/* Divider */}
-                <div className="border-t my-4" />
-
-                {/* Additional Links */}
-                <div className="space-y-2">
-                  <Link
-                    href="/products"
-                    className="block px-2 py-2 text-sm font-medium text-gray-700 hover:text-emerald-600 hover:bg-gray-50 rounded transition-colors"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    Tất cả sản phẩm
-                  </Link>
-
-                  <Link
-                    href="/favorites"
-                    className="block px-2 py-2 text-sm font-medium text-gray-700 hover:text-emerald-600 hover:bg-gray-50 rounded transition-colors"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    Yêu thích
-                  </Link>
-
-                  <Link
-                    href="/shop"
-                    className="block px-2 py-2 text-sm font-medium text-gray-700 hover:text-emerald-600 hover:bg-gray-50 rounded transition-colors"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    Shop
-                  </Link>
-                </div>
-
-                {/* CTA Button */}
-                <Link
-                  href="/sell-with-us"
-                  className="block rounded-lg bg-emerald-600 px-6 py-3 text-center font-semibold text-white hover:bg-emerald-700 transition-colors mt-4"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  Bán với chúng tôi
-                </Link>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
       </header>
     </>
   );

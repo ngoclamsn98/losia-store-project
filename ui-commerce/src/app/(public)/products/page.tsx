@@ -59,6 +59,7 @@ export type ProductCard = {
   content?: string | null;
   variants?: ProductVariant[]; // Add variants for filtering
   categories?: Category[]; // Add categories for filtering
+  favoriteCount?: number;
 };
 
 // SEO Metadata
@@ -223,7 +224,7 @@ async function fetchCategories(): Promise<CategoryFilter[]> {
     } catch (megaMenuError) {
       console.warn('Mega menu endpoint not available, falling back to flat categories');
     }
-      return [];
+    return [];
 
     // // Fallback to flat categories and build hierarchy manually
     // const url = `${apiUrl}/categories?isActive=true&limit=100`;

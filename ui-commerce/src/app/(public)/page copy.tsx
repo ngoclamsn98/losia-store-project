@@ -89,7 +89,7 @@ export default async function HomePage() {
                   preset="homeCard"
                   alt={p.title}
                   aspectRatio="3/4"
-                  className="overflow-hidden rounded-xl bg-gray-100"
+                  className="overflow-hidden rounded-[4px] bg-gray-100"
                   imgClassName="object-cover transition-transform duration-200 ease-out group-hover:scale-105"
                   priority={i < 4}
                   placeholder={blur ? 'blur' : 'empty'}

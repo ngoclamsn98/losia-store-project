@@ -44,6 +44,7 @@ async function fetchMostFavoriteProducts(): Promise<any[]> {
         images: p.imageUrls || [],
         cover: p.thumbnailUrl || null,
         conditionValue: null,
+        numberCode: p.numberCode || null,
       };
     });
     

@@ -21,6 +21,7 @@ type ProductVariant = {
   weight?: number | null;
   imageUrl?: string | null;
   attributes?: Record<string, string> | null;
+  slug: string;
 };
 
 type Category = {
@@ -67,6 +68,9 @@ type ProductFromAPI = {
   createdAt: string;
   updatedAt: string;
   brandName?: string | null;
+  newWithTag?: boolean;
+  favoriteCount?: number;
+  numberCode?: string | null;
 };
 
 // Type cho UI component
@@ -106,6 +110,9 @@ type ProductDetail = {
   hoursOfLighting?: number | null;
   kmsOfDriving?: number | null;
   brandName?: string | null;
+  newWithTag?: boolean;
+  favoriteCount?: number;
+  numberCode?: string | null;
 };
 
 /**
@@ -116,9 +123,9 @@ async function fetchProductBySlug(slug: string): Promise<ProductFromAPI | null> 
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
     const url = `${apiUrl}/products/slug/${slug}`;
-    
+
     const res = await fetch(url, {
-      next: { 
+      next: {
         revalidate: process.env.NODE_ENV === 'production' ? 300 : 0,
         tags: ['product', `product-${slug}`]
       },
@@ -132,8 +139,8 @@ async function fetchProductBySlug(slug: string): Promise<ProductFromAPI | null> 
       console.error(`Failed to fetch product: ${res.status}`);
       return null;
     }
-
-    return res.json();
+    const result = await res.json();
+    return result;
   } catch (error) {
     console.error('Error fetching product:', error);
     return null;
@@ -204,21 +211,24 @@ function mapProductToDetail(p: ProductFromAPI): ProductDetail {
     hoursOfLighting: p.ecoImpact?.hoursOfLighting || null,
     kmsOfDriving: p.ecoImpact?.kmsOfDriving || null,
     brandName: p.brandName || null,
+    newWithTag: p.newWithTag || false,
+    favoriteCount: p.favoriteCount || 0,
+    numberCode: p.numberCode || null,
   };
 }
 
 /**
  * Generate metadata cho SEO
  */
-export async function generateMetadata({ 
-  params 
-}: { 
-  params: { slug: string } 
+export async function generateMetadata({
+  params
+}: {
+  params: { slug: string }
 }): Promise<Metadata> {
   const product = await fetchProductBySlug(params.slug);
-  
+
   if (!product) {
-    return { 
+    return {
       title: 'Sản phẩm không tồn tại | LOSIA Store',
       description: 'Sản phẩm bạn đang tìm không tồn tại hoặc đã bị xóa.'
     };
@@ -227,12 +237,12 @@ export async function generateMetadata({
   const defaultVariant = product.variants?.find(v => v.isDefault) || product.variants?.[0];
   const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://losia.vn').replace(/\/$/, '');
   const url = `${baseUrl}/product/${product.slug}`;
-  
+
   const title = product.seoTitle || `${product.name} | LOSIA Store`;
-  const description = product.seoDescription || 
-    product.description || 
+  const description = product.seoDescription ||
+    product.description ||
     `${product.name} - Giá: ${formatVND(defaultVariant?.price || 0)}`;
-  
+
   const image = product.thumbnailUrl || product.imageUrls?.[0] || '/assets/images/main/product1.jpg';
 
   return {
@@ -260,23 +270,23 @@ export async function generateMetadata({
 /**
  * Product Detail Page - Server Component (SSR)
  */
-export default async function ProductDetailPage({ 
-  params 
-}: { 
-  params: { slug: string } 
+export default async function ProductDetailPage({
+  params
+}: {
+  params: { slug: string }
 }) {
   const productFromAPI = await fetchProductBySlug(params.slug);
-  
+
   if (!productFromAPI) {
     notFound();
   }
 
   // Map sang UI format
   const product = mapProductToDetail(productFromAPI);
-  
+
   // Chuẩn hóa images
-  const gallery = product.images && product.images.length > 0 
-    ? product.images 
+  const gallery = product.images && product.images.length > 0
+    ? product.images
     : ['/assets/images/main/product1.jpg'];
 
   // JSON-LD cho SEO
@@ -293,8 +303,8 @@ export default async function ProductDetailPage({
       '@type': 'Offer',
       priceCurrency: 'VND',
       price: product.price,
-      availability: product.inventory > 0 
-        ? 'https://schema.org/InStock' 
+      availability: product.inventory > 0
+        ? 'https://schema.org/InStock'
         : 'https://schema.org/OutOfStock',
       url: `${baseUrl}/product/${product.slug}`,
     },
@@ -338,6 +348,8 @@ export default async function ProductDetailPage({
             title={product.title}
             productId={product.id}
             images={gallery}
+            favoriteCount={product.favoriteCount}
+            isProductDetailPage={true}
           />
         </div>
 

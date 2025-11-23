@@ -15,10 +15,11 @@ type Props = {
   discountPercent?: number | null;
   discountCode?: string | null;
   isPopular?: boolean;
-  cta?: React.ReactNode;  
+  cta?: React.ReactNode;
   content?: string | undefined | null;
   description?: string | undefined | null;
   brandName?: string | undefined | null;
+  newWithTag?: boolean;
 };
 
 export default function QuickInfoSection({
@@ -35,7 +36,8 @@ export default function QuickInfoSection({
   cta,
   content,
   description,
-  brandName
+  brandName,
+  newWithTag
 }: Props) {
   const hasDiscount = (discountPercent ?? 0) > 0;
   // Chuẩn hoá brand & sizeLabel
@@ -44,12 +46,28 @@ export default function QuickInfoSection({
 
   return (
     <section>
+
+
       {/* Tiêu đề */}
-      <h1 className="text-xl font-semibold underline">{brandName}</h1>
+      <div className="flex justify-between">
+        <h1 className="text-xl font-semibold underline">{brandName}</h1>
+        {/* New With Tags Badge */}
+        {newWithTag && (
+          <div className="mb-3">
+            <img
+              alt="New with tags"
+              className=""
+              height={50}
+              src="/assets/icons/badge-new-with-tags.svg"
+              width={42}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Brand • Size */}
       <div className="mt-1 text-m text-gray-600">
-        
+
         {sizeText ? (
           <>
             <span

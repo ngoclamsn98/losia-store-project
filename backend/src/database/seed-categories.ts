@@ -59,13 +59,13 @@ function generateSlug(name: string, parentName: string | null): string {
 // Category data from category.txt
 const CATEGORY_DATA = [
   // Parent categories
-  { name: 'Women', parent: null },
-  { name: 'Sports', parent: null },
-  { name: 'Handbags', parent: null },
-  { name: 'Accessories', parent: null },
-  { name: 'Kids', parent: null },
-  { name: 'Giảm giá', parent: null },
-  { name: 'Hàng mới về', parent: null },
+  { name: 'Women', parent: null, order: 2 },
+  { name: 'Sports', parent: null, order: 3 },
+  { name: 'Handbags', parent: null, order: 5 },
+  { name: 'Accessories', parent: null, order: 6 },
+  { name: 'Kids', parent: null, order: 4 },
+  { name: 'Giảm giá', parent: null, order: 7 },
+  { name: 'Hàng mới về', parent: null, order: 1 },
   
   // Women subcategories
   { name: 'Váy', parent: 'Women' },

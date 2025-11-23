@@ -7,12 +7,13 @@ import { ProductVariant } from './entities/product-variant.entity';
 import { Category } from '../categories/entities/category.entity';
 import { EcoImpact } from '../eco-impacts/entities/eco-impact.entity';
 import { ProductCondition } from '../product-conditions/entities/product-condition.entity';
+import { FavoriteProduct } from '../favorites/entities/favorite.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product, ProductVariant, Category, EcoImpact, ProductCondition])],
+  imports: [TypeOrmModule.forFeature([Product, ProductVariant, Category, EcoImpact, ProductCondition, FavoriteProduct])],
   controllers: [ProductsController],
   providers: [ProductsService],
   exports: [ProductsService],
 })
-export class ProductsModule {}
+export class ProductsModule { }
 

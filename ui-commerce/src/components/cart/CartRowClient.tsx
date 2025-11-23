@@ -21,6 +21,7 @@ type DetailedItem = {
     cover: string | null;
     inStock: boolean;
     variantName?: string | null;
+    slug: string;
   };
 };
 
@@ -87,7 +88,7 @@ export default function CartRowClient({ row }: { row: DetailedItem }) {
   return (
     <li className="p-4 flex gap-4">
       {/* Image */}
-      <Link href={`/product/${product.id}`} className="flex-shrink-0">
+      <Link href={`/product/${product.slug}`} className="flex-shrink-0">
         <Image
           src={product.cover || '/assets/images/main/product1.jpg'}
           alt={product.title}

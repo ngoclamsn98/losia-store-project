@@ -86,6 +86,12 @@ export class Product {
   @Column({ name: 'is_featured', default: false })
   isFeatured: boolean;
 
+  @Column({ name: 'new_with_tag', default: false })
+  newWithTag: boolean;
+
+  @Column({ name: 'number_code', unique: true })
+  numberCode: string;
+
   @Column({ type: 'simple-array', nullable: true })
   tags: string[];
 

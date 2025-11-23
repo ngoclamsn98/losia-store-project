@@ -58,18 +58,17 @@ export default function OurStandards({ onClose, titleId }: OurStandardsProps) {
 
         {/* excellent */}
         <div className="mb-4">
-          <span className="inline-block mb-2 rounded-md py-1 px-2 text-[11px] font-bold uppercase bg-green-700 text-white">
-            Excellent
+          <span className="inline-block mb-2 rounded-md py-1 px-2 text-[11px] font-bold uppercase bg-emerald-600 text-white">
+            Xuất sắc
           </span>
           <p className="text-sm sm:text-base mb-0 text-gray-800">
             Gần như mới! Không có dấu hiệu đã mặc hay đã giặt.
           </p>
         </div>
 
-        {/* very good */}
         <div className="mb-4">
-          <span className="inline-block mb-2 rounded-md py-1 px-2 text-[11px] font-bold uppercase bg-green-300 text-green-900">
-            Very good
+          <span className="inline-block mb-2 rounded-md py-1 px-2 text-[11px] font-bold uppercase bg-emerald-400 text-green-900">
+            Rất tốt
           </span>
           <p className="text-sm sm:text-base mb-0 text-gray-800">
             Không có lỗi lớn. Có thể có mòn/nhão nhẹ tại các vùng như gấu,
@@ -79,8 +78,8 @@ export default function OurStandards({ onClose, titleId }: OurStandardsProps) {
 
         {/* good */}
         <div className="mb-4">
-          <span className="inline-block mb-2 rounded-md py-1 px-2 text-[11px] font-bold uppercase bg-green-200 text-green-800">
-            Good
+          <span className="inline-block mb-2 rounded-md py-1 px-2 text-[11px] font-bold uppercase bg-green-50 text-green-800">
+            Tốt
           </span>
           <p className="text-sm sm:text-base mb-0 text-gray-800">
             Đã qua sử dụng nhưng còn tốt. Có thể xuất hiện dấu hiệu nhỏ như 1–2
@@ -90,8 +89,8 @@ export default function OurStandards({ onClose, titleId }: OurStandardsProps) {
 
         {/* flawed gem */}
         <div className="pb-4">
-          <span className="inline-block mb-2 rounded-md py-1 px-2 text-[11px] font-bold uppercase bg-pink-300 text-pink-900">
-            Rare gem
+          <span className="inline-block mb-2 rounded-md py-1 px-2 text-[11px] font-bold uppercase bg-violet-100 text-pink-900">
+            Hàng hiếm
           </span>
           <p className="text-sm sm:text-base text-gray-800">
             Hàng hiếm, ít bị lỗi. Thường là sản phẩm hot/bán chạy nên vẫn đáng mua để tái

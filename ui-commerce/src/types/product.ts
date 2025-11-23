@@ -100,6 +100,8 @@ export interface ProductListItem {
   }[];
   createdAt: string;
   updatedAt: string;
+  favoriteCount?: number;
+  numberCode?: string | null;
 }
 
 export interface ProductFilters {

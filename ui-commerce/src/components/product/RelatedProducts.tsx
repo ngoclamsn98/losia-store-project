@@ -106,21 +106,21 @@ function ProductCard({ product, index }: { product: RelatedProduct; index: numbe
   const defaultVariant = product.variants?.find((v) => v.isDefault) || product.variants?.[0];
   const price = Number(defaultVariant?.price) || 0;
   const oldPrice = Number(defaultVariant?.compareAtPrice) || null;
-  const discount = getDiscountPercent({price, oldPrice} as any);
+  const discount = getDiscountPercent({ price, oldPrice } as any);
   const imgUrl = firstImageSrc(product, index);
   const sizeLabel = product.variants?.[0]?.name || null;
 
 
   return (
     <div className="group snap-start shrink-0 w-full">
-      <div className="relative rounded-2xl border hover:shadow-md transition overflow-hidden">
+      <div className="relative rounded-[4px] border hover:shadow-md transition overflow-hidden">
         <Link href={`/product/${product.slug}`} className="block relative z-0">
           <SmartImage
             kind="product"
             alt={product.name || 'product image'}
             preset="plp"
             src={imgUrl}
-            className="relative w-full aspect-[4/5] rounded-lg overflow-hidden bg-gray-100"
+            className="relative w-full aspect-[4/5] rounded-[4px] overflow-hidden bg-gray-100"
             imgClassName="object-cover transition duration-300 group-hover:scale-105"
             placeholder="blur"
             blurDataURL={BLUR_DATA_URL}
@@ -128,7 +128,7 @@ function ProductCard({ product, index }: { product: RelatedProduct; index: numbe
 
           {/* Favorite Button */}
           <div className="absolute right-2 top-2 z-10">
-            <FavoriteButton productId={product.id} className="h-8 w-8" iconSize={18} />
+            <FavoriteButton productId={product.id} className="p-[7px]" iconSize={18} />
           </div>
 
           {discount && (
@@ -155,9 +155,9 @@ function ProductCard({ product, index }: { product: RelatedProduct; index: numbe
           </Link>
 
 
-           <p className="text-xs text-gray-500">
-              Size {sizeLabel}
-            </p>
+          <p className="text-xs text-gray-500">
+            Size {sizeLabel}
+          </p>
 
           {/* Price */}
           <div className="flex items-baseline gap-2">

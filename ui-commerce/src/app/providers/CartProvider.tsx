@@ -24,6 +24,7 @@ export type CartItem = {
     category?: string;
     cover: string | null;
     inStock: boolean;
+    slug: string;
   };
 };
 
@@ -89,6 +90,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         oldPrice: null,
         cover: item.imageUrl || null,
         inStock: true,
+        slug: item.slug,
       },
     }));
 

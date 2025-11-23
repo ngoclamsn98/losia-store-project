@@ -25,17 +25,17 @@ type ProductImage = {
 type AnyImg =
   | string
   | {
-      id?: string;
-      alt?: string;
-      main?: string;
-      src?: string;
-      url?: string;
-      thumb?: string;
-      photoId?: string;
-      features?: FeatureTag[];
-      blur?: string;
-      sprite?: string;
-    };
+    id?: string;
+    alt?: string;
+    main?: string;
+    src?: string;
+    url?: string;
+    thumb?: string;
+    photoId?: string;
+    features?: FeatureTag[];
+    blur?: string;
+    sprite?: string;
+  };
 
 type Props = {
   images: AnyImg[];
@@ -44,6 +44,9 @@ type Props = {
   initialIndex?: number;
   className?: string;
   lightbox?: boolean;
+  favoriteCount?: number;
+  numberCode?: string | null;
+  isProductDetailPage?: boolean;  
 };
 
 export default function ProductImageSection({
@@ -53,6 +56,9 @@ export default function ProductImageSection({
   initialIndex = 0,
   className,
   lightbox = true,
+  favoriteCount,
+  isProductDetailPage = false,    
+  numberCode,
 }: Props) {
   // 1) Chuẩn hoá -> ProductImage[]
   const normalized: ProductImage[] = useMemo(() => {
@@ -163,7 +169,9 @@ export default function ProductImageSection({
           canGoPrev={canGoPrev}
           canGoNext={canGoNext}
           productId={productId}
+          favoriteCount={favoriteCount}
           className="relative overflow-hidden rounded-xl bg-gray-100 aspect-[3/4] w-full max-w-[612px] mx-auto"
+          isProductDetailPage={isProductDetailPage}
         />
 
         {/* Ví dụ nút mở Lightbox (tuỳ anh bật dùng) */}

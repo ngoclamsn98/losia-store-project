@@ -8,7 +8,6 @@ import {
   removeFromLocalCart,
   clearLocalCart,
   getLocalCartCount,
-  getLocalCartTotal,
   type CartItem,
   type LocalCart,
 } from './localStorage';

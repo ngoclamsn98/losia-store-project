@@ -75,7 +75,7 @@ export default function CategoryProductsClient({
                       />
                       {/* Favorite Button */}
                       <div className="absolute right-2 top-2 z-10">
-                        <FavoriteButton productId={product.id} className="h-8 w-8" iconSize={18} />
+                        <FavoriteButton productId={product.id} className="p-[7px]" iconSize={18} />
                       </div>
                       {discount > 0 && (
                         <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
@@ -95,7 +95,7 @@ export default function CategoryProductsClient({
                         </span>
                         {compareAtPrice && (
                           <span className="text-xs text-gray-400 line-through">
-                              {fmtVND(compareAtPrice)}
+                            {fmtVND(compareAtPrice)}
                           </span>
                         )}
                       </div>
@@ -141,11 +141,10 @@ export default function CategoryProductsClient({
                       <button
                         key={pageNum}
                         onClick={() => handlePageChange(pageNum)}
-                        className={`px-4 py-2 text-sm font-medium rounded-md ${
-                          pageNum === currentPage
-                            ? "bg-emerald-600 text-white"
-                            : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
-                        }`}
+                        className={`px-4 py-2 text-sm font-medium rounded-md ${pageNum === currentPage
+                          ? "bg-emerald-600 text-white"
+                          : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
+                          }`}
                       >
                         {pageNum}
                       </button>

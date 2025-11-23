@@ -32,7 +32,7 @@ export default function SizeFitSection({ sizeDisplay, measuredLength }: Props) {
 
       <ul className="flex flex-col space-y-1 text-sm text-gray-800">
         {sizeDisplay ? (
-          <li>
+          <li className="flex">
             Size <span className="font-medium">{sizeDisplay}</span>{" "}
             {/* Toggle hướng dẫn size */}
             <details className="inline-block ml-1 align-middle">
@@ -41,7 +41,7 @@ export default function SizeFitSection({ sizeDisplay, measuredLength }: Props) {
               </summary>
               <div className="mt-3 rounded-md border border-gray-100 p-3 bg-white">
                 {/* onClose noop để tái dùng component hiện có */}
-                <SizeGuide onClose={() => {}} />
+                <SizeGuide onClose={() => { }} />
               </div>
             </details>
           </li>
@@ -56,7 +56,7 @@ export default function SizeFitSection({ sizeDisplay, measuredLength }: Props) {
                 Chi tiết đo
               </summary>
               <div className="mt-3 rounded-md border border-gray-100 p-3 bg-white">
-                <Details onClose={() => {}} />
+                <Details onClose={() => { }} />
               </div>
             </details>
           </li>

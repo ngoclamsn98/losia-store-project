@@ -15,6 +15,8 @@ type FavoriteButtonProps = {
   className?: string;
   iconSize?: number;
   showLoginPopup?: boolean;
+  favoriteCount?: number;
+  isProductDetailPage?: boolean;
 };
 
 export default function FavoriteButton({
@@ -22,11 +24,14 @@ export default function FavoriteButton({
   className = '',
   iconSize = 18,
   showLoginPopup = true,
+  favoriteCount,
+  isProductDetailPage = false,
 }: FavoriteButtonProps) {
   const { data: session, status } = useSession();
   const { showLoginPopup: openLoginPopup } = useLoginPopup();
   const [isFavorite, setIsFavorite] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [favoriteCountState, setFavoriteCountState] = useState(favoriteCount || 0);
 
   // Load favorite status from localStorage only
   useEffect(() => {
@@ -108,7 +113,7 @@ export default function FavoriteButton({
       // Always save to localStorage for immediate UI feedback and offline support
       saveFavoriteToLocalStorage(newFavoriteStatus);
       setIsFavorite(newFavoriteStatus);
-
+      newFavoriteStatus? setFavoriteCountState(favoriteCountState + 1) : setFavoriteCountState(favoriteCountState - 1);
       // Dispatch event for other components to update
       window.dispatchEvent(new CustomEvent('losia:favorites-changed', {
         detail: { productId, isFavorite: newFavoriteStatus }
@@ -127,15 +132,18 @@ export default function FavoriteButton({
         aria-label={isFavorite ? "Bỏ yêu thích" : "Yêu thích"}
         onClick={handleToggleFavorite}
         disabled={isLoading}
-        className={`relative flex items-center justify-center rounded-full bg-white shadow-sm hover:bg-gray-50 disabled:opacity-50 ${className}`}
+        className={`relative flex items-center gap-x-[7px] justify-center rounded-full bg-white shadow-sm hover:bg-gray-50 disabled:opacity-50 ${className}`}
         title={
-          status !== 'authenticated' 
-            ? "Đăng nhập để yêu thích sản phẩm" 
-            : isFavorite 
-              ? "Bỏ yêu thích" 
+          status !== 'authenticated'
+            ? "Đăng nhập để yêu thích sản phẩm"
+            : isFavorite
+              ? "Bỏ yêu thích"
               : "Yêu thích"
         }
       >
+        {isProductDetailPage && (
+          <span>{favoriteCountState}</span>
+        )}
         {isFavorite ? (
           <Heart className="fill-red-500 text-red-500" size={iconSize} />
         ) : (

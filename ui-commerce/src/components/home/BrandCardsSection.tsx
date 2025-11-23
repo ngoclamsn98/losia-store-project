@@ -44,7 +44,7 @@ export default function BrandCardsSection() {
       className="relative isolate w-full bg-white py-10"
       data-component="brand-cards"
     >
-      <div className="mx-auto max-w-6xl px-4">
+      <div className="mx-auto max-w-full">
         {/* (Tiêu đề để trống theo mẫu) */}
         <h2 className="sr-only">Brand Cards</h2>
 
@@ -53,10 +53,10 @@ export default function BrandCardsSection() {
             const Wrapper = card.external ? "a" : Link;
             const wrapperProps = card.external
               ? {
-                  href: card.href,
-                  target: "_blank",
-                  rel: "noreferrer",
-                }
+                href: card.href,
+                target: "_blank",
+                rel: "noreferrer",
+              }
               : { href: card.href };
 
             return (

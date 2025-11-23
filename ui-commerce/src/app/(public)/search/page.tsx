@@ -101,7 +101,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
 
                       {/* Favorite Button */}
                       <div className="absolute right-2 top-2 z-10">
-                        <FavoriteButton productId={product.id} className="h-8 w-8" iconSize={18} />
+                        <FavoriteButton productId={product.id} className="p-[7px]" iconSize={18} />
                       </div>
 
                       {/* Discount Badge */}

@@ -224,9 +224,8 @@ export default function OrdersClient() {
                     </div>
                     <div className="flex items-center gap-3">
                       <span
-                        className={`px-3 py-1 rounded-full text-sm font-medium border ${
-                          statusColors[order.status]
-                        }`}
+                        className={`px-3 py-1 rounded-full text-sm font-medium border ${statusColors[order.status]
+                          }`}
                       >
                         {statusLabels[order.status]}
                       </span>
@@ -244,7 +243,7 @@ export default function OrdersClient() {
                 {/* Order Items */}
                 <div className="px-6 py-4">
                   <div className="space-y-3">
-                    {order.items.slice(0, 2).map((item, index) => (
+                    {order.items.map((item, index) => (
                       <div key={index} className="flex items-center gap-4">
                         {item.imageUrl && (
                           <img
@@ -271,11 +270,6 @@ export default function OrdersClient() {
                         </div>
                       </div>
                     ))}
-                    {order.items.length > 2 && (
-                      <p className="text-sm text-gray-600 pt-2">
-                        + {order.items.length - 2} sản phẩm khác
-                      </p>
-                    )}
                   </div>
                 </div>
 

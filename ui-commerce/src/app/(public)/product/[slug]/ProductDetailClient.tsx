@@ -48,6 +48,8 @@ type ProductDetail = {
   hoursOfLighting?: number | null;
   kmsOfDriving?: number | null;
   brandName?: string | null;
+  newWithTag?: boolean;
+  numberCode?: string | null;
 };
 
 type Props = {
@@ -65,7 +67,7 @@ export default function ProductDetailClient({ product: initialProduct, variants 
   // Tính toán product data dựa trên variant được chọn
   const product = useMemo(() => {
     const selectedVariant = variants.find(v => v.id === selectedVariantId) || defaultVariant;
-    
+
     if (!selectedVariant) return initialProduct;
 
     // Tính discount percent
@@ -117,6 +119,7 @@ export default function ProductDetailClient({ product: initialProduct, variants 
         price: selectedVariant.price,
         quantity: 1,
         imageUrl: selectedVariant.imageUrl || product.thumbnailUrl,
+        slug: selectedVariant.slug
       };
 
       addToLocalCart(cartItem);
@@ -146,7 +149,7 @@ export default function ProductDetailClient({ product: initialProduct, variants 
         localStorage.setItem('losia:open-minicart', '1');
         window.dispatchEvent(new CustomEvent('losia:cart-changed'));
         window.dispatchEvent(new CustomEvent('losia:minicart:open'));
-      } catch {}
+      } catch { }
 
       setCartMessage({
         type: 'success',
@@ -165,6 +168,7 @@ export default function ProductDetailClient({ product: initialProduct, variants 
               item_category: categoryName,
               price: product.price,
               quantity: 1,
+              slug: product.slug,
             }],
           },
         });
@@ -181,7 +185,7 @@ export default function ProductDetailClient({ product: initialProduct, variants 
   };
 
   const renderEcoImpactSection = () => {
-     if (product.glassesOfWater && product.hoursOfLighting && product.kmsOfDriving) {
+    if (product.glassesOfWater && product.hoursOfLighting && product.kmsOfDriving) {
       return (
         <EcoImpactSection
           productType={
@@ -217,15 +221,16 @@ export default function ProductDetailClient({ product: initialProduct, variants 
         content={product.content}
         description={product.description}
         brandName={product.brandName}
+        newWithTag={product.newWithTag}
         cta={
           <div className="space-y-3">
             <button
               onClick={handleAddToCart}
               disabled={outOfStock || isAddingToCart}
               className={`
-                w-full px-6 py-3 rounded-xl font-semibold transition
-                ${outOfStock 
-                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                w-full px-6 py-3 rounded-[4px] font-semibold transition
+                ${outOfStock
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                   : 'bg-black text-white hover:bg-gray-800'
                 }
               `}
@@ -236,8 +241,8 @@ export default function ProductDetailClient({ product: initialProduct, variants 
             {cartMessage && (
               <div className={`
                 px-4 py-2 rounded-lg text-sm text-center
-                ${cartMessage.type === 'success' 
-                  ? 'bg-green-50 text-green-800 border border-green-200' 
+                ${cartMessage.type === 'success'
+                  ? 'bg-green-50 text-green-800 border border-green-200'
                   : 'bg-red-50 text-red-800 border border-red-200'
                 }
               `}>
@@ -264,7 +269,7 @@ export default function ProductDetailClient({ product: initialProduct, variants 
       )}
 
       {/* Thông tin sản phẩm */}
-      <ItemDetailsSection description={product.description || ''} />
+      <ItemDetailsSection description={product.description || ''} itemNumber={product.numberCode} />
 
       {/* Kích cỡ & phom dáng */}
       <SizeFitSection

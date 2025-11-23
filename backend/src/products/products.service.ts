@@ -6,6 +6,7 @@ import { ProductVariant } from './entities/product-variant.entity';
 import { Category } from '../categories/entities/category.entity';
 import { EcoImpact } from '../eco-impacts/entities/eco-impact.entity';
 import { ProductCondition } from '../product-conditions/entities/product-condition.entity';
+import { FavoriteProduct } from '../favorites/entities/favorite.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateProductVariantDto } from './dto/update-product-variant.dto';
@@ -28,87 +29,94 @@ export class ProductsService {
     private ecoImpactRepository: Repository<EcoImpact>,
     @InjectRepository(ProductCondition)
     private productConditionRepository: Repository<ProductCondition>,
+    @InjectRepository(FavoriteProduct)
+    private favoriteRepository: Repository<FavoriteProduct>,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
-  ) {}
+  ) { }
 
   async create(createProductDto: CreateProductDto, userId?: string): Promise<Product | undefined> {
     try {
       // Generate slug if not provided
-    if (!createProductDto.slug) {
-      createProductDto.slug = this.generateSlug(createProductDto.name);
-    }
-
-    // Check if slug already exists and auto-generate unique slug
-    createProductDto.slug = await this.ensureUniqueSlug(createProductDto.slug);
-
-    // Ensure at least one variant is marked as default
-    const hasDefault = createProductDto.variants.some((v) => v.isDefault);
-    if (!hasDefault && createProductDto.variants.length > 0) {
-      createProductDto.variants[0].isDefault = true;
-    }
-
-    // Create product with variants
-    const { variants, categoryIds, ecoImpactId, productConditionId, ...productData } = createProductDto;
-    const product = this.productRepository.create({
-      ...productData,
-      createdById: userId, // Set creator
-    });
-
-    // Handle categories if provided
-    if (categoryIds && categoryIds.length > 0) {
-      const categories = await this.categoryRepository.find({
-        where: { id: In(categoryIds) },
-      });
-
-      if (categories.length !== categoryIds.length) {
-        throw new BadRequestException('One or more categories not found');
+      if (!createProductDto.slug) {
+        createProductDto.slug = this.generateSlug(createProductDto.name);
       }
 
-      product.categories = categories;
-    }
+      // Check if slug already exists and auto-generate unique slug
+      createProductDto.slug = await this.ensureUniqueSlug(createProductDto.slug);
 
-    // Handle eco impact if provided
-    if (ecoImpactId) {
-      const ecoImpact = await this.ecoImpactRepository.findOne({
-        where: { id: ecoImpactId },
-      });
-
-      if (!ecoImpact) {
-        throw new BadRequestException('Eco impact not found');
+      // Ensure at least one variant is marked as default
+      const hasDefault = createProductDto.variants.some((v) => v.isDefault);
+      if (!hasDefault && createProductDto.variants.length > 0) {
+        createProductDto.variants[0].isDefault = true;
       }
 
-      product.ecoImpactId = ecoImpactId;
-    }
+      // Create product with variants
+      const { variants, categoryIds, ecoImpactId, productConditionId, ...productData } = createProductDto;
 
-    // Handle product condition if provided
-    if (productConditionId) {
-      const productCondition = await this.productConditionRepository.findOne({
-        where: { id: productConditionId },
+      // Generate unique number code
+      const numberCode = await this.generateNumberCode();
+
+      const product = this.productRepository.create({
+        ...productData,
+        numberCode,
+        createdById: userId, // Set creator
       });
 
-      if (!productCondition) {
-        throw new BadRequestException('Product condition not found');
+      // Handle categories if provided
+      if (categoryIds && categoryIds.length > 0) {
+        const categories = await this.categoryRepository.find({
+          where: { id: In(categoryIds) },
+        });
+
+        if (categories.length !== categoryIds.length) {
+          throw new BadRequestException('One or more categories not found');
+        }
+
+        product.categories = categories;
       }
 
-      product.productConditionId = productConditionId;
-    }
+      // Handle eco impact if provided
+      if (ecoImpactId) {
+        const ecoImpact = await this.ecoImpactRepository.findOne({
+          where: { id: ecoImpactId },
+        });
 
-    // Save product first
-    const savedProduct = await this.productRepository.save(product);
+        if (!ecoImpact) {
+          throw new BadRequestException('Eco impact not found');
+        }
 
-    // Create variants
-    const variantEntities = variants.map((variantDto) => {
-      const variant = this.variantRepository.create({
-        ...variantDto,
-        productId: savedProduct.id,
+        product.ecoImpactId = ecoImpactId;
+      }
+
+      // Handle product condition if provided
+      if (productConditionId) {
+        const productCondition = await this.productConditionRepository.findOne({
+          where: { id: productConditionId },
+        });
+
+        if (!productCondition) {
+          throw new BadRequestException('Product condition not found');
+        }
+
+        product.productConditionId = productConditionId;
+      }
+
+      // Save product first
+      const savedProduct = await this.productRepository.save(product);
+
+      // Create variants
+      const variantEntities = variants.map((variantDto) => {
+        const variant = this.variantRepository.create({
+          ...variantDto,
+          productId: savedProduct.id,
+        });
+        return variant;
       });
-      return variant;
-    });
 
-    await this.variantRepository.save(variantEntities);
+      await this.variantRepository.save(variantEntities);
 
-    // Return product with variants
-    return await this.findOne(savedProduct.id);
+      // Return product with variants
+      return await this.findOne(savedProduct.id);
     } catch (error) {
       this.logger.error('Error creating product', error);
     }
@@ -395,7 +403,7 @@ export class ProductsService {
     return { attributes };
   }
 
-  async findOne(id: string): Promise<Product> {
+  async findOne(id: string): Promise<Product & { favoriteCount: number }> {
     const product = await this.productRepository.findOne({
       where: { id },
       relations: ['variants', 'categories', 'ecoImpact', 'productCondition'],
@@ -405,10 +413,15 @@ export class ProductsService {
       throw new NotFoundException('Product not found');
     }
 
-    return product;
+    // Count favorites for this product
+    const favoriteCount = await this.favoriteRepository.count({
+      where: { productId: id },
+    });
+
+    return { ...product, favoriteCount };
   }
 
-  async findBySlug(slug: string): Promise<Product> {
+  async findBySlug(slug: string): Promise<Product & { favoriteCount: number }> {
     const product = await this.productRepository.findOne({
       where: { slug },
       relations: ['variants', 'categories', 'ecoImpact', 'productCondition'],
@@ -422,7 +435,12 @@ export class ProductsService {
     product.views += 1;
     await this.productRepository.save(product);
 
-    return product;
+    // Count favorites for this product
+    const favoriteCount = await this.favoriteRepository.count({
+      where: { productId: product.id },
+    });
+
+    return { ...product, favoriteCount };
   }
 
   async update(id: string, updateProductDto: UpdateProductDto): Promise<Product> {
@@ -1407,6 +1425,41 @@ export class ProductsService {
       slug = `${baseSlug}-${counter}`;
     }
   }
+
+  /**
+   * Generate a unique number code for product
+   * Format: YYYYMMDD-XXXXXX (e.g., 20250119-123456)
+   * Where XXXXXX is a random 6-digit number
+   */
+  private async generateNumberCode(): Promise<string> {
+    const maxAttempts = 10;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      // Get current date in YYYYMMDD format
+      const datePrefix = dayjs().format('YYYYMMDD');
+
+      // Generate random 6-digit number
+      const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+
+      const numberCode = `${datePrefix}-${randomSuffix}`;
+
+      // Check if this code already exists
+      const existing = await this.productRepository.findOne({
+        where: { numberCode },
+      });
+
+      if (!existing) {
+        return numberCode;
+      }
+    }
+
+    // If we couldn't generate a unique code after max attempts,
+    // fall back to using timestamp + random number
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000);
+    return `${dayjs().format('YYYYMMDD')}-${timestamp}${random}`;
+  }
+
 
   /**
    * Find products grouped by brand for "People Also Shop" feature

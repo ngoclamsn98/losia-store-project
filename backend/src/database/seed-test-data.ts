@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import * as dotenv from 'dotenv';
 import * as bcrypt from 'bcrypt';
+import * as dayjs from 'dayjs';
 import { ClientUser } from '../client-users/entities/client-user.entity';
 import { Product, ProductStatus } from '../products/entities/product.entity';
 import { ProductVariant } from '../products/entities/product-variant.entity';
@@ -221,6 +222,35 @@ const PRODUCTS_DATA = [
   },
 ];
 
+/**
+ * Generate a unique number code for product
+ * Format: YYYYMMDD-XXXXXX (e.g., 20250119-123456)
+ * Where XXXXXX is a random 6-digit number
+ */
+async function generateNumberCode(productRepository: any): Promise<string> {
+  const maxAttempts = 10;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    // Get current date in YYYYMMDD format
+    const datePrefix = dayjs().format('YYYYMMDD');
+
+    // Generate random 6-digit number
+    const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+
+    const numberCode = `${datePrefix}${randomSuffix}`;
+
+    // Check if this code already exists
+    const existing = await productRepository.findOne({
+      where: { numberCode },
+    });
+
+    if (!existing) {
+      return numberCode;
+    }
+  }
+
+  throw new Error('Failed to generate unique number code after maximum attempts');
+}
 
 async function seedTestData() {
   try {
@@ -285,6 +315,9 @@ async function seedTestData() {
         console.log(`- Product already exists: ${productData.name}`);
         createdProducts.push(existingProduct);
       } else {
+        // Generate unique number code
+        const numberCode = await generateNumberCode(productRepository);
+
         const product = productRepository.create({
           brandName: productData.brandName,
           name: productData.name,
@@ -294,6 +327,7 @@ async function seedTestData() {
           thumbnailUrl: productData.imageUrl,
           imageUrls: [productData.imageUrl],
           isFeatured: false,
+          numberCode,
         });
 
         const savedProduct = await productRepository.save(product);

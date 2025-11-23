@@ -10,6 +10,7 @@ type CartProduct = {
   price: number;
   brand?: string;
   category?: string;
+  slug: string;
 };
 
 export default function AddToCartTracked({
@@ -90,6 +91,7 @@ export default function AddToCartTracked({
                 item_category: product.category,
                 price: product.price,
                 quantity: 1,
+                slug: product.slug,
               },
             ],
           },

@@ -16,7 +16,7 @@ const DEFAULT_SORT = "newest";
 const fmtVND = (n?: string | number | null) => {
   if (!n) return '0đ';
 
-  const num =  typeof(n) === "string" ? Number(n) : n;
+  const num = typeof (n) === "string" ? Number(n) : n;
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 'đ';
 }
 
@@ -492,7 +492,7 @@ function ProductCardItem({
   p: ProductCard;
   index: number;
   onQuickView: () => void;
-  }) {
+}) {
   const discount = getDiscountPercent(p);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
@@ -514,6 +514,7 @@ function ProductCardItem({
         price: p.price,
         quantity: 1,
         imageUrl: p.thumbnailUrl,
+        slug: p.slug,
       };
 
       addToLocalCart(cartItem);
@@ -543,7 +544,7 @@ function ProductCardItem({
         localStorage.setItem('losia:open-minicart', '1');
         window.dispatchEvent(new CustomEvent('losia:cart-changed'));
         window.dispatchEvent(new CustomEvent('losia:minicart:open'));
-      } catch {}
+      } catch { }
 
       // 4. Track analytics (giữ nguyên)
       if (typeof window !== 'undefined') {
@@ -555,6 +556,7 @@ function ProductCardItem({
               item_name: p.title,
               price: p.price,
               quantity: 1,
+              slug: p.slug,
             }],
           },
         });
@@ -567,9 +569,9 @@ function ProductCardItem({
   };
 
   return (
-    <div className="group relative rounded-2xl border hover:shadow-sm transition overflow-hidden">
+    <div className="group relative rounded-[4px] border hover:shadow-sm transition overflow-hidden">
       <Link href={`/product/${p.slug}`} className="block relative">
-        <div className="relative w-full aspect-[4/5] rounded-lg overflow-hidden bg-gray-100">
+        <div className="relative w-full aspect-[4/5] rounded-[4px] overflow-hidden bg-gray-100">
           {p.thumbnailUrl ? (
             <Image
               src={p.thumbnailUrl}
@@ -587,7 +589,7 @@ function ProductCardItem({
 
         {/* Favorite Button */}
         <div className="absolute right-2 top-2 z-10">
-          <FavoriteButton productId={p.id} className="h-8 w-8" iconSize={18} />
+          <FavoriteButton productId={p.id} className="p-[7px]" iconSize={18} />
         </div>
 
         {/* Badges */}
@@ -604,7 +606,7 @@ function ProductCardItem({
           <span className="text-xs text-gray-500">{p.title}</span>
         </Link>
 
-        <div className="mt-1.5 flex items-baseline gap-2">
+        <div className="mt-1.5 flex items-baseline flex-col">
           <span className="text-[15px] font-bold">{fmtVND(p.price)}</span>
           {Number(p.oldPrice) && Number(p.oldPrice) > Number(p.price) && (
             <span className="text-xs text-gray-500 line-through">{fmtVND(p.oldPrice)}</span>
@@ -623,7 +625,7 @@ function ProductCardItem({
             className="px-2 py-1.5 rounded-lg border hover:bg-gray-50"
             title="Xem nhanh"
           >
-          <EyeIcon />
+            <EyeIcon />
           </button>
           <button
             aria-label="Thêm vào giỏ"
@@ -675,6 +677,7 @@ function ProductListItem({
         price: p.price,
         quantity: 1,
         imageUrl: p.thumbnailUrl,
+        slug: p.slug,
       };
 
       addToLocalCart(cartItem);
@@ -702,7 +705,7 @@ function ProductListItem({
         localStorage.setItem('losia:open-minicart', '1');
         window.dispatchEvent(new CustomEvent('losia:cart-changed'));
         window.dispatchEvent(new CustomEvent('losia:minicart:open'));
-      } catch {}
+      } catch { }
 
       // 4. Track analytics
       if (typeof window !== 'undefined') {
@@ -714,6 +717,7 @@ function ProductListItem({
               item_name: p.title,
               price: p.price,
               quantity: 1,
+              slug: p.slug,
             }],
           },
         });
@@ -726,15 +730,15 @@ function ProductListItem({
   };
 
   return (
-    <div className="rounded-2xl border p-3 hover:shadow-sm transition">
+    <div className="rounded-[4px] border p-3 hover:shadow-sm transition">
       <div className="grid grid-cols-[120px_1fr] md:grid-cols-[180px_1fr_auto] gap-3 md:gap-6 items-center">
-        <Link href={`/product/${p.slug}`} className="relative w-full aspect-[4/5] rounded-lg overflow-hidden bg-gray-100 block">
+        <Link href={`/product/${p.slug}`} className="relative w-full aspect-[4/5] rounded-[4px] overflow-hidden bg-gray-100 block">
           {p.thumbnailUrl && (
             <Image src={p.thumbnailUrl} alt={p.title} fill className="object-cover" />
           )}
           {/* Favorite Button */}
           <div className="absolute right-2 top-2 z-10">
-            <FavoriteButton productId={p.id} className="h-8 w-8" iconSize={18} />
+            <FavoriteButton productId={p.id} className="p-[7px]" iconSize={18} favoriteCount={p.favoriteCount} />
           </div>
         </Link>
 
@@ -899,7 +903,7 @@ function QuickViewModal({ product, onClose }: { product: ProductCard; onClose: (
               )}
             </div>
             <p className="mt-4 text-gray-700 text-sm leading-6">{product.description}</p>
-            { product?.content &&  <p dangerouslySetInnerHTML={{ __html: product.content }}/>}
+            {product?.content && <p dangerouslySetInnerHTML={{ __html: product.content }} />}
             <div className="mt-6 flex items-center gap-3">
               <Link href={`/product/${product.slug}`} className="px-4 py-2.5 rounded-xl bg-black text-white hover:opacity-90">
                 Xem chi tiết

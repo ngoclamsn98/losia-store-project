@@ -31,7 +31,7 @@ export default function BlogCarouselSection() {
 
   return (
     <section className="relative isolate w-full bg-gray-50 py-12" data-component="blog-carousel">
-      <div className="mx-auto max-w-6xl px-4">
+      <div className="mx-auto max-w-full px-4">
         {/* Title */}
         <h2 className="text-center text-2xl font-semibold tracking-tight text-gray-900 md:text-3xl">
           Khám phá blog phong cách vintage
@@ -39,35 +39,32 @@ export default function BlogCarouselSection() {
 
         {/* Controls */}
         <div className="relative mt-6">
-          {/* Left gradient + button */}
-          <div className="pointer-events-none absolute left-0 top-0 z-[2] h-full w-8 bg-gradient-to-r from-gray-50 to-transparent sm:w-12" />
-          {/* Left button */}
-<button
-  type="button"
-  aria-label="Scroll blogs left"
-  onClick={() => scrollBy(-320)}
-  className="absolute left-2 top-1/2 z-[3] hidden -translate-y-1/2 select-none rounded-full border bg-white/90 p-3 shadow md:inline-flex hover:bg-white focus:outline-none focus:ring-2 focus:ring-black/20"
->
-  <img
-    src="/assets/icons/arrow-left.svg"
-    alt="prev"
-    className="h-5 w-5"
-  />
-</button>
+          <button
+            type="button"
+            aria-label="Scroll blogs left"
+            onClick={() => scrollBy(-320)}
+            className="absolute left-2 top-1/2 z-[3] hidden -translate-y-1/2 select-none rounded-full border bg-white/90 p-3 shadow md:inline-flex hover:bg-white focus:outline-none focus:ring-2 focus:ring-black/20"
+          >
+            <img
+              src="/assets/icons/arrow-left.svg"
+              alt="prev"
+              className="h-5 w-5"
+            />
+          </button>
 
-{/* Right button */}
-<button
-  type="button"
-  aria-label="Scroll blogs right"
-  onClick={() => scrollBy(320)}
-  className="absolute right-2 top-1/2 z-[3] hidden -translate-y-1/2 select-none rounded-full border bg-white/90 p-3 shadow md:inline-flex hover:bg-white focus:outline-none focus:ring-2 focus:ring-black/20"
->
-  <img
-    src="/assets/icons/arrow-right.svg"
-    alt="next"
-    className="h-5 w-5"
-  />
-</button>
+          {/* Right button */}
+          <button
+            type="button"
+            aria-label="Scroll blogs right"
+            onClick={() => scrollBy(320)}
+            className="absolute right-2 top-1/2 z-[3] hidden -translate-y-1/2 select-none rounded-full border bg-white/90 p-3 shadow md:inline-flex hover:bg-white focus:outline-none focus:ring-2 focus:ring-black/20"
+          >
+            <img
+              src="/assets/icons/arrow-right.svg"
+              alt="next"
+              className="h-5 w-5"
+            />
+          </button>
 
           {/* Track (1 section, 1 hàng, trượt ngang) */}
           <div

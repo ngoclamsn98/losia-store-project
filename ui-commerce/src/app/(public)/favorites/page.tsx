@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Heart, ShoppingCart, Trash2 } from "lucide-react";
-import { getLocalFavorites, removeFromFavorites } from "@/lib/favorites/localStorage";
+import { Heart, ShoppingCart } from "lucide-react";
+import { getLocalFavorites } from "@/lib/favorites/localStorage";
 import { getProductById } from "@/lib/api/products";
+import { addToLocalCart } from "@/lib/cart/localStorage";
 import type { Product } from "@/types/product";
 import FavoriteButton from "@/components/product/FavoriteButton";
 import { useCart } from "@/app/providers/CartProvider";
@@ -17,7 +18,7 @@ interface FavoriteProduct extends Product {
 export default function FavoritesPage() {
   const [products, setProducts] = useState<FavoriteProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const { addItem } = useCart();
+  const { refresh } = useCart();
 
   // Load favorites from localStorage and fetch product details
   useEffect(() => {
@@ -25,7 +26,7 @@ export default function FavoritesPage() {
       setLoading(true);
       try {
         const favorites = getLocalFavorites();
-        
+
         if (favorites.items.length === 0) {
           setProducts([]);
           setLoading(false);
@@ -45,10 +46,10 @@ export default function FavoritesPage() {
 
         const fetchedProducts = await Promise.all(productPromises);
         const validProducts = fetchedProducts.filter((p): p is FavoriteProduct => p !== null);
-        
+
         // Sort by addedAt (newest first)
         validProducts.sort((a, b) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime());
-        
+
         setProducts(validProducts);
       } catch (error) {
         console.error("Error loading favorites:", error);
@@ -74,14 +75,22 @@ export default function FavoritesPage() {
     const defaultVariant = product.variants?.find((v) => v.isDefault) || product.variants?.[0];
     if (!defaultVariant) return;
 
-    addItem({
-      id: product.id,
-      name: product.name,
+    // Add to localStorage cart
+    addToLocalCart({
+      variantId: defaultVariant.id,
+      productId: product.id,
+      productName: product.name,
+      variantName: defaultVariant.name,
       price: defaultVariant.price,
       quantity: 1,
-      image: defaultVariant.imageUrl || product.thumbnailUrl || "",
-      variant: defaultVariant.name || "Default",
+      imageUrl: defaultVariant.imageUrl || product.thumbnailUrl,
     });
+
+    // Refresh cart context
+    refresh();
+
+    // Dispatch event for cart icon update
+    window.dispatchEvent(new CustomEvent("losia:cart-changed"));
   };
 
   const formatPrice = (price: number) => {
@@ -170,7 +179,7 @@ export default function FavoritesPage() {
 
                       {/* Favorite Button */}
                       <div className="absolute right-2 top-2 z-10">
-                        <FavoriteButton productId={product.id} className="h-8 w-8" iconSize={18} />
+                        <FavoriteButton productId={product.id} className="p-[7px]" iconSize={18} />
                       </div>
 
                       {/* Discount Badge */}

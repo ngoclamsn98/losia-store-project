@@ -14,6 +14,7 @@ export type CartItem = {
   quantity: number;
   imageUrl?: string | null;
   addedAt: string; // ISO timestamp
+  slug: string;
 };
 
 export type LocalCart = {

@@ -24,6 +24,7 @@ type DetailedItem = {
     cover: string | null;
     inStock: boolean;
     variantName?: string | null;
+    slug: string;
   };
 };
 
@@ -52,6 +53,7 @@ export default function CartPage() {
         cover: item.imageUrl || null,
         inStock: true,
         variantName: item.variantName,
+        slug: item.slug,
       },
     }));
 
@@ -83,7 +85,7 @@ export default function CartPage() {
   const finalTotal = subtotal - discount;
 
   return (
-    <main className="mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+    <main className="mx-auto max-w-6xl px-4 py-8 grid grid-cols-1 md:grid-cols-3 gap-6">
       <ViewCartAnalytics items={items} value={subtotal} />
 
       {/* LEFT: items */}

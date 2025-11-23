@@ -43,6 +43,7 @@ async function fetchSeasonOutfits(): Promise<any[]> {
         images: p.imageUrls || [],
         cover: p.thumbnailUrl || null,
         conditionValue: null,
+        numberCode: p.numberCode || null,
       };
     });
     

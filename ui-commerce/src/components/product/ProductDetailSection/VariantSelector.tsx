@@ -14,6 +14,7 @@ export type ProductVariant = {
   imageUrl?: string | null;
   attributes?: Record<string, string> | null;
   brandName?: string | null;
+  slug: string;
 };
 
 type Props = {

@@ -63,7 +63,7 @@ export default function PeopleAlsoShop({
   return (
     <section className="mt-8 md:mt-12">
       <div className="mb-4 flex items-center justify-between px-4 sm:px-0">
-        <h2 className="text-base sm:text-lg md:text-xl font-semibold tracking-tight">
+        <h2 className="text-2xl font-semibold text-gray-900">
           Mọi Người Mua {currentBrand || "this brand"} Cũng Mua
         </h2>
       </div>

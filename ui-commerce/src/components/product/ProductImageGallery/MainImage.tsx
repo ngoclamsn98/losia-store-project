@@ -22,6 +22,9 @@ type MainImageProps = {
   has360?: boolean;
   similarHref?: string;
   productId?: string; // For favorite button
+  favoriteCount?: number;
+  isProductDetailPage?: boolean;  
+  numberCode?: string | null;
 };
 
 export default function MainImage({
@@ -40,6 +43,9 @@ export default function MainImage({
   has360 = false,
   similarHref,
   productId,
+  favoriteCount,
+  isProductDetailPage = false,
+  numberCode,
 }: MainImageProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const rAFRef = useRef<number | null>(null);
@@ -104,11 +110,11 @@ export default function MainImage({
 
   const imgStyle: React.CSSProperties | undefined = hoverZoom
     ? {
-        transformOrigin: `${origin.x}% ${origin.y}%`,
-        transform: `scale(${hover ? zoomScale : 1})`,
-        transition: hover ? 'transform 0s' : 'transform 150ms ease-out',
-        willChange: 'transform',
-      }
+      transformOrigin: `${origin.x}% ${origin.y}%`,
+      transform: `scale(${hover ? zoomScale : 1})`,
+      transition: hover ? 'transform 0s' : 'transform 150ms ease-out',
+      willChange: 'transform',
+    }
     : undefined;
 
   const btnFabWhite =
@@ -187,7 +193,8 @@ export default function MainImage({
           </a>
         )}
         {productId && (
-          <FavoriteButton productId={productId} className="h-10 w-10" iconSize={20} />
+          <FavoriteButton productId={productId} className="p-[7px]" iconSize={20} favoriteCount={favoriteCount} isProductDetailPage={isProductDetailPage}
+          />
         )}
       </div>
 
