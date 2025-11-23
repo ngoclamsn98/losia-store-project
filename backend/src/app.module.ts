@@ -32,6 +32,7 @@ import { VouchersModule } from './vouchers/vouchers.module';
 import { Voucher } from './vouchers/entities/voucher.entity';
 import { VoucherUsage } from './vouchers/entities/voucher-usage.entity';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { PaymentModule } from './payment/payment.module';
 import { winstonConfig } from './config/logger.config';
 
 @Module({
@@ -71,6 +72,7 @@ import { winstonConfig } from './config/logger.config';
     FavoritesModule,
     VouchersModule,
     DashboardModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

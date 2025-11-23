@@ -6,8 +6,8 @@ import { motion } from "framer-motion";
 import { CreditCard, PackageCheck, Truck, ShieldCheck, QrCode, WalletMinimal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart"; // Use localStorage cart
-import Image from "next/image";
 import { useSession } from "next-auth/react";
+import QRCodeLib from "qrcode";
 /**
  * LOSIA — Checkout (QR & COD)
  * - Miễn phí ship 30.000₫ khi đạt 500.000₫
@@ -209,6 +209,11 @@ function CheckoutClient({ cart, clearCart }: { cart: CartResponse; clearCart: ()
   const addressValid = Boolean(address.firstName && address.lastName && address.address1 && address.city && address.phone && address.email);
 
   const router = useRouter();
+  const [paymentQRCode, setPaymentQRCode] = useState<string | null>(null);
+  const [paymentOrderCode, setPaymentOrderCode] = useState<number | null>(null);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [orderNumberState, setOrderNumberState] = useState<any>('');
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
 
   async function placeOrder() {
     if (!addressValid) { alert("Vui lòng điền đủ thông tin giao hàng."); return; }
@@ -278,15 +283,52 @@ function CheckoutClient({ cart, clearCart }: { cart: CartResponse; clearCart: ()
         throw new Error(error.error || error.message || 'Đặt hàng thất bại');
       }
 
-      const data = await response.json() as { orderId?: string; id?: string };
-      // Clear localStorage cart
-      clearCart();
+      const data = await response.json() as { orderId?: string; id?: string; orderNumber?: string };
+      const orderNumber = data?.orderNumber || data?.orderId || data?.id || "";
+      setOrderNumberState(data.id || '');
+      // If payment method is QR, create payment link
+      if (payment === "qr") {
+        const paymentResponse = await fetch('/api/payment/create-payment-link', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderCode: orderNumber,
+            amount: 5000,
+            description: `#${orderNumber}`,
+            buyerName: `${address.firstName} ${address.lastName}`,
+            buyerEmail: address.email,
+            buyerPhone: address.phone,
+            buyerAddress: `${address.address1}, ${address.city}`,
+          }),
+        });
 
-      // Clear applied voucher from localStorage
+        if (!paymentResponse.ok) {
+          throw new Error('Không thể tạo mã QR thanh toán');
+        }
+
+        const paymentData = await paymentResponse.json();
+
+        if (paymentData.success && paymentData.data) {
+          // Show QR code modal
+          setPaymentQRCode(paymentData.data.qrCode);
+          setPaymentOrderCode(paymentData.data.orderCode);
+          setShowQRModal(true);
+
+          // DON'T clear cart yet - wait until modal is closed or payment is successful
+          // Cart will be cleared when modal closes or payment succeeds
+          localStorage.removeItem('appliedVoucher');
+
+          // Don't redirect yet - let user scan QR first
+          return;
+        }
+      }
+
+      // For COD payment, proceed normally
+      clearCart();
       localStorage.removeItem('appliedVoucher');
 
       // Redirect to thank you page
-      const url = `/thank-you?method=${payment}&order=${encodeURIComponent(data?.orderId || data?.id || "")}`;
+      const url = `/thank-you?method=${payment}&order=${encodeURIComponent(orderNumberState)}`;
       router.replace(url);
     } catch (e: any) {
       console.error("Checkout error", e);
@@ -356,6 +398,57 @@ function CheckoutClient({ cart, clearCart }: { cart: CartResponse; clearCart: ()
           />
         </div>
       </div>
+
+      {/* QR Payment Modal */}
+      {showQRModal && paymentQRCode && (
+        <QRPaymentModal
+          qrCode={paymentQRCode}
+          orderCode={paymentOrderCode}
+          total={total}
+          onClose={(isSuccess = false) => {
+            setShowQRModal(false);
+
+            if (isSuccess) {
+              // Show success notification
+              setShowSuccessNotification(true);
+
+              // Clear cart and redirect after showing notification
+              setTimeout(() => {
+                clearCart();
+                setShowSuccessNotification(false);
+                router.push(`/thank-you?method=${payment}&order=${encodeURIComponent(orderNumberState)}`);
+              }, 2000);
+            } else {
+              // User closed manually - just clear cart and redirect
+              clearCart();
+              router.push(`/thank-you?method=${payment}&order=${encodeURIComponent(orderNumberState)}`);
+            }
+          }}
+        />
+      )}
+
+      {/* Success Notification */}
+      {showSuccessNotification && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl text-center"
+          >
+            <div className="mb-4">
+              <div className="w-20 h-20 mx-auto bg-green-100 rounded-full flex items-center justify-center">
+                <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+            <h3 className="text-2xl font-bold mb-2 text-green-600">Thanh toán thành công!</h3>
+            <p className="text-neutral-600">
+              Đơn hàng của bạn đã được xác nhận. Đang chuyển hướng...
+            </p>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
@@ -510,28 +603,7 @@ function PaymentMethods({ value, onChange }: { value: PaymentMethod; onChange: (
 
 function PaymentDetails({ payment, total }: { payment: PaymentMethod; total: number }) {
   if (payment === "qr") {
-    return (
-      <div className="mt-4 grid gap-3">
-        <div className="text-sm text-neutral-700">
-          Quét mã bằng ứng dụng ngân hàng/VNPay để thanh toán tổng số tiền {formatVND(total)}.
-        </div>
-        {/* QR thật từ public/assets/images/payment/QR Payment.jpg */}
-        <div className="rounded-xl border bg-white p-4 flex items-center justify-center">
-          <Image
-            src="/assets/images/payment/QR Payment.jpg"
-            alt="Mã QR thanh toán LOSIA"
-            width={320}
-            height={320}
-            className="rounded-lg w-56 md:w-72 h-auto object-contain"
-           priority
-          />
-        </div>
-        <ul className="text-xs text-neutral-500 list-disc pl-5">
-          <li>Nội dung chuyển khoản: LOSIA + số điện thoại.</li>
-          <li>Đơn hàng sẽ tự động xác nhận sau khi nhận thanh toán.</li>
-        </ul>
-      </div>
-    );
+    return null;
   }
   return (
     <div className="mt-4 text-sm text-neutral-700">
@@ -769,5 +841,238 @@ function TrustBlocks() {
         </div>
       ))}
     </div>
+  );
+}
+
+function QRPaymentModal({
+  qrCode,
+  orderCode,
+  total,
+  onClose
+}: {
+  qrCode: string;
+  orderCode: number | null;
+  total: number;
+  onClose: (isSuccess?: boolean) => void;
+}) {
+  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'success' | 'failed'>('pending');
+  const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
+  const [showConfirmClose, setShowConfirmClose] = useState(false);
+
+  // Generate QR code image from EMVCo string
+  useEffect(() => {
+    const generateQRCode = async () => {
+      try {
+        // Convert EMVCo string to QR code image (Data URL)
+        const dataURL = await QRCodeLib.toDataURL(qrCode, {
+          width: 150,
+          margin: 2,
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF',
+          },
+        });
+        setQrCodeDataURL(dataURL);
+      } catch (error) {
+        console.error('Error generating QR code:', error);
+      }
+    };
+
+    if (qrCode) {
+      generateQRCode();
+    }
+  }, [qrCode]);
+
+  // Poll payment status every 3 seconds
+  useEffect(() => {
+    if (!orderCode) return;
+
+    const checkPaymentStatus = async () => {
+      try {
+        const response = await fetch(`/api/payment/status/${orderCode}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+          },
+        });
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          const status = data.data.status;
+          if (status === 'PAID') {
+            setPaymentStatus('success');
+            // Wait 1 second to show success state in modal, then close and show notification
+            setTimeout(() => {
+              onClose(true); // Pass true to indicate successful payment
+            }, 1000);
+          } else if (status === 'CANCELLED' || status === 'EXPIRED') {
+            setPaymentStatus('failed');
+          }
+        }
+      } catch (error) {
+        console.error('Error checking payment status:', error);
+      } finally {
+      }
+    };
+
+    const interval = setInterval(checkPaymentStatus, 3000);
+    return () => clearInterval(interval);
+  }, [orderCode, onClose]);
+
+  // Handle close button click
+  const handleCloseClick = () => {
+    if (paymentStatus === 'pending') {
+      // Show confirmation dialog if payment is still pending
+      setShowConfirmClose(true);
+    } else if (paymentStatus === 'success') {
+      // If already successful, close with success flag
+      onClose(true);
+    } else {
+      // Close directly if failed
+      onClose(false);
+    }
+  };
+
+  // Confirm close without payment
+  const confirmClose = () => {
+    setShowConfirmClose(false);
+    onClose(false);
+  };
+
+  // Cancel close confirmation
+  const cancelClose = () => {
+    setShowConfirmClose(false);
+  };
+
+  return (
+    <>
+      {/* Main QR Modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white rounded-2xl p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto shadow-2xl"
+        >
+          <div className="text-center">
+            <div className="mb-4">
+              <QrCode className="w-12 h-12 mx-auto text-neutral-900" />
+            </div>
+
+            <h2 className="text-2xl font-bold mb-2">Quét mã QR để thanh toán</h2>
+            <p className="text-neutral-600 mb-6">
+              Sử dụng ứng dụng ngân hàng để quét mã QR bên dưới
+            </p>
+
+            {/* QR Code */}
+            <div className="bg-white border-2 border-neutral-200 rounded-xl p-4 mb-6 flex justify-center">
+              {qrCodeDataURL ? (
+                <img
+                  src={qrCodeDataURL}
+                  alt="QR Code thanh toán"
+                  className="w-64 h-auto"
+                />
+              ) : (
+                <div className="w-64 h-64 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-neutral-300 border-t-neutral-900"></div>
+                </div>
+              )}
+            </div>
+
+            {/* Payment Info */}
+            <div className="bg-neutral-50 rounded-xl p-4 mb-6 text-left">
+              <div className="flex justify-between mb-2">
+                <span className="text-neutral-600">Số tiền:</span>
+                <span className="font-bold text-lg">{formatVND(total)}</span>
+              </div>
+              {orderCode && (
+                <div className="flex justify-between">
+                  <span className="text-neutral-600">Mã đơn hàng:</span>
+                  <span className="font-mono text-sm">{orderCode}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Status */}
+            {paymentStatus === 'pending' && (
+              <div className="flex items-center justify-center gap-2 text-neutral-600 mb-4">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-neutral-300 border-t-neutral-900"></div>
+                <span className="text-sm">Đang chờ thanh toán...</span>
+              </div>
+            )}
+
+            {paymentStatus === 'success' && (
+              <div className="flex items-center justify-center gap-2 text-green-600 font-semibold mb-4">
+                <span>✅ Thanh toán thành công!</span>
+              </div>
+            )}
+
+            {paymentStatus === 'failed' && (
+              <div className="text-red-600 font-semibold mb-4">
+                ❌ Thanh toán thất bại
+              </div>
+            )}
+
+            {/* Instructions */}
+            <div className="text-left text-sm text-neutral-600 mb-6">
+              <p className="font-semibold mb-2">Hướng dẫn:</p>
+              <ol className="list-decimal list-inside space-y-1">
+                <li>Mở ứng dụng ngân hàng trên điện thoại</li>
+                <li>Chọn chức năng quét mã QR</li>
+                <li>Quét mã QR phía trên</li>
+                <li>Xác nhận thanh toán</li>
+              </ol>
+            </div>
+
+            {/* Close button */}
+            <button
+              onClick={handleCloseClick}
+              className="w-full rounded-xl bg-neutral-900 text-white py-3 font-semibold hover:bg-neutral-800 transition"
+            >
+              Đóng
+            </button>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Confirmation Dialog */}
+      {showConfirmClose && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+          >
+            <div className="text-center">
+              <div className="mb-4">
+                <div className="w-16 h-16 mx-auto bg-yellow-100 rounded-full flex items-center justify-center">
+                  <span className="text-3xl">⚠️</span>
+                </div>
+              </div>
+
+              <h3 className="text-xl font-bold mb-2">Chưa hoàn tất thanh toán</h3>
+              <p className="text-neutral-600 mb-6">
+                Bạn chưa hoàn tất thanh toán. Nếu đóng cửa sổ này, đơn hàng sẽ vẫn được lưu nhưng chưa được xác nhận.
+              </p>
+
+              <div className="space-y-3">
+                <button
+                  onClick={cancelClose}
+                  className="w-full rounded-xl bg-neutral-900 text-white py-3 font-semibold hover:bg-neutral-800 transition"
+                >
+                  Tiếp tục thanh toán
+                </button>
+                <button
+                  onClick={confirmClose}
+                  className="w-full rounded-xl border-2 border-neutral-200 bg-white text-neutral-900 py-3 font-semibold hover:bg-neutral-50 transition"
+                >
+                  Đóng và thanh toán sau
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </>
   );
 }
