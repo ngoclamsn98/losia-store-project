@@ -8,6 +8,7 @@ export interface ProductType {
 export interface ProductDetail {
   id: string;
   title: string;
+  slug: string;
 
   // brand từ API có thể null → để optional|null cho an toàn
   brand?: string | null;

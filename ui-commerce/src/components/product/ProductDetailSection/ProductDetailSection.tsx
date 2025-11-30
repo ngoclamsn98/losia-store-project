@@ -33,7 +33,7 @@ export default function ProductDetailSection({ product }: { product: ProductDeta
     "Others";
 
   const description = norm(product.description) || ""; // cho phép rỗng
-console.log(product.glassesOfWater,'product.glassesOfWater');
+  console.log(product.glassesOfWater, 'product.glassesOfWater');
 
   const renderEcoImpactSection = () => {
     if (product.glassesOfWater !== 0 && product.hoursOfLighting !== 0 && product.kmsOfDriving !== 0) {
@@ -81,6 +81,7 @@ console.log(product.glassesOfWater,'product.glassesOfWater');
               price: product.price,
               brand,
               category: categoryName,
+              slug: product.slug,
             }}
             disabled={outOfStock}
           />
@@ -113,7 +114,7 @@ console.log(product.glassesOfWater,'product.glassesOfWater');
       {renderEcoImpactSection()}
 
       {/* Cam kết an toàn */}
-      
+
     </div>
   );
 }

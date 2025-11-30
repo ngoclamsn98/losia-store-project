@@ -84,6 +84,7 @@ export default function FavoritesPage() {
       price: defaultVariant.price,
       quantity: 1,
       imageUrl: defaultVariant.imageUrl || product.thumbnailUrl,
+      slug: product.slug,
     });
 
     // Refresh cart context

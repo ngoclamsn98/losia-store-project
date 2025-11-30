@@ -31,10 +31,10 @@ export function adaptProductDetail(api: ApiProduct): ProductDetail {
   const brand = toStrOrUndef(api?.brand) ?? "LOSIA";
 
   // ---- Size fallbacks (ưu tiên theo thứ tự) ----
-const rawSizeLabel =
-  toStrOrUndef(api?.size) ??              // ⚡️ ưu tiên cột size
-  toStrOrUndef(api?.sizeLabel) ??
-  toStrOrUndef(api?.sizeOption?.sizeLabel);
+  const rawSizeLabel =
+    toStrOrUndef(api?.size) ??              // ⚡️ ưu tiên cột size
+    toStrOrUndef(api?.sizeLabel) ??
+    toStrOrUndef(api?.sizeOption?.sizeLabel);
 
   const sizeLabel = rawSizeLabel ?? undefined;
   const sizeDisplay = toStrOrUndef(api?.sizeDisplay) ?? sizeLabel;
@@ -61,11 +61,11 @@ const rawSizeLabel =
     Array.isArray(api?.details)
       ? api.details.filter((d: any) => typeof d === "string" && d.trim()).map((d: string) => d.trim())
       : (typeof api?.details === "string"
-          ? api.details
-              .split(/\r?\n|•/g)
-              .map((s: string) => s.trim())
-              .filter(Boolean)
-          : undefined);
+        ? api.details
+          .split(/\r?\n|•/g)
+          .map((s: string) => s.trim())
+          .filter(Boolean)
+        : undefined);
 
   // ---- Inventory / Only-one ----
   const inventoryNum = toNumOrUndef(api?.inventory);
@@ -78,6 +78,7 @@ const rawSizeLabel =
     // Bắt buộc
     id: String(api?.id ?? ""),
     title: String(api?.title ?? ""),
+    slug: String(api?.slug ?? ""),
     brand,
     price: Number(api?.price ?? 0),
 
