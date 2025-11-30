@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import AddressSelect from '@/components/common/AddressSelect';
 
 type FormValues = {
   firstName: string;
@@ -13,10 +14,15 @@ type FormValues = {
 };
 
 export default function ShippingAddressForm({ onSubmit }: { onSubmit: (data: FormValues) => void }) {
-  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>();
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<FormValues>();
 
-    // 1. Tạo state lưu lại dữ liệu khi đã Save
+  // 1. Tạo state lưu lại dữ liệu khi đã Save
   const [savedData, setSavedData] = useState<FormValues | null>(null);
+
+  // Watch form values for address select
+  const city = watch('city');
+  const state = watch('state');
+  const postalCode = watch('postalCode');
 
   // 2. Thay handleSubmit(onSubmit) thành handleSave để set state rồi mới gọi onSubmit
   const handleSave = (data: FormValues) => {
@@ -101,35 +107,17 @@ export default function ShippingAddressForm({ onSubmit }: { onSubmit: (data: For
           />
           <label htmlFor="line2">Address Line 2 (Optional)</label>
         </div>
-        <div className="ui-floating u-flex-40">
-          <input
-            {...register('city', { required: true })}
-            id="city"
-            placeholder="City"
-            className="ui-input u-mb-0"
-          />
-          <label htmlFor="city">City*</label>
-        </div>
-        <div className="ui-floating u-flex-30">
-          <input
-            {...register('state')}
-            id="state"
-            placeholder="State"
-            className="ui-input u-mb-0"
-          />
-          <label htmlFor="state">State*</label>
-        </div>
-        <div className="ui-floating u-flex-20">
-          <input
-            {...register('postalCode', { required: true })}
-            id="zip"
-            inputMode="numeric"
-            maxLength={10}
-            placeholder="Postal Code"
-            className="ui-input u-mb-0"
-          />
-          <label htmlFor="zip">Postal Code*</label>
-        </div>
+
+        {/* Address Select Component */}
+        <AddressSelect
+          provinceValue={city || ''}
+          districtValue={state || ''}
+          wardValue={postalCode || ''}
+          onProvinceChange={(name) => setValue('city', name)}
+          onDistrictChange={(name) => setValue('state', name)}
+          onWardChange={(name) => setValue('postalCode', name)}
+          required
+        />
         <button className="ui-button tup-ui-btn-block u-mt-1xs md:u-mt-2x" type="submit">
           Save
         </button>

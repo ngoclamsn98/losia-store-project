@@ -33,6 +33,7 @@ import { Voucher } from './vouchers/entities/voucher.entity';
 import { VoucherUsage } from './vouchers/entities/voucher-usage.entity';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { PaymentModule } from './payment/payment.module';
+import { ViettelPostModule } from './viettel-post/viettel-post.module';
 import { winstonConfig } from './config/logger.config';
 
 @Module({
@@ -73,6 +74,7 @@ import { winstonConfig } from './config/logger.config';
     VouchersModule,
     DashboardModule,
     PaymentModule,
+    ViettelPostModule,
   ],
   controllers: [AppController],
   providers: [AppService],

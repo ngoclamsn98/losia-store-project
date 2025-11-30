@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart"; // Use localStorage cart
 import { useSession } from "next-auth/react";
 import QRCodeLib from "qrcode";
+import AddressSelect from "@/components/common/AddressSelect";
 /**
  * LOSIA — Checkout (QR & COD)
  * - Miễn phí ship 30.000₫ khi đạt 500.000₫
@@ -503,15 +504,27 @@ function FreeShipMiniBanner({ subtotal }: { subtotal: number }) {
 
 function AddressForm({ value, onChange }: { value: Address; onChange: (a: Address) => void }) {
   const set = (k: keyof Address) => (e: React.ChangeEvent<HTMLInputElement>) => onChange({ ...value, [k]: e.target.value });
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
       <Input label="First name" value={value.firstName} onChange={set("firstName")} required />
       <Input label="Last name" value={value.lastName} onChange={set("lastName")} required />
       <Input className="md:col-span-2" label="Address line 1" value={value.address1} onChange={set("address1")} required />
       <Input className="md:col-span-2" label="Address line 2 (optional)" value={value.address2 || ""} onChange={set("address2")} />
-      <Input label="City" value={value.city} onChange={set("city")} required />
-      <Input label="State/Province" value={value.state || ""} onChange={set("state")} />
-      <Input label="Postal code" value={value.postalCode || ""} onChange={set("postalCode")} />
+
+      {/* Address Select Component */}
+      <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-3">
+        <AddressSelect
+          provinceValue={value.city}
+          districtValue={value.state || ""}
+          wardValue={value.postalCode || ""}
+          onProvinceChange={(name) => onChange({ ...value, city: name })}
+          onDistrictChange={(name) => onChange({ ...value, state: name })}
+          onWardChange={(name) => onChange({ ...value, postalCode: name })}
+          required
+        />
+      </div>
+
       <Input label="Phone" value={value.phone} onChange={set("phone")} required />
       <Input label="Email" value={value.email} onChange={set("email")} type="email" required />
     </div>

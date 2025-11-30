@@ -102,6 +102,19 @@ export class Order {
   @Column({ name: 'is_read', default: false })
   isRead: boolean;
 
+  // Viettel Post shipping information
+  @Column({ name: 'vtp_order_code', type: 'varchar', nullable: true })
+  vtpOrderCode: string | null; // Mã vận đơn Viettel Post
+
+  @Column({ name: 'vtp_shipping_fee', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  vtpShippingFee: number | null; // Phí vận chuyển VTP
+
+  @Column({ name: 'vtp_status', type: 'varchar', nullable: true })
+  vtpStatus: string | null; // Trạng thái vận đơn VTP
+
+  @Column({ name: 'vtp_created_at', type: 'timestamp', nullable: true })
+  vtpCreatedAt: Date | null; // Thời gian tạo vận đơn VTP
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

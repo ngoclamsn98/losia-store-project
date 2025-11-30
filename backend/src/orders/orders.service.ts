@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Brackets } from 'typeorm';
@@ -12,9 +13,14 @@ import { CartService } from '../cart/cart.service';
 import { ProductVariant } from '../products/entities/product-variant.entity';
 import { PaginatedResult } from '../common/dto/pagination.dto';
 import { VouchersService } from '../vouchers/vouchers.service';
+import { ViettelPostService } from '../viettel-post/viettel-post.service';
+import { ViettelPostCreateOrderDto } from '../viettel-post/dto/create-shipping-order.dto';
+import { getProvinceId, parseAddress } from '../viettel-post/helpers/address-mapper';
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
+
   constructor(
     @InjectRepository(Order)
     private orderRepository: Repository<Order>,
@@ -22,6 +28,7 @@ export class OrdersService {
     private variantRepository: Repository<ProductVariant>,
     private cartService: CartService,
     private vouchersService: VouchersService,
+    private viettelPostService: ViettelPostService,
   ) {}
 
   private generateOrderNumber(): string {
@@ -210,6 +217,9 @@ export class OrdersService {
       await this.cartService.clearCart(clientUserId);
     }
 
+    // Tự động tạo vận đơn Viettel Post
+    await this.createViettelPostShipping(savedOrder);
+
     return savedOrder;
   }
 
@@ -340,6 +350,9 @@ export class OrdersService {
       );
     }
 
+    // Tự động tạo vận đơn Viettel Post
+    await this.createViettelPostShipping(savedOrder);
+
     return savedOrder;
   }
 
@@ -455,6 +468,113 @@ export class OrdersService {
   async delete(id: string): Promise<void> {
     const order = await this.findOne(id);
     await this.orderRepository.remove(order);
+  }
+
+  /**
+   * Tạo vận đơn Viettel Post tự động sau khi tạo order
+   */
+  private async createViettelPostShipping(order: Order): Promise<void> {
+    try {
+      this.logger.log(`Creating Viettel Post shipping for order: ${order.orderNumber}`);
+
+      // Parse địa chỉ người nhận
+      const receiverAddress = parseAddress(order.shippingAddress.address);
+      const receiverProvinceId = getProvinceId(order.shippingAddress.city);
+
+      // Lấy thông tin người gửi từ env hoặc config
+      const senderName = process.env.VIETTEL_POST_SENDER_NAME || 'Losia Store';
+      const senderPhone = process.env.VIETTEL_POST_SENDER_PHONE || '0123456789';
+      const senderAddress = process.env.VIETTEL_POST_SENDER_ADDRESS || 'Hà Nội';
+      const senderCity = process.env.VIETTEL_POST_SENDER_CITY || 'Hà Nội';
+      const senderProvinceId = getProvinceId(senderCity);
+
+      // Tính tổng khối lượng và chuẩn bị thông tin sản phẩm
+      let totalWeight = 0;
+      const productNames: string[] = [];
+
+      for (const item of order.items) {
+        // Lấy thông tin variant để có weight
+        const variant = await this.variantRepository.findOne({
+          where: { id: item.variantId },
+        });
+
+        if (variant && variant.weight) {
+          totalWeight += variant.weight * item.quantity;
+        } else {
+          // Nếu không có weight, ước tính 500g/sản phẩm
+          totalWeight += 500 * item.quantity;
+        }
+
+        productNames.push(`${item.productName} x${item.quantity}`);
+      }
+
+      // Đảm bảo weight tối thiểu 100g
+      if (totalWeight < 100) {
+        totalWeight = 100;
+      }
+
+      // Tạo DTO cho Viettel Post
+      const vtpOrderData: ViettelPostCreateOrderDto = {
+        ORDER_NUMBER: order.orderNumber,
+
+        // Thông tin người gửi
+        SENDER_FULLNAME: senderName,
+        SENDER_PHONE: senderPhone,
+        SENDER_ADDRESS: senderAddress,
+        SENDER_PROVINCE: senderProvinceId || 1, // Default Hà Nội
+
+        // Thông tin người nhận
+        RECEIVER_FULLNAME: order.shippingAddress.fullName,
+        RECEIVER_PHONE: order.shippingAddress.phone,
+        RECEIVER_ADDRESS: order.shippingAddress.address,
+        RECEIVER_PROVINCE: receiverProvinceId || 2, // Default HCM
+
+        // Thông tin hàng hóa
+        PRODUCT_NAME: productNames.join(', ').substring(0, 200), // Giới hạn 200 ký tự
+        PRODUCT_DESCRIPTION: `Đơn hàng ${order.orderNumber}`,
+        PRODUCT_QUANTITY: order.items.reduce((sum, item) => sum + item.quantity, 0),
+        PRODUCT_PRICE: Number(order.subtotal),
+        PRODUCT_WEIGHT: totalWeight,
+        PRODUCT_TYPE: 'HH', // Hàng hóa
+
+        // Thông tin dịch vụ
+        ORDER_SERVICE: 'VCN', // Viettel chuyển nhanh
+        ORDER_PAYMENT: order.paymentMethod === 'COD' ? 2 : 1, // 1: Người gửi trả, 2: Người nhận trả
+
+        // Tiền thu hộ (COD)
+        MONEY_COLLECTION: order.paymentMethod === 'COD' ? Number(order.total) : 0,
+
+        // Ghi chú
+        ORDER_NOTE: order.notes || '',
+      };
+
+      // Gọi API Viettel Post
+      const response = await this.viettelPostService.createShippingOrder(vtpOrderData);
+
+      if (response.status === 200 && response.data?.ORDER_CODE) {
+        // Cập nhật order với thông tin vận đơn VTP
+        await this.orderRepository.update(order.id, {
+          vtpOrderCode: response.data.ORDER_CODE,
+          vtpShippingFee: response.data.MONEY_TOTALFEE || null,
+          vtpStatus: 'CREATED',
+          vtpCreatedAt: new Date(),
+        });
+
+        this.logger.log(
+          `Successfully created VTP shipping. Order: ${order.orderNumber}, VTP Code: ${response.data.ORDER_CODE}`,
+        );
+      } else {
+        this.logger.warn(
+          `Failed to create VTP shipping for order ${order.orderNumber}: ${response.message}`,
+        );
+      }
+    } catch (error) {
+      // Log lỗi nhưng không throw để không ảnh hưởng đến việc tạo order
+      this.logger.error(
+        `Error creating VTP shipping for order ${order.orderNumber}:`,
+        error.message,
+      );
+    }
   }
 }
 

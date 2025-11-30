@@ -6,9 +6,15 @@ import { Order } from './entities/order.entity';
 import { ProductVariant } from '../products/entities/product-variant.entity';
 import { CartModule } from '../cart/cart.module';
 import { VouchersModule } from '../vouchers/vouchers.module';
+import { ViettelPostModule } from '../viettel-post/viettel-post.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Order, ProductVariant]), CartModule, VouchersModule],
+  imports: [
+    TypeOrmModule.forFeature([Order, ProductVariant]),
+    CartModule,
+    VouchersModule,
+    ViettelPostModule,
+  ],
   controllers: [OrdersController],
   providers: [OrdersService],
   exports: [OrdersService],
