@@ -14,7 +14,7 @@ type BrandCard = {
 
 const CARDS: BrandCard[] = [
   {
-    title: "Thẻ quà tặng Losia",
+    title: "Thẻ quà tặng Circ",
     desc: "Trao quà cho người thân món đồ seconhand — phong cách, tiết kiệm và bền vững.",
     image:
       "assets/images/home/gift-card.png",

@@ -94,7 +94,7 @@ export default function ProductDetailClient({ product: initialProduct, variants 
   }, [selectedVariantId, variants, defaultVariant, initialProduct]);
 
   const outOfStock = product.inventory <= 0;
-  const brand = (product.brand || 'LOSIA').trim();
+  const brand = (product.brand || 'Circ').trim();
   const categoryName = product.productType?.name || product.productType?.parent?.name || product.productKindForEco || 'Others';
 
   // Handle add to cart
@@ -277,7 +277,7 @@ export default function ProductDetailClient({ product: initialProduct, variants 
         measuredLength={product.measuredLength ? parseFloat(product.measuredLength) : undefined}
       />
 
-      {/* Bán cùng LOSIA */}
+      {/* Bán cùng Circ */}
       <SellWithUsSection brandName={product.brandName} />
 
       {/* Vận chuyển & đổi trả */}

@@ -23,7 +23,7 @@ const norm = (v: unknown): string => {
 
 export default function ProductDetailSection({ product }: { product: ProductDetail }) {
   const outOfStock = (product.inventory ?? 0) <= 0;
-  const brand = (product.brand || "LOSIA").trim();
+  const brand = (product.brand || "Circ").trim();
 
   // Category luôn là string an toàn
   const categoryName =
@@ -105,7 +105,7 @@ export default function ProductDetailSection({ product }: { product: ProductDeta
         measuredLength={product.measuredLength || undefined}
       />
 
-      {/* Bán cùng LOSIA */}
+      {/* Bán cùng Circ */}
       <SellWithUsSection brandName={product.brandName} />
 
       {/* Vận chuyển & đổi trả */}

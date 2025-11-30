@@ -1,7 +1,7 @@
 "use client";
 
 /*
-  LOSIA — Product Detail Page (Pro UI)
+  Circ — Product Detail Page (Pro UI)
   ------------------------------------------------------------
   • Drop-in right panel + global PDP enhancements (mobile + desktop)
   • Zero new deps (Tailwind + lucide-react only). Reuses your existing:

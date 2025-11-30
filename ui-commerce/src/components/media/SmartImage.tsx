@@ -10,39 +10,39 @@ type ProductVariant = 'thumb' | 'medium' | 'complimentary' | 'grid' | 'xlarge' |
 
 type SmartImageProps =
   | {
-      kind: 'product';
-      alt: string;
-      photoId?: string;
-      src?: string;
-      preset?: ProductPreset;
-      variant?: ProductVariant;
-      aspectRatio?: '3/4' | '1/1' | '16/9';
-      priority?: boolean;
-      className?: string;     // wrapper
-      imgClassName?: string;  // ảnh bên trong (áp dụng hover, transition…)
-      imgStyle?: CSSProperties; // phục vụ hover zoom
-      // ✅ blur LQIP
-      blurDataURL?: string;
-      placeholder?: 'blur' | 'empty';
-      sizes?: string;
+    kind: 'product';
+    alt: string;
+    photoId?: string;
+    src?: string;
+    preset?: ProductPreset;
+    variant?: ProductVariant;
+    aspectRatio?: '3/4' | '1/1' | '16/9';
+    priority?: boolean;
+    className?: string;     // wrapper
+    imgClassName?: string;  // ảnh bên trong (áp dụng hover, transition…)
+    imgStyle?: CSSProperties; // phục vụ hover zoom
+    // ✅ blur LQIP
+    blurDataURL?: string;
+    placeholder?: 'blur' | 'empty';
+    sizes?: string;
 
-    }
+  }
   | {
-      kind: 'illustration';
-      alt: string;
-      sources: { mobile: string; desktop: string };
-      sizes?: string;
-      aspectRatio?: '16/9' | '3/4';
-      priority?: boolean;
-      className?: string;
-    }
+    kind: 'illustration';
+    alt: string;
+    sources: { mobile: string; desktop: string };
+    sizes?: string;
+    aspectRatio?: '16/9' | '3/4';
+    priority?: boolean;
+    className?: string;
+  }
   | {
-      kind: 'icon';
-      src: string;
-      alt: string;
-      size?: number;
-      className?: string;
-    };
+    kind: 'icon';
+    src: string;
+    alt: string;
+    size?: number;
+    className?: string;
+  };
 
 const PRESET_MAP: Record<ProductPreset, { variant: ProductVariant; sizes: string }> = {
   homeCard: { variant: 'complimentary', sizes: '(max-width:640px) 50vw, (max-width:1024px) 33vw, 25vw' },
@@ -54,7 +54,7 @@ const PRESET_MAP: Record<ProductPreset, { variant: ProductVariant; sizes: string
 };
 
 function buildProductUrlFromId(photoId: string, variant: ProductVariant) {
-  const root = (process.env.NEXT_PUBLIC_IMG_CDN || 'https://cdn.losia.vn/assets').replace(/\/+$/, '');
+  const root = (process.env.NEXT_PUBLIC_IMG_CDN || 'https://cdn.Circ.vn/assets').replace(/\/+$/, '');
   return `${root}/${photoId}/${variant}.jpg`;
 }
 

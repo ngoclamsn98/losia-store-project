@@ -31,13 +31,13 @@ export default function Breadcrumbs({ items, className = "" }: BreadcrumbsProps)
         "@type": "ListItem",
         position: 1,
         name: "Trang chủ",
-        item: process.env.NEXT_PUBLIC_SITE_URL || "https://losia.vn",
+        item: process.env.NEXT_PUBLIC_SITE_URL || "https://Circ.vn",
       },
       ...breadcrumbItems.map((item, index) => ({
         "@type": "ListItem",
         position: index + 2,
         name: item.label,
-        item: `${process.env.NEXT_PUBLIC_SITE_URL || "https://losia.vn"}${item.href}`,
+        item: `${process.env.NEXT_PUBLIC_SITE_URL || "https://Circ.vn"}${item.href}`,
       })),
     ],
   };

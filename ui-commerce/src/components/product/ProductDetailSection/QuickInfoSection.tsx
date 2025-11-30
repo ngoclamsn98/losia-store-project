@@ -41,7 +41,7 @@ export default function QuickInfoSection({
 }: Props) {
   const hasDiscount = (discountPercent ?? 0) > 0;
   // Chuẩn hoá brand & sizeLabel
-  const brandText = (brand ?? "").trim() || "LOSIA";
+  const brandText = (brand ?? "").trim() || "Circ";
   const sizeText = normalizeSize(sizeLabel);
 
   return (

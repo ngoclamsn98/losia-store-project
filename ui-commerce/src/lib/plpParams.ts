@@ -42,8 +42,8 @@ export function parsePlpParams(raw: RawParams): PlpParams {
     if (key === "page") out.page = onlyDigits(v);
     else if (key === "price_min") out.price_min = onlyDigits(v);
     else if (key === "price_max") out.price_max = onlyDigits(v);
-    else if (key === "sort" && ["newest","price_asc","price_desc"].includes(v)) out.sort = v as any;
-    else if (key === "condition" && ["new","like_new","good","fair"].includes(v)) out.condition = v as any;
+    else if (key === "sort" && ["newest", "price_asc", "price_desc"].includes(v)) out.sort = v as any;
+    else if (key === "condition" && ["new", "like_new", "good", "fair"].includes(v)) out.condition = v as any;
     else if (key === "brand") out.brand = v;
     else if (key === "size") out.size = v;
   }
@@ -57,7 +57,7 @@ export function parseSearchParams(raw: RawParams): SearchParams {
     const v = first(raw[key]);
     if (!v) continue;
     if (key === "page") out.page = onlyDigits(v);
-    else if (key === "sort" && ["relevance","newest","price_asc","price_desc"].includes(v)) out.sort = v as any;
+    else if (key === "sort" && ["relevance", "newest", "price_asc", "price_desc"].includes(v)) out.sort = v as any;
     else if (key === "q") out.q = v.slice(0, 120);
   }
   return out;
@@ -66,7 +66,7 @@ export function parseSearchParams(raw: RawParams): SearchParams {
 // ---- canonical builder
 export function buildCanonicalForCategory(slug: string, raw: RawParams) {
   const params = parsePlpParams(raw);
-  const origin = (process.env.NEXT_PUBLIC_SITE_URL || "https://losia.vn").replace(/\/$/, "");
+  const origin = (process.env.NEXT_PUBLIC_SITE_URL || "https://circ.vn").replace(/\/$/, "");
   const url = new URL(`/c/${encodeURIComponent(slug)}`, origin);
   (Object.entries(params) as [keyof PlpParams, string | undefined][])
     .forEach(([k, v]) => { if (v) url.searchParams.set(k, v); });
@@ -75,7 +75,7 @@ export function buildCanonicalForCategory(slug: string, raw: RawParams) {
 
 export function buildCanonicalForSearch(raw: RawParams) {
   const params = parseSearchParams(raw);
-  const origin = (process.env.NEXT_PUBLIC_SITE_URL || "https://losia.vn").replace(/\/$/, "");
+  const origin = (process.env.NEXT_PUBLIC_SITE_URL || "https://circ.vn").replace(/\/$/, "");
   const url = new URL("/search", origin);
   if (params.q) url.searchParams.set("q", params.q);
   if (params.sort) url.searchParams.set("sort", params.sort);

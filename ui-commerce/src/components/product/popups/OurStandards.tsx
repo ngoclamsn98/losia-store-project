@@ -47,7 +47,7 @@ export default function OurStandards({ onClose, titleId }: OurStandardsProps) {
       {/* Nội dung chính */}
       <div className="relative bg-white rounded-md w-full py-2 px-8">
         <h2 id={titleId} className="text-xl font-bold mb-4">
-          Tiêu chuẩn chất lượng của LOSIA
+          Tiêu chuẩn chất lượng của Circ
         </h2>
         <p className="mb-4 text-sm sm:text-base text-gray-700">
           Mỗi sản phẩm trước khi lên kệ đều được đội ngũ kiểm định kỹ lưỡng.

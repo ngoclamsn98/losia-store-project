@@ -57,10 +57,10 @@ export type ProductCard = {
 
 // SEO Metadata
 export const metadata: Metadata = {
-  title: "Sản phẩm - LOSIA Store",
+  title: "Sản phẩm - Circ Store",
   description: "Khám phá kho đồ secondhand cho bạn & bé. Secondhand First — Like-new, tiết kiệm đến 90% so với giá ước tính retail.",
   openGraph: {
-    title: "Sản phẩm - LOSIA Store",
+    title: "Sản phẩm - Circ Store",
     description: "Khám phá kho đồ secondhand cho bạn & bé",
   },
 };

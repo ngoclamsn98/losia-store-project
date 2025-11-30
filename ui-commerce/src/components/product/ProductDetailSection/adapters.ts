@@ -28,7 +28,7 @@ export function pickEcoProductGroup(api: ApiProduct): string {
 
 /** Map dữ liệu từ API → ProductDetail (trả undefined thay vì null) */
 export function adaptProductDetail(api: ApiProduct): ProductDetail {
-  const brand = toStrOrUndef(api?.brand) ?? "LOSIA";
+  const brand = toStrOrUndef(api?.brand) ?? "Circ";
 
   // ---- Size fallbacks (ưu tiên theo thứ tự) ----
   const rawSizeLabel =

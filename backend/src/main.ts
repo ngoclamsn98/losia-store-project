@@ -31,10 +31,18 @@ async function bootstrap() {
   // Enable CORS for frontend
   app.enableCors({
     origin: [
+      // Local development
       'http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002',
+      // Production domains
+      'https://circ.vn',
+      'https://www.circ.vn',
+      'https://admin.circ.vn',
+      'https://api.circ.vn',
+      // Vercel deployments
       'https://frontend-tau-three-41.vercel.app',
+      'https://ui-ecommerce-eight.vercel.app',
+      // Railway deployments
       'https://project-losia-backend-production.up.railway.app',
-      "https://ui-ecommerce-eight.vercel.app"
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],

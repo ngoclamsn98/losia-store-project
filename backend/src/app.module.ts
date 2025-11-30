@@ -35,6 +35,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { PaymentModule } from './payment/payment.module';
 import { ViettelPostModule } from './viettel-post/viettel-post.module';
 import { winstonConfig } from './config/logger.config';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -74,9 +75,10 @@ import { winstonConfig } from './config/logger.config';
     VouchersModule,
     DashboardModule,
     PaymentModule,
+    MailModule,
     ViettelPostModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

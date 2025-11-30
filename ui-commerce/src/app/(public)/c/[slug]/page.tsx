@@ -51,8 +51,8 @@ export async function generateMetadata(
   { params, searchParams }: PageProps
 ): Promise<Metadata> {
   const canonicalPath = buildCanonicalForCategory(params.slug, searchParams);
-  const title = `Pre-loved ${params.slug} | LOSIA`;
-  const desc = `Khám phá đồ secondhand ${params.slug} đã qua tuyển chọn tại LOSIA.`;
+  const title = `Pre-loved ${params.slug} | Circ`;
+  const desc = `Khám phá đồ secondhand ${params.slug} đã qua tuyển chọn tại Circ.`;
   return {
     title,
     description: desc,
@@ -80,7 +80,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
     category: p.category,
   }));
 
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://losia.vn").replace(/\/$/, "");
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://Circ.vn").replace(/\/$/, "");
   const itemListLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",

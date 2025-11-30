@@ -22,27 +22,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (isNewArrivals) {
     categoryName = "Hàng Mới Về";
-    description = "Khám phá những sản phẩm mới nhất tại Losia Store. Hàng mới về trong 15 ngày qua.";
+    description = "Khám phá những sản phẩm mới nhất tại Circ Store. Hàng mới về trong 15 ngày qua.";
   } else if (isDiscounted) {
     categoryName = "Giảm Giá";
-    description = "Khám phá các sản phẩm đang giảm giá tại Losia Store. Tiết kiệm ngay hôm nay!";
+    description = "Khám phá các sản phẩm đang giảm giá tại Circ Store. Tiết kiệm ngay hôm nay!";
   } else if (isMostFavorite) {
     categoryName = "Sản Phẩm Yêu Thích Nhất";
-    description = "Khám phá những sản phẩm được yêu thích nhất tại Losia Store. Được nhiều người lựa chọn.";
+    description = "Khám phá những sản phẩm được yêu thích nhất tại Circ Store. Được nhiều người lựa chọn.";
   } else {
     // For regular categories, try to fetch category info from API
     try {
       const categoryData = await getProductsByCategorySlug(slug, { page: 1, limit: 1, status: "ACTIVE" });
       if (categoryData.category) {
         categoryName = categoryData.category.name;
-        description = categoryData.category.description || `Khám phá bộ sưu tập ${categoryName} tại Losia Store. Thời trang bền vững, chất lượng cao.`;
+        description = categoryData.category.description || `Khám phá bộ sưu tập ${categoryName} tại Circ Store. Thời trang bền vững, chất lượng cao.`;
       } else {
         // Fallback if no category info
         categoryName = slug
           .split("-")
           .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
           .join(" ");
-        description = `Khám phá bộ sưu tập ${categoryName} tại Losia Store. Thời trang bền vững, chất lượng cao.`;
+        description = `Khám phá bộ sưu tập ${categoryName} tại Circ Store. Thời trang bền vững, chất lượng cao.`;
       }
     } catch (error) {
       // Fallback on error
@@ -50,12 +50,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         .split("-")
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ");
-      description = `Khám phá bộ sưu tập ${categoryName} tại Losia Store. Thời trang bền vững, chất lượng cao.`;
+      description = `Khám phá bộ sưu tập ${categoryName} tại Circ Store. Thời trang bền vững, chất lượng cao.`;
     }
   }
 
   return {
-    title: `${categoryName} - Losia Store`,
+    title: `${categoryName} - Circ Store`,
     description,
   };
 }

@@ -20,8 +20,8 @@ export default function Footer() {
               <div>
                 <h3 className="text-sm font-semibold text-gray-900 leading-none">CÔNG TY</h3>
                 <ul className="mt-3 space-y-2 text-sm">
-                  <li><span role="link" aria-disabled="true" title="Sắp ra mắt" className="text-gray-400 cursor-not-allowed select-none">Về Losia</span></li>
-                  <li><span role="link" aria-disabled="true" title="Sắp ra mắt" className="text-gray-400 cursor-not-allowed select-none">Bán cùng Losia</span></li>
+                  <li><span role="link" aria-disabled="true" title="Sắp ra mắt" className="text-gray-400 cursor-not-allowed select-none">Về Circ</span></li>
+                  <li><span role="link" aria-disabled="true" title="Sắp ra mắt" className="text-gray-400 cursor-not-allowed select-none">Bán cùng Circ</span></li>
                   <li><span role="link" aria-disabled="true" title="Sắp ra mắt" className="text-gray-400 cursor-not-allowed select-none">Hỗ trợ</span></li>
                   <li><span role="link" aria-disabled="true" title="Sắp ra mắt" className="text-gray-400 cursor-not-allowed select-none">Chính sách bảo mật</span></li>
                 </ul>
@@ -69,7 +69,7 @@ export default function Footer() {
             <ul className="mt-3 space-y-2 text-sm">
               <li>
                 <a
-                  href="https://www.facebook.com/losia"
+                  href="https://www.facebook.com/Circ"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:opacity-80"
@@ -79,7 +79,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="https://www.instagram.com/losia"
+                  href="https://www.instagram.com/Circ"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:opacity-80"
@@ -93,7 +93,7 @@ export default function Footer() {
 
         {/* Bản quyền */}
         <div className="mt-8 border-t pt-6 text-xs text-gray-600">
-          © {new Date().getFullYear()} LOSIA — All rights reserved.
+          © {new Date().getFullYear()} Circ — All rights reserved.
         </div>
       </div>
     </footer>

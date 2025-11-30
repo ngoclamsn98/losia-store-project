@@ -13,6 +13,7 @@ import { CartService } from '../cart/cart.service';
 import { ProductVariant } from '../products/entities/product-variant.entity';
 import { PaginatedResult } from '../common/dto/pagination.dto';
 import { VouchersService } from '../vouchers/vouchers.service';
+import { MailService } from 'src/mail/mail.service';
 import { ViettelPostService } from '../viettel-post/viettel-post.service';
 import { ViettelPostCreateOrderDto } from '../viettel-post/dto/create-shipping-order.dto';
 import { getProvinceId, parseAddress } from '../viettel-post/helpers/address-mapper';
@@ -28,7 +29,9 @@ export class OrdersService {
     private variantRepository: Repository<ProductVariant>,
     private cartService: CartService,
     private vouchersService: VouchersService,
+    private mailService: MailService,
     private viettelPostService: ViettelPostService,
+
   ) {}
 
   private generateOrderNumber(): string {
@@ -217,6 +220,8 @@ export class OrdersService {
       await this.cartService.clearCart(clientUserId);
     }
 
+    // Send order confirmation email
+    dto.email && this.mailService.sendOrderConfirmationEmail(dto.email, savedOrder);
     // Tự động tạo vận đơn Viettel Post
     await this.createViettelPostShipping(savedOrder);
 
@@ -350,6 +355,8 @@ export class OrdersService {
       );
     }
 
+    // Send order confirmation email
+    this.mailService.sendOrderConfirmationEmail(dto.email, savedOrder);
     // Tự động tạo vận đơn Viettel Post
     await this.createViettelPostShipping(savedOrder);
 

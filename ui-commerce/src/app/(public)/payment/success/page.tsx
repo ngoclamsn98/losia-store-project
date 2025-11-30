@@ -51,7 +51,7 @@ export default function PaymentSuccessPage() {
           Thanh toán thành công!
         </h1>
         <p className="text-neutral-600 mb-8">
-          Cảm ơn bạn đã mua hàng tại LOSIA
+          Cảm ơn bạn đã mua hàng tại Circ
         </p>
 
         {/* Order Info */}
@@ -98,7 +98,7 @@ export default function PaymentSuccessPage() {
             Xem đơn hàng
             <ArrowRight className="w-4 h-4" />
           </Link>
-          
+
           <Link
             href="/"
             className="w-full inline-flex items-center justify-center gap-2 rounded-xl border-2 border-neutral-200 bg-white text-neutral-900 py-3 font-semibold hover:bg-neutral-50 transition"

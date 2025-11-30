@@ -3,7 +3,7 @@ import { auth } from '@/auth';
 import AccountClient from './AccountClient';
 
 export const metadata = {
-  title: 'Tài khoản - LOSIA Store',
+  title: 'Tài khoản - Circ Store',
   description: 'Quản lý thông tin tài khoản của bạn',
 };
 

@@ -15,13 +15,13 @@ export async function sendOrderEmail({
   address: string;
 }) {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.FROM_EMAIL || 'LOSIA <onboarding@resend.dev>';
+  const from = process.env.FROM_EMAIL || 'Circ <onboarding@resend.dev>';
   if (!apiKey) {
     console.error('[notify] Missing RESEND_API_KEY');
     return;
   }
 
-  const subject = `[LOSIA] Đơn mới ${orderCode} – ${method} – ${total.toLocaleString('vi-VN')}₫`;
+  const subject = `[Circ] Đơn mới ${orderCode} – ${method} – ${total.toLocaleString('vi-VN')}₫`;
 
   const html = `
     <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.5;color:#111;max-width:600px;margin:0 auto;">
@@ -36,7 +36,7 @@ export async function sendOrderEmail({
           Mở trong Admin
         </a>
       </p>
-      <p style="color:#666;font-size:12px;margin-top:24px;">Email tự động từ hệ thống LOSIA.</p>
+      <p style="color:#666;font-size:12px;margin-top:24px;">Email tự động từ hệ thống Circ.</p>
     </div>
   `;
 

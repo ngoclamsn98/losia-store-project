@@ -85,7 +85,7 @@ export default function RegisterPage() {
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-neutral-900">Đăng ký</h1>
             <p className="text-sm text-neutral-600 mt-2">
-              Tạo tài khoản để trải nghiệm LOSIA
+              Tạo tài khoản để trải nghiệm Circ
             </p>
           </div>
 
@@ -231,7 +231,7 @@ export default function RegisterPage() {
             <Link href="/privacy" className="underline hover:text-neutral-900">
               Chính sách bảo mật
             </Link>{" "}
-            của LOSIA.
+            của Circ.
           </p>
 
           {/* Divider */}

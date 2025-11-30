@@ -10,7 +10,7 @@ import { useSession } from "next-auth/react";
 import QRCodeLib from "qrcode";
 import AddressSelect from "@/components/common/AddressSelect";
 /**
- * LOSIA — Checkout (QR & COD)
+ * Circ — Checkout (QR & COD)
  * - Miễn phí ship 30.000₫ khi đạt 500.000₫
  * - Expedited cố định 45.000₫
  */
@@ -294,7 +294,7 @@ function CheckoutClient({ cart, clearCart }: { cart: CartResponse; clearCart: ()
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             orderCode: orderNumber,
-            amount: 5000,
+            amount: total,
             description: `#${orderNumber}`,
             buyerName: `${address.firstName} ${address.lastName}`,
             buyerEmail: address.email,
@@ -910,7 +910,7 @@ function QRPaymentModal({
           },
         });
         const data = await response.json();
-        
+
         if (data.success && data.data) {
           const status = data.data.status;
           if (status === 'PAID') {

@@ -13,7 +13,7 @@ export default function CheckoutHeader() {
       data-ctx="checkout-header"
     >
       <Link href="/">
-        <Image src="/assets/icons/logo.svg" alt="Losia" width={105} height={24} />
+        <Image src="/assets/icons/logo.svg" alt="Circ" width={105} height={24} />
       </Link>
       <Link href="/cart" aria-label="Cart">
         <Image

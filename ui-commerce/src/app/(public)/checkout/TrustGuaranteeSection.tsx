@@ -5,7 +5,7 @@ const guarantees = [
   {
     icon: '/assets/icons/thumbs-up.svg',
     title: 'Your credit card is safe with us',
-    desc: 'Shopping on Losia is safe and secure. We use a best-in-class third party payment system to process and store your payment methods.',
+    desc: 'Shopping on Circ is safe and secure. We use a best-in-class third party payment system to process and store your payment methods.',
   },
   {
     icon: '/assets/icons/lock-outline.svg',

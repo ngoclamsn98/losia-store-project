@@ -1,13 +1,21 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional } from 'class-validator';
 
 export class PaymentWebhookDto {
-  @ApiProperty()
+  @ApiPropertyOptional()
+  @IsOptional()
   code: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
+  @IsOptional()
   desc: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
+  @IsOptional()
+  challenge: any;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   data: {
     orderCode: number;
     amount: number;
@@ -27,7 +35,8 @@ export class PaymentWebhookDto {
     virtualAccountNumber: string;
   };
 
-  @ApiProperty()
+  @ApiPropertyOptional()
+  @IsOptional()
   signature: string;
 }
 

@@ -3,7 +3,7 @@ import { auth } from '@/auth';
 import OrdersClient from './OrdersClient';
 
 export const metadata = {
-  title: 'My Orders - LOSIA Store',
+  title: 'My Orders - Circ Store',
   description: 'View your order history',
 };
 

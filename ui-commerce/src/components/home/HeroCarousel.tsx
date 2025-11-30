@@ -18,7 +18,7 @@ const sampleSlides: Slide[] = [
   {
     title: "Tủ đầy? Dọn gọn thật dễ.",
     subtitle:
-      "Gửi đồ đã qua yêu thương cho Losia — phần còn lại để tụi mình lo.",
+      "Gửi đồ đã qua yêu thương cho Circ — phần còn lại để tụi mình lo.",
     imageUrl: "/assets/images/home/free bag.png",
     ctaText: "Gửi đồ ngay",
     ctaLink: "",

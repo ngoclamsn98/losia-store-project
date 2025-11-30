@@ -7,7 +7,7 @@ import blurManifest from '../../../blur-manifest.json'; // gọn hơn với alia
 import type { Metadata } from "next"; // ⬅️ thêm dòng này (nếu chưa có)
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/" }, // sẽ thành https://losia.vn/ nhờ metadataBase ở layout
+  alternates: { canonical: "/" }, // sẽ thành https://Circ.vn/ nhờ metadataBase ở layout
 };
 
 async function fetchProducts() {

@@ -91,7 +91,7 @@ export default function EcoImpactSection({
         <h2 className="text-base font-semibold">Tác động môi trường</h2>
         {/* nhãn nhỏ gợi ý nguồn (không mở modal) */}
         <span className="text-xs text-gray-500">
-          Nguồn: Ước tính nội bộ LOSIA
+          Nguồn: Ước tính nội bộ Circ
         </span>
       </div>
 

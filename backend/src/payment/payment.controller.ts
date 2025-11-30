@@ -69,6 +69,9 @@ export class PaymentController {
   })
   @ApiResponse({ status: 400, description: 'Invalid webhook signature' })
   handleWebhook(@Body() webhookData: PaymentWebhookDto) {
+     if (webhookData.challenge) {
+      return { challenge: webhookData.challenge };
+     }
     return this.paymentService.handlePaymentWebhook(webhookData);
   }
 

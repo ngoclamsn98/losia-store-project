@@ -27,7 +27,7 @@ const iconSizes = [72, 96, 128, 144, 152, 192, 384, 512];
 // Favicon sizes
 const faviconSizes = [16, 32, 180]; // 180 for apple-touch-icon
 
-// Create a simple LOSIA logo SVG
+// Create a simple Circ logo SVG
 const createLogoSVG = (size) => `
 <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -73,64 +73,64 @@ const createOGImageSVG = (title, subtitle) => `
   <!-- Logo -->
   <circle cx="600" cy="480" r="60" fill="white" opacity="0.2"/>
   <text x="600" y="490" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="white" text-anchor="middle">
-    LOSIA
+    Circ
   </text>
 </svg>
 `;
 
 async function generateIcons() {
   console.log('🎨 Generating PWA icons...');
-  
+
   for (const size of iconSizes) {
     const svg = createLogoSVG(size);
     const outputPath = path.join(iconsDir, `icon-${size}x${size}.png`);
-    
+
     await sharp(Buffer.from(svg))
       .png()
       .toFile(outputPath);
-    
+
     console.log(`✅ Created: icon-${size}x${size}.png`);
   }
 }
 
 async function generateFavicons() {
   console.log('\n🎨 Generating favicons...');
-  
+
   for (const size of faviconSizes) {
     const svg = createLogoSVG(size);
     let outputPath;
-    
+
     if (size === 180) {
       outputPath = path.join(__dirname, '../public/apple-touch-icon.png');
     } else {
       outputPath = path.join(__dirname, `../public/favicon-${size}x${size}.png`);
     }
-    
+
     await sharp(Buffer.from(svg))
       .png()
       .toFile(outputPath);
-    
+
     console.log(`✅ Created: ${path.basename(outputPath)}`);
   }
-  
+
   // Generate favicon.ico from 32x32
   const svg32 = createLogoSVG(32);
   const faviconPath = path.join(__dirname, '../public/favicon.ico');
-  
+
   await sharp(Buffer.from(svg32))
     .png()
     .toFile(faviconPath);
-  
+
   console.log(`✅ Created: favicon.ico`);
 }
 
 async function generateOGImages() {
   console.log('\n🎨 Generating OG images...');
-  
+
   const ogImages = [
     {
       filename: 'og-image.jpg',
-      title: 'LOSIA',
+      title: 'Circ',
       subtitle: 'Thời Trang Secondhand Cao Cấp',
     },
     {
@@ -141,18 +141,18 @@ async function generateOGImages() {
     {
       filename: 'og-about.jpg',
       title: 'Về Chúng Tôi',
-      subtitle: 'Câu chuyện LOSIA',
+      subtitle: 'Câu chuyện Circ',
     },
   ];
-  
+
   for (const { filename, title, subtitle } of ogImages) {
     const svg = createOGImageSVG(title, subtitle);
     const outputPath = path.join(assetsDir, filename);
-    
+
     await sharp(Buffer.from(svg))
       .jpeg({ quality: 90 })
       .toFile(outputPath);
-    
+
     console.log(`✅ Created: ${filename}`);
   }
 }
@@ -160,11 +160,11 @@ async function generateOGImages() {
 async function main() {
   try {
     console.log('🚀 Starting icon and image generation...\n');
-    
+
     await generateIcons();
     await generateFavicons();
     await generateOGImages();
-    
+
     console.log('\n✨ All icons and images generated successfully!');
     console.log('\n📁 Generated files:');
     console.log('   - public/icons/icon-*.png (PWA icons)');
@@ -172,7 +172,7 @@ async function main() {
     console.log('   - public/apple-touch-icon.png');
     console.log('   - public/favicon.ico');
     console.log('   - public/assets/og-*.jpg (OG images)');
-    
+
   } catch (error) {
     console.error('❌ Error generating icons:', error);
     process.exit(1);

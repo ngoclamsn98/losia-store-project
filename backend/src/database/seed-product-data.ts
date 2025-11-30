@@ -69,36 +69,36 @@ const ECO_IMPACT_DATA = [
 
 const CONDITION_OPTIONS = [
   {
-    label: 'Excellent',
+    label: 'Còn gần như mới',
     value: 'excellent',
     description:
-      'Practically new: shows no obvious signs of being worn or washed.',
+      'Còn gần như mới: không có dấu hiệu rõ ràng của việc đã được sử dụng hoặc giặt.',
   },
   {
-    label: 'Very Good',
+    label: 'Còn khá tốt',
     value: 'very-good',
-    description: 'No major flaws. Inspection shows: minor wear on fabric.',
+    description: 'Không có vết sứt lớn. Kiểm tra: vết mòn nhỏ trên vải.',
   },
   {
-    label: 'Good',
+    label: 'Còn tốt',
     value: 'good',
-    description: 'Worn but still in good condition. Inspection shows: minor stain.',
+    description: 'Đã bị mòn nhưng vẫn còn trong trạng thái tốt. Kiểm tra: vết sặc nhỏ.',
   },
   {
-    label: 'Flawed Gem',
+    label: 'Còn có vết sứt',
     value: 'flawed gem',
     description:
-      'Still has life left in it, but has visible flaws that may require repair. May be from a best-selling brand that is eligible for resale due to high demand. Inspection shows: exterior staining.',
+      'Còn có vết sứt: vẫn còn trong trạng thái tốt, nhưng có vết sứt nhỏ. Kiểm tra: vết sặc nhỏ.',
   },
   {
-    label: 'Rated Gem',
+    label: 'Còn có vết sặc',
     value: 'rare-gem',
-    description: 'Rare gem: from a best-selling brand that is eligible for resale due to high demand. Inspection shows: minor wear on fabric.',
+    description: 'Còn có vết sặc: vẫn còn trong trạng thái tốt, nhưng có vết sặc nhỏ.',
   },
   {
-    label: 'New With Tags',
+    label: 'Mới với nhãn',
     value: 'new-with-tags',
-    description: 'New with tags: shows no obvious signs of being worn or washed.',
+    description: 'Mới với nhãn: không có dấu hiệu rõ ràng của việc đã được sử dụng hoặc giặt.',
   },
 ];
 
@@ -138,7 +138,11 @@ async function seedProductData() {
         await productConditionRepository.save(condition);
         console.log(`✓ Created condition: ${data.label}`);
       } else {
-        console.log(`- Condition already exists: ${data.label}`);
+        // Update existing condition with new label and description
+        existing.label = data.label;
+        existing.description = data.description;
+        await productConditionRepository.save(existing);
+        console.log(`✓ Updated condition: ${data.label}`);
       }
     }
 

@@ -26,7 +26,7 @@ export function ProductStructuredData({
   price,
   currency = "VND",
   availability = "InStock",
-  brand = "LOSIA",
+  brand = "Circ",
   sku,
   url,
   rating,
@@ -166,10 +166,10 @@ export function ArticleStructuredData({
     },
     publisher: {
       "@type": "Organization",
-      name: "LOSIA",
+      name: "Circ",
       logo: {
         "@type": "ImageObject",
-        url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://losia.vn"}/assets/logo.png`,
+        url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://Circ.vn"}/assets/logo.png`,
       },
     },
     mainEntityOfPage: {
@@ -201,7 +201,7 @@ type LocalBusinessStructuredDataProps = {
 };
 
 export function LocalBusinessStructuredData({
-  name = "LOSIA",
+  name = "Circ",
   address,
   phone,
   email,
@@ -211,8 +211,8 @@ export function LocalBusinessStructuredData({
     "@context": "https://schema.org",
     "@type": "Store",
     name,
-    url: process.env.NEXT_PUBLIC_SITE_URL || "https://losia.vn",
-    logo: `${process.env.NEXT_PUBLIC_SITE_URL || "https://losia.vn"}/assets/logo.png`,
+    url: process.env.NEXT_PUBLIC_SITE_URL || "https://Circ.vn",
+    logo: `${process.env.NEXT_PUBLIC_SITE_URL || "https://Circ.vn"}/assets/logo.png`,
     ...(address && {
       address: {
         "@type": "PostalAddress",

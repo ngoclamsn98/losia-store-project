@@ -29,7 +29,7 @@ const toneMap: Record<Tone, string> = {
 };
 
 export default function CleanOutSection({
-  title = "Nhận miễn phí Losia Bag",
+  title = "Nhận miễn phí Circ Bag",
   subtitle = "Ưu đãi trong thời gian có hạn! Tiết kiệm thêm 50% phí xử lý khi gửi đồ.",
   ctaText = "Tìm hiểu thêm",
   ctaHref = "",

@@ -15,7 +15,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const query = searchParams.q || "";
   return {
-    title: query ? `Tìm kiếm: ${query} | LOSIA` : "Tìm kiếm | LOSIA",
+    title: query ? `Tìm kiếm: ${query} | Circ` : "Tìm kiếm | Circ",
     robots: { index: false, follow: true },
     alternates: { canonical: "/search" },
   };

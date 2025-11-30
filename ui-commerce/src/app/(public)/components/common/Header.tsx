@@ -3,7 +3,7 @@ import { getMenuTree } from "@/lib/api/menus";
 import HeaderClient from "./HeaderClient";
 
 /**
- * LOSIA — Global Header (SSR)
+ * Circ — Global Header (SSR)
  * Server-side rendered header with menus fetched from backend
  * Delegates interactive parts to HeaderClient component
  */

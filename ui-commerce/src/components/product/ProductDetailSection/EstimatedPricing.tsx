@@ -17,7 +17,7 @@ export default function EstimatedPricing({ oldPrice, price, shippingFee = 0 }: P
           </div>
         ) : null}
         <div>
-          Giá LOSIA: <strong>{price.toLocaleString('vi-VN')}₫</strong>
+          Giá Circ: <strong>{price.toLocaleString('vi-VN')}₫</strong>
           {discount ? ` (−${discount}%)` : ''}
         </div>
         {shippingFee ? (

@@ -63,11 +63,11 @@ export type ProductCard = {
 };
 
 // SEO Metadata
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://losia.vn").replace(/\/$/, "");
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://Circ.vn").replace(/\/$/, "");
 
 export const metadata: Metadata = {
   title: "Sản Phẩm Secondhand Chất Lượng Cao",
-  description: "Khám phá hơn 1000+ sản phẩm secondhand like-new cho bạn & bé tại LOSIA. Đồ hiệu cao cấp, giá tốt nhất, giao hàng nhanh toàn quốc. Tiết kiệm đến 90%.",
+  description: "Khám phá hơn 1000+ sản phẩm secondhand like-new cho bạn & bé tại Circ. Đồ hiệu cao cấp, giá tốt nhất, giao hàng nhanh toàn quốc. Tiết kiệm đến 90%.",
   keywords: [
     "sản phẩm secondhand",
     "đồ cũ chất lượng",
@@ -81,7 +81,7 @@ export const metadata: Metadata = {
     canonical: "/products",
   },
   openGraph: {
-    title: "Sản Phẩm Secondhand Chất Lượng Cao | LOSIA",
+    title: "Sản Phẩm Secondhand Chất Lượng Cao | Circ",
     description: "Khám phá hơn 1000+ sản phẩm secondhand like-new cho bạn & bé. Tiết kiệm đến 90%.",
     url: `${SITE_URL}/products`,
     type: "website",
@@ -90,13 +90,13 @@ export const metadata: Metadata = {
         url: `${SITE_URL}/assets/og-products.jpg`,
         width: 1200,
         height: 630,
-        alt: "LOSIA Products",
+        alt: "Circ Products",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Sản Phẩm Secondhand Chất Lượng Cao | LOSIA",
+    title: "Sản Phẩm Secondhand Chất Lượng Cao | Circ",
     description: "Khám phá hơn 1000+ sản phẩm secondhand like-new. Tiết kiệm đến 90%.",
     images: [`${SITE_URL}/assets/og-products.jpg`],
   },

@@ -11,15 +11,15 @@ import Providers from "@/app/providers/Providers";
 import Header from "@/app/(public)/components/common/Header";
 import Footer from "@/app/(public)/components/common/Footer";
 
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://losia.vn").replace(/\/$/, "");
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://circ.vn").replace(/\/$/, "");
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "LOSIA - Thời Trang Secondhand Cao Cấp | Wear What Matters",
-    template: "%s | LOSIA",
+    default: "Circ - Thời Trang Secondhand Cao Cấp | Wear What Matters",
+    template: "%s | Circ",
   },
-  description: "LOSIA - Nền tảng thời trang secondhand hàng đầu Việt Nam. Đồ like-new chất lượng cao, tiết kiệm đến 90%. Bền vững, an toàn, giao hàng nhanh toàn quốc.",
+  description: "Circ - Nền tảng thời trang secondhand hàng đầu Việt Nam. Đồ like-new chất lượng cao, tiết kiệm đến 90%. Bền vững, an toàn, giao hàng nhanh toàn quốc.",
   keywords: [
     "thời trang secondhand",
     "đồ cũ cao cấp",
@@ -28,13 +28,13 @@ export const metadata: Metadata = {
     "đồ like-new",
     "thời trang trẻ em",
     "đồ cũ chất lượng",
-    "LOSIA",
+    "Circ",
     "mua bán đồ cũ",
     "consignment",
   ],
-  authors: [{ name: "LOSIA Team" }],
-  creator: "LOSIA",
-  publisher: "LOSIA",
+  authors: [{ name: "Circ Team" }],
+  creator: "Circ",
+  publisher: "Circ",
   formatDetection: {
     email: false,
     address: false,
@@ -44,21 +44,21 @@ export const metadata: Metadata = {
     type: "website",
     locale: "vi_VN",
     url: SITE_URL,
-    siteName: "LOSIA",
-    title: "LOSIA - Thời Trang Secondhand Cao Cấp",
+    siteName: "Circ",
+    title: "Circ - Thời Trang Secondhand Cao Cấp",
     description: "Nền tảng thời trang secondhand hàng đầu Việt Nam. Đồ like-new chất lượng cao, tiết kiệm đến 90%.",
     images: [
       {
         url: `${SITE_URL}/assets/og-image.jpg`,
         width: 1200,
         height: 630,
-        alt: "LOSIA - Wear What Matters",
+        alt: "Circ - Wear What Matters",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "LOSIA - Thời Trang Secondhand Cao Cấp",
+    title: "Circ - Thời Trang Secondhand Cao Cấp",
     description: "Nền tảng thời trang secondhand hàng đầu Việt Nam. Đồ like-new chất lượng cao, tiết kiệm đến 90%.",
     images: [`${SITE_URL}/assets/og-image.jpg`],
   },
@@ -91,7 +91,7 @@ const inter = Inter({ subsets: ["latin"], display: "swap" });
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
   const enableAnalytics = process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === "1" && !!GA_ID;
-  const cdn = process.env.NEXT_PUBLIC_IMG_CDN ?? "https://cdn.losia.vn";
+  const cdn = process.env.NEXT_PUBLIC_IMG_CDN ?? "https://cdn.circ.vn";
 
   return (
     <html lang="vi">
@@ -117,10 +117,38 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="theme-color" content="#10b981" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="LOSIA" />
+        <meta name="apple-mobile-web-app-title" content="Circ" />
+        <meta name="google-site-verification" content="z3dVogKYUALjU2aowLaFPYV9cU_5C3EFDyOLpgsXl0s" />
+
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-DMGTHKR73F"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-DMGTHKR73F');
+            `,
+          }}
+        />
+
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+            })(window,document,'script','dataLayer','GTM-TMJ22FQ3');`,
+          }}
+        />
+
+
       </head>
 
       <body className={inter.className}>
+        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TMJ22FQ3"
+          height="0" width="0" style={{ display: 'none', visibility: 'hidden' }}></iframe></noscript>
+
         <Providers>
           {/* Header mới */}
           <Header />
@@ -135,7 +163,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Footer />
 
           {/* GA4 */}
-          {enableAnalytics ? (
+          {/* {enableAnalytics ? (
             <>
               <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
               <Script id="ga4-init" strategy="afterInteractive">
@@ -148,7 +176,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </Script>
               <PageView />
             </>
-          ) : null}
+          ) : null} */}
 
           {/* JSON-LD Structured Data */}
           <script
@@ -157,8 +185,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               __html: JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "Organization",
-                name: "LOSIA",
-                alternateName: "LOSIA Store",
+                name: "Circ",
+                alternateName: "Circ Store",
                 url: SITE_URL,
                 logo: {
                   "@type": "ImageObject",
@@ -178,9 +206,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   availableLanguage: ["Vietnamese", "English"],
                 },
                 sameAs: [
-                  "https://www.facebook.com/losia",
-                  "https://www.instagram.com/losia",
-                  "https://www.tiktok.com/@losia",
+                  "https://www.facebook.com/circ",
+                  "https://www.instagram.com/circ",
+                  "https://www.tiktok.com/@circ",
                 ].filter(Boolean),
               }),
             }}
@@ -191,7 +219,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               __html: JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "WebSite",
-                name: "LOSIA",
+                name: "Circ",
                 url: SITE_URL,
                 potentialAction: {
                   "@type": "SearchAction",
@@ -212,11 +240,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 "@type": "WebPage",
                 "@id": `${SITE_URL}/#webpage`,
                 url: SITE_URL,
-                name: "LOSIA - Thời Trang Secondhand Cao Cấp",
+                name: "Circ - Thời Trang Secondhand Cao Cấp",
                 description: "Nền tảng thời trang secondhand hàng đầu Việt Nam. Đồ like-new chất lượng cao, tiết kiệm đến 90%.",
                 publisher: {
                   "@type": "Organization",
-                  name: "LOSIA",
+                  name: "Circ",
                   logo: {
                     "@type": "ImageObject",
                     url: `${SITE_URL}/assets/logo.png`,

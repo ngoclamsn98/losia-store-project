@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 /**
- * LOSIA — About Us Page
+ * Circ — About Us Page
  * - TailwindCSS + shadcn/ui + Framer Motion
  * - Drop into app/(public)/about/page.tsx or as a route component.
  * - Replace images (Image src) with your assets.
@@ -42,7 +42,7 @@ function Section({
 
 const VALUES = [
   {
-    icon: <Leaf className="w-6 h-6" />, title: "Bền vững thật sự", 
+    icon: <Leaf className="w-6 h-6" />, title: "Bền vững thật sự",
     desc: "Mỗi quyết định thiết kế, vận hành, logistics đều ưu tiên giảm phát thải và kéo dài vòng đời sản phẩm.",
   },
   {
@@ -67,7 +67,7 @@ const TIMELINE = [
   },
   {
     year: "2025",
-    title: "LOSIA ra đời",
+    title: "Circ ra đời",
     text: "" +
       "Xây nền tảng secondhand-first dành cho phụ nữ & trẻ em, kết hợp Consignment + P2P + RaaS cho brand.",
   },
@@ -89,18 +89,18 @@ const TEAM = [
     name: "Thanh Tran",
     role: "Co-Founder - CTO",
     avatar: "/assets/images/about/tranthanh.png",
-    bio: " Doanh nhân xã hội với hành trình từ Lagom Vietnam đến LOSIA. Đam mê thời trang bền vững, Thanh Trần mang tầm nhìn “Secondhand First” để xây dựng nền tảng resale hàng đầu Việt Nam.",
+    bio: " Doanh nhân xã hội với hành trình từ Lagom Vietnam đến Circ. Đam mê thời trang bền vững, Thanh Trần mang tầm nhìn “Secondhand First” để xây dựng nền tảng resale hàng đầu Việt Nam.",
   },
   {
     name: "Tai Hoang",
     role: "Lead Developer",
     avatar: "/assets/images/about/hoangtai.jpg",
-    bio: "Thạc sĩ Khoa học Máy tính với hơn 10 năm quản lý hạ tầng. Tài thiết kế backbone cloud-native, đảm bảo LOSIA luôn ổn định, nhanh và sẵn sàng mở rộng.",
+    bio: "Thạc sĩ Khoa học Máy tính với hơn 10 năm quản lý hạ tầng. Tài thiết kế backbone cloud-native, đảm bảo Circ luôn ổn định, nhanh và sẵn sàng mở rộng.",
   },
 ];
 
 const PRESS = [
-  { name: "VTV", logo: "/assets/images/press/vtv.png" }, 
+  { name: "VTV", logo: "/assets/images/press/vtv.png" },
   { name: "VNExpress", logo: "/assets/images/press/vnexpress.png" },
   { name: "Tuổi Trẻ", logo: "/assets/images/press/tuoitre.png" },
   { name: "Forbes", logo: "/assets/images/press/forbes.png" },
@@ -154,7 +154,7 @@ export default function AboutUsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
               >
-                Về LOSIA
+                Về Circ
               </motion.h1>
               <p className="mt-4 text-lg text-gray-700">
                 Nền tảng resale dành cho phụ nữ & trẻ em – nơi <span className="font-semibold">Secondhand First</span> trở thành lựa chọn tự nhiên.
@@ -164,7 +164,7 @@ export default function AboutUsPage() {
                   <Link href="/women">Mua sắm ngay</Link>
                 </Button>
                 <Button asChild variant="outline" className="rounded-xl h-10 px-5">
-                  <Link href="/cleanout/choose-service">Bán cùng LOSIA</Link>
+                  <Link href="/cleanout/choose-service">Bán cùng Circ</Link>
                 </Button>
               </div>
               <div className="mt-6 flex items-center gap-4 text-sm text-gray-600">
@@ -177,7 +177,7 @@ export default function AboutUsPage() {
               <div className="aspect-[4/3] w-full rounded-3xl overflow-hidden shadow-sm ring-1 ring-black/5">
                 <Image
                   src="/assets/images/about/hero.png"
-                  alt="LOSIA — Women & Kids secondhand fashion"
+                  alt="Circ — Women & Kids secondhand fashion"
                   fill
                   className="object-cover"
                   priority
@@ -195,7 +195,7 @@ export default function AboutUsPage() {
           <div className="lg:col-span-7">
             <h2 className="text-2xl md:text-3xl font-bold">Sứ mệnh</h2>
             <p className="mt-3 text-gray-700 leading-relaxed">
-              Truyền cảm hứng cho thế hệ mua sắm mới nghĩ đến <span className="font-semibold">đồ đã qua sử dụng trước tiên</span>. 
+              Truyền cảm hứng cho thế hệ mua sắm mới nghĩ đến <span className="font-semibold">đồ đã qua sử dụng trước tiên</span>.
               Chúng tôi kết nối người bán – người mua, tăng vòng đời quần áo, và đưa trải nghiệm chuẩn UI/UX đến mọi người.
             </p>
             <ul className="mt-4 space-y-2 text-gray-700">
@@ -232,7 +232,7 @@ export default function AboutUsPage() {
           <div>
             <h2 className="text-2xl md:text-3xl font-bold">Câu chuyện</h2>
             <p className="mt-3 text-gray-700 leading-relaxed">
-              LOSIA lớn lên từ những buổi livestream bán đồ 2hand giản dị, nơi chúng tôi học cách lắng nghe và tôn trọng từng chiếc áo.
+              Circ lớn lên từ những buổi livestream bán đồ 2hand giản dị, nơi chúng tôi học cách lắng nghe và tôn trọng từng chiếc áo.
               Hôm nay, chúng tôi mang tinh thần ấy vào một nền tảng hiện đại, thân thiện, và minh bạch.
             </p>
             <div className="mt-6 space-y-5">
@@ -248,7 +248,7 @@ export default function AboutUsPage() {
           </div>
           <div>
             <div className="rounded-3xl overflow-hidden ring-1 ring-black/5 shadow-sm">
-              <Image src="/assets/images/about/story.png" alt="LOSIA Story" width={1200} height={900} className="w-full h-auto object-cover" />
+              <Image src="/assets/images/about/story.png" alt="Circ Story" width={1200} height={900} className="w-full h-auto object-cover" />
             </div>
           </div>
         </div>
@@ -280,14 +280,14 @@ export default function AboutUsPage() {
             <Card key={i} className="rounded-2xl shadow-sm">
               <CardContent className="p-0">
                 <div className="aspect-[4/3] w-full overflow-hidden rounded-t-2xl bg-gray-50">
-  <Image
-    src={m.avatar}
-    alt={m.name}
-    width={800}
-    height={600}
-    className="w-full h-full object-contain"
-  />
-</div>
+                  <Image
+                    src={m.avatar}
+                    alt={m.name}
+                    width={800}
+                    height={600}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
                 <div className="p-4">
                   <div className="font-semibold">{m.name}</div>
                   <div className="text-sm text-gray-500">{m.role}</div>
@@ -310,7 +310,7 @@ export default function AboutUsPage() {
           ))}
         </div>
         <div className="mt-6 grid lg:grid-cols-3 gap-4">
-          <Card className="rounded-2xl"><CardContent className="p-6 text-sm text-gray-700">“Từ livestream đến nền tảng, LOSIA đang đưa secondhand trở thành lựa chọn mặc định.”</CardContent></Card>
+          <Card className="rounded-2xl"><CardContent className="p-6 text-sm text-gray-700">“Từ livestream đến nền tảng, Circ đang đưa secondhand trở thành lựa chọn mặc định.”</CardContent></Card>
           <Card className="rounded-2xl"><CardContent className="p-6 text-sm text-gray-700">“UI/UX mượt mà, ảnh sản phẩm đẹp và nhất quán.”</CardContent></Card>
           <Card className="rounded-2xl"><CardContent className="p-6 text-sm text-gray-700">“Dress Me AI™ giúp tôi tìm đúng món trong vài giây.”</CardContent></Card>
         </div>
@@ -336,7 +336,7 @@ export default function AboutUsPage() {
       <Section id="faq" className="py-10">
         <h2 className="text-2xl md:text-3xl font-bold text-center">Câu hỏi thường gặp</h2>
         <div className="mt-6 grid lg:grid-cols-2 gap-6">
-          <Card className="rounded-2xl"><CardHeader><CardTitle className="text-base">LOSIA bán gì?</CardTitle></CardHeader><CardContent className="text-sm text-gray-700">Quần áo & phụ kiện secondhand/like-new cho phụ nữ & trẻ em, được kiểm tra chất lượng & chụp ảnh đẹp.</CardContent></Card>
+          <Card className="rounded-2xl"><CardHeader><CardTitle className="text-base">Circ bán gì?</CardTitle></CardHeader><CardContent className="text-sm text-gray-700">Quần áo & phụ kiện secondhand/like-new cho phụ nữ & trẻ em, được kiểm tra chất lượng & chụp ảnh đẹp.</CardContent></Card>
           <Card className="rounded-2xl"><CardHeader><CardTitle className="text-base">Tôi có thể bán đồ như thế nào?</CardTitle></CardHeader><CardContent className="text-sm text-gray-700">Chọn dịch vụ Clean Out để gửi đồ hoặc tự đăng bán (P2P). Đồ đạt chuẩn sẽ được niêm yết trên sàn.</CardContent></Card>
           <Card className="rounded-2xl"><CardHeader><CardTitle className="text-base">Dress Me AI™ hoạt động ra sao?</CardTitle></CardHeader><CardContent className="text-sm text-gray-700">Bạn tải ảnh món yêu thích; hệ thống sẽ gợi ý các sản phẩm tương tự theo kiểu dáng, chất liệu và tông màu.</CardContent></Card>
           <Card className="rounded-2xl"><CardHeader><CardTitle className="text-base">Chính sách đổi trả?</CardTitle></CardHeader><CardContent className="text-sm text-gray-700">Trong trường hợp sản phẩm không đúng mô tả, chúng tôi hỗ trợ đổi trả/hoàn tiền linh hoạt.</CardContent></Card>

@@ -229,16 +229,16 @@ export async function generateMetadata({
 
   if (!product) {
     return {
-      title: 'Sản phẩm không tồn tại | LOSIA Store',
+      title: 'Sản phẩm không tồn tại | Circ Store',
       description: 'Sản phẩm bạn đang tìm không tồn tại hoặc đã bị xóa.'
     };
   }
 
   const defaultVariant = product.variants?.find(v => v.isDefault) || product.variants?.[0];
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://losia.vn').replace(/\/$/, '');
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://Circ.vn').replace(/\/$/, '');
   const url = `${baseUrl}/product/${product.slug}`;
 
-  const title = product.seoTitle || `${product.name} | LOSIA Store`;
+  const title = product.seoTitle || `${product.name} | Circ Store`;
   const description = product.seoDescription ||
     product.description ||
     `${product.name} - Giá: ${formatVND(defaultVariant?.price || 0)}`;
@@ -254,7 +254,7 @@ export async function generateMetadata({
       title,
       description,
       url,
-      siteName: 'LOSIA Store',
+      siteName: 'Circ Store',
       type: 'website',
       images: [{ url: image }],
     },
@@ -290,14 +290,14 @@ export default async function ProductDetailPage({
     : ['/assets/images/main/product1.jpg'];
 
   // JSON-LD cho SEO
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://losia.vn').replace(/\/$/, '');
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://Circ.vn').replace(/\/$/, '');
   const productLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.title,
     image: gallery,
     description: product.description?.slice(0, 300),
-    brand: product.brand || 'LOSIA',
+    brand: product.brand || 'Circ',
     sku: product.sku || product.id,
     offers: {
       '@type': 'Offer',

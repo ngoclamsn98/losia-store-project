@@ -5,7 +5,7 @@ import { useState } from "react";
 
 export default function Gallery({ images }: { images: Array<{ src: string; alt?: string }> }) {
   const [idx, setIdx] = useState(0);
-  const list = images?.length ? images : [{ src: "/assets/images/main/product1.jpg", alt: "Losia product" }];
+  const list = images?.length ? images : [{ src: "/assets/images/main/product1.jpg", alt: "Circ product" }];
   const safe = Math.min(Math.max(idx, 0), list.length - 1);
 
   return (

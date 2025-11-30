@@ -1,6 +1,6 @@
 {
-  "name": "LOSIA - Thời Trang Secondhand Cao Cấp",
-  "short_name": "LOSIA",
+  "name": "Circ - Thời Trang Secondhand Cao Cấp",
+  "short_name": "Circ",
   "description": "Nền tảng thời trang secondhand hàng đầu Việt Nam. Đồ like-new chất lượng cao, tiết kiệm đến 90%.",
   "start_url": "/",
   "display": "standalone",
@@ -57,8 +57,10 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["shopping", "lifestyle"],
+  "categories": [
+    "shopping",
+    "lifestyle"
+  ],
   "lang": "vi",
   "dir": "ltr"
 }
-

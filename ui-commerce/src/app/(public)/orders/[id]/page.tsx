@@ -3,7 +3,7 @@ import { auth } from '@/auth';
 import OrderDetailClient from './OrderDetailClient';
 
 export const metadata = {
-  title: 'Order Details - LOSIA Store',
+  title: 'Order Details - Circ Store',
   description: 'View your order details',
 };
 

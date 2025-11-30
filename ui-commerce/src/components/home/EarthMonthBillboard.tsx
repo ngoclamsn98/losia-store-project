@@ -18,7 +18,7 @@ interface EarthMonthBillboardProps {
 
 export default function EarthMonthBillboard({
   title = "Nhận ngay cơ hội trúng 500,000đ!",
-  subtitle = `Like 5 sản phẩm, lưu 3 tìm kiếm và yêu cầu túi Losia bag. 
+  subtitle = `Like 5 sản phẩm, lưu 3 tìm kiếm và yêu cầu túi Circ bag. 
 Hoàn thành cả 3 để nhận thêm cơ hội. Kết thúc 02/09.`,
   ctaText = "TÌM HIỂU THÊM",
   ctaHref = "",
@@ -64,17 +64,17 @@ Hoàn thành cả 3 để nhận thêm cơ hội. Kết thúc 02/09.`,
           </div>
         </div>
 
- {/* Image block (contain + center) */}
- <div className="relative w-full sm:w-1/2 flex items-center justify-center p-2">
-   <img
-     src={imageSrc}
-     alt="Earth Month sweepstakes"
-     loading="lazy"
-     width={640}
-     height={400}
-     className="max-h-full max-w-full object-contain"
-   />
- </div>
+        {/* Image block (contain + center) */}
+        <div className="relative w-full sm:w-1/2 flex items-center justify-center p-2">
+          <img
+            src={imageSrc}
+            alt="Earth Month sweepstakes"
+            loading="lazy"
+            width={640}
+            height={400}
+            className="max-h-full max-w-full object-contain"
+          />
+        </div>
       </div>
     </div>
   );

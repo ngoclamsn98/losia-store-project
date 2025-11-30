@@ -6,6 +6,7 @@ import { Order } from './entities/order.entity';
 import { ProductVariant } from '../products/entities/product-variant.entity';
 import { CartModule } from '../cart/cart.module';
 import { VouchersModule } from '../vouchers/vouchers.module';
+import { MailModule } from '../mail/mail.module';
 import { ViettelPostModule } from '../viettel-post/viettel-post.module';
 
 @Module({
@@ -14,10 +15,11 @@ import { ViettelPostModule } from '../viettel-post/viettel-post.module';
     CartModule,
     VouchersModule,
     ViettelPostModule,
+    MailModule
   ],
   controllers: [OrdersController],
   providers: [OrdersService],
   exports: [OrdersService],
 })
-export class OrdersModule {}
+export class OrdersModule { }
 

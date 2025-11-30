@@ -9,9 +9,9 @@ function toFriendly(base: string) {
     .replace(/[0O]/g, "Q").replace(/[I1]/g, "X").replace(/L/g, "Y");
 }
 
-export function createOrderCode(prefix = "LOSIA") {
+export function createOrderCode(prefix = "Circ") {
   const d = new Date();
-  const ymd = d.toISOString().slice(0,10).replace(/-/g,""); // YYYYMMDD
+  const ymd = d.toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
   const raw = ulid(); // 26 chars
   const short = toFriendly(raw);
   return `${prefix}-${ymd}-${short}`;

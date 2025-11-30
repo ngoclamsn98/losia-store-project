@@ -489,7 +489,7 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
               <Link href="/" className="flex items-center">
                 <Image
                   src="/assets/icons/logo-icon.svg"
-                  alt="Losia"
+                  alt="Circ"
                   width={120}
                   height={40}
                   priority
